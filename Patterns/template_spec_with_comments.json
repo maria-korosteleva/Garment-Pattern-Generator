@@ -1,0 +1,243 @@
+// Specification of a 2D pattern template that describes the structure and the ways it can be modified
+// All of the string constants here are keywords with exeption of panel and parameter ids
+{
+  // Section that fully describes the pattern. This section is enough to render a pattern in whatever form needed.  
+  "pattern" : {
+    // List of panels that constitute the pattern. The list is unordered
+    "panels" : {
+	  // Description of a panel named "front". Panel name can be chosen arbitrarily and serves as its id in other sections of the spec. 
+	  // it's better be meaningful for visualization and debug puproses
+      "front" : {
+		// Full list of vertices (corners) of a panel.
+        "vertices" : [
+		  // 2D vertex coordinates (as panel is 2D structure). They are
+		  // * local w.r.t. to panel (=> independent between panels)
+		  // * given from top-left corner down (flipped xOy). It's recommended to put one of the vertices at (0, 0)
+		  // * Use non-negative values unless absolutely necessary
+		  // * Use realistic measurements and meters as units
+		  // Vertex id is its position in this list, starting from 0
+		  // Order, in which vertices are specified, does NOT matter
+          [200, 100], 
+          [400, 100], 
+          [500, 350],
+          [100, 350]
+        ],
+		// Sequence of edges -- straight or smooth curve segments that connect vertices
+		// Edges are directed, and the list IS ordered. 
+		// Connected together as specified, edges form a directed closed loop that represents panel border
+		// Edge id is its position in this list, starting from 0
+        "edges" : [
+		  // each edge is represented as a simple structure
+          {
+			// ids of vertices this edge connects represented as a list of 2 ids
+			// edge has a direction: it goes from the first endpoint (start) to the second (end)
+            "endpoints" : [0, 1],
+			// edge can be a Quadratic Bezier curve. 'curvature' gives coordinated of the curve control vertex
+			// Coordinates are given in local frame theating an edge as vector (1, 0) -- this simplifies modifications
+            "curvature" : [0.5, 0.2]
+          },
+          {
+            "endpoints" : [1, 2]
+            // an edge can simply be a straight line, in this case, there is no need to specify curvature
+          },
+          {
+            "endpoints" : [2, 3],
+            "curvature" : [0.5, -0.2]
+          },
+          {
+            "endpoints" : [3, 0]
+          }
+        ]
+      }, 
+	  // Second panel of this template "skirt". Same principles
+      "back": {
+        "vertices" : [
+          [200, 100], 
+          [400, 100], 
+          [500, 350],
+          [100, 350]
+        ],
+		// all edges are straight
+        "edges": [
+          {
+            "endpoints" : [1, 0]
+          },
+          {
+            "endpoints" : [0, 3]
+          },
+          {
+            "endpoints" : [3, 2]
+          },
+          {
+            "endpoints" : [2, 1]
+          }
+        ]
+      }
+    },
+    // Sewing information of which edges should be stitched together to form a garment
+	// the ordering of stitches does not matters
+    "stitches" : [
+	  // each stitch is just a list of edges to connect. 
+	  // it supports 1-to-1 and 1-to-many stitches
+      {
+		// one side of a stitch -- each stitch has only one 'from' value
+		// in case of 1-to-many, this should be the longest side
+        "from": {
+		  // for edge identification, we need to know the panel name 
+          "panel" : "front",
+		  // and the edge id in that panel.
+          "edge" : 1
+        },
+		// there could be one or multiple 'to's -- e.g. to describe sleeves
+        "to": {
+          "panel" : "back",
+          "edge" : 1
+        }
+      },
+      {
+        "from": {
+          "panel" : "front",
+          "edge" : 3
+        },
+        "to": {
+          "panel" : "back",
+          "edge" : 3
+        }
+      }
+    ]
+  },
+
+  // This section describes how the pattern above can be changed
+  // as a list of multiplicative parameters that influence panel edges
+  // order of parameter definitions here doesn't matter, and the application order is described separately (below)
+  "parameters": {
+	// a parameter named "length". Parameter name can be chosen arbitry and serves as its id in other sections of the spec. 
+	// it's better be meaningful for debug puproses
+    "length" : {
+	  // The value of the parameter that corresponds to pattern state described above: 
+	  // when the value is updated, pattern information (vertex positions) should be updated as well
+	  // In templates, value equals 1 for every parameter -- indicating that no changes has been made
+	  // there could be one or more values for a parameter depending on the parameter type 
+	  // (see example below for curve parameters)
+	  // For 'length' parameters value is a scalar
+      "value" : 1,
+	  // The allowed range a parameter could take. Allows to control intensity of change 
+	  // when parameter is varied
+      "range" : [0.3, 2],
+	  // parameter type: it dictates how the parameter variation should be processed
+	  // Some parameter object properties (number of values, structure of edge_lists) vary between types.
+      // Allowed types:
+	  // * "length" -- influece the length of edges it applies to
+	  // * "curve" -- see below -- controls edge curvature
+      "type" : "length",
+	  // List of panels and edges the parameter applies to
+	  // the order does NOT matter
+	  // Note that such properties as Symmetric application of a parameter or - Applying parameter to both sides of the stitch
+      // are not guaranteed by the system and shoud be ensured through accurate parameter influence description
+      "influence" : [
+		// each influence instance corresponds to a panel and 1 or more edges within it
+		// there is NO need to list panels that don't have edges influenced by the parameter
+        {
+		  // panel name
+          "panel": "front",
+		  // list of edges within panel. 
+		  // Order DOES matter. It might influence the result of applying the parameter
+          "edge_list" : [
+		    // For the 'length' parameter type, each entry is an object. For "curve", see example below
+            {
+			  // edge id is within the panel
+              "id" : 1, 
+			  // the vertex of the edge that should be moved when parameter is applied.
+			  // It can be used to ensure simmetry of parameter application to different edges 
+			  // and to preserve adjusent edges
+			  // Allowed values: 
+			  // * 'start' -- only the first vertex of the edge moves
+			  // * 'end' -- only the last vertex of the edge moves
+			  // * 'both' -- both verticed of the edge move equally
+              "direction" : "end"
+            }, 
+			// one more edge within same panel influenced by the parameter
+            {
+              "id" : 3, 
+              "direction" : "start"
+            }
+          ]
+        },
+		// one more panel with edges influenced by the parameter
+        {
+          "panel": "back",
+          "edge_list" : [
+            {
+              "id" : 1, 
+              "direction" : "end"
+            }, 
+            {
+              "id" : 3, 
+              "direction" : "start"
+            }
+          ]
+        }
+      ]
+    }, 
+	// one more parameter of 'length' type
+    "low_wide" : {
+      "value" : 1,
+      "range" : [0.3, 1.5],
+      "type" : "length", 
+      "influence" : [
+        {
+          "panel": "front",
+          "edge_list" : [
+            {
+              "id" : 2, 
+              "direction" : "both"
+            }
+          ]
+        },
+        {
+          "panel": "back",
+          "edge_list" : [
+            {
+              "id" : 2, 
+              "direction" : "both"
+            }
+          ]
+        }
+      ]
+    }, 
+	// a parameter of 'curve' type
+	// ! Note the differences in the object structure
+    "low_wide_curve" : {
+	  // the 'curve' parameters are allowed to have two values
+	  // that contol x & y components of a control vertex of edges they apply to
+	  // IF there is only one (scalar) value, it applies to the Y component of control vertex
+      "value" : [1, 1],
+	  // since there are two values, there are also two ranges
+	  // => they can be the same or different!
+      "range" : [
+        [0, 1],
+        [-1, 1]
+      ],
+      "type" : "curve", 
+      "influence" : [
+        {
+          "panel": "front",
+		  // !! Note that edge list is simplified to be
+		  // just a simple list of edge ids within the panel
+		  // Order DOES matter, as before
+          "edge_list" : [2]
+        }
+      ]
+    }
+  },
+
+  // Parameters might be interdependent: One edge extension could lead to change of direction in another edge.
+  // But it's guaranteed that parameters are processed one by one:
+  // moving to next parameter only when all the edges dependent on current parameter have been updated. 
+  //
+  // This section described the order in which parameneters are applied when modifuing the template	
+  // An ORDERED list of parameter names
+  "parameter_order": [
+    "length", "low_wide", "low_wide_curve"
+  ]
+}

@@ -2,6 +2,7 @@
   "properties" : {
     "curvature_coords" : "absolute"
   },
+  
   "pattern" : {
     "panels" : {
       "sleeve" : {

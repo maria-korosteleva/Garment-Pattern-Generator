@@ -1,4 +1,7 @@
 {
+  "properties" : {
+    "curvature_coords" : "relative"
+  },
   "pattern" : {
     "panels" : {
       "front" : {

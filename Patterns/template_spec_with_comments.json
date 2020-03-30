@@ -1,6 +1,16 @@
 // Specification of a 2D pattern template that describes the structure and the ways it can be modified
 // All of the string constants here are keywords with exeption of panel and parameter ids
 {
+  // Properties give additional instructions on how to read this template file
+  "properties" : {
+	// Describes the way cordinates of the curvature control points are specified in this template. 
+    // Allowed values:
+    // * "relative" -- Coordinates are given in local edge frame theating an edge as vector (1, 0)
+    // * "absolute" -- Coordinated are given in world frame, the same coordinate space as panel vertices.  
+	// The chosen convention has to be used for all edge curvature specifications in the pattern!
+    "curvature_coords" : "relative"
+  },
+
   // Section that fully describes the pattern. This section is enough to render a pattern in whatever form needed.  
   "pattern" : {
     // List of panels that constitute the pattern. The list is unordered
@@ -22,9 +32,11 @@
           [500, 350],
           [100, 350]
         ],
-		// Sequence of edges -- straight or smooth curve segments that connect vertices
-		// Edges are directed, and the list IS ordered. 
-		// Connected together as specified, edges form a directed closed loop that represents panel border
+		// Sequence of edges that describes panel border.
+		// Listing edges sepaeately allows giving them properties (stright or curved) and directions: 
+		// * Edges are directed, 
+		// * the list IS ordered. 
+		// * Connected together as specified, edges form a directed closed loop that represents panel border.
 		// Edge id is its position in this list, starting from 0
         "edges" : [
 		  // each edge is represented as a simple structure
@@ -33,7 +45,7 @@
 			// edge has a direction: it goes from the first endpoint (start) to the second (end)
             "endpoints" : [0, 1],
 			// edge can be a Quadratic Bezier curve. 'curvature' gives coordinated of the curve control vertex
-			// Coordinates are given in local frame theating an edge as vector (1, 0) -- this simplifies modifications
+			// Coordinates are given in local frame following "relative" convention stated in "properties" section
             "curvature" : [0.5, 0.2]
           },
           {

@@ -1,20 +1,20 @@
 {
   "properties" : {
-    "curvature_coords" : "relative"
+    "curvature_coords" : "absolute"
   },
   "pattern" : {
     "panels" : {
       "sleeve" : {
         "vertices" : [
-          [0, 0], 
-          [160, 0], 
-          [160, 120],
-          [0, 120]
+          [160, 280], 
+          [480, 280], 
+          [480, 400],
+          [160, 400]
         ],
         "edges" : [
           {
             "endpoints" : [0, 1],
-            "curvature" : [0.5, -0.41221875]
+            "curvature" : [320, 148.09]
           },
           {
             "endpoints" : [1, 2]
@@ -30,11 +30,11 @@
       }, 
       "front": {
         "vertices" : [
-          [30, 0], 
-          [50, 0], 
-          [50, 150],
-          [0, 150], 
-          [0, 80]
+          [320, 220], 
+          [320, 180], 
+          [620, 180],
+          [620, 280], 
+          [480, 280]
         ],
         "edges": [
           {
@@ -51,7 +51,7 @@
           },
           {
             "endpoints" : [4, 0],
-            "curvature" : [0.5, 0.1717]
+            "curvature" : [412.5, 223.46]
           }
         ]
       }
@@ -91,7 +91,7 @@
           "edge_list" : [
             {
               "id" : 4, 
-              "direction" : "both"
+              "direction" : "start"
             }
           ]
         }
@@ -131,6 +131,6 @@
   },
 
   "parameter_order": [
-    "top_length"
+    "sleeve_depth", "sleeve_curve"
   ]
 }

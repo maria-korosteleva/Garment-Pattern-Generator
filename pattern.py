@@ -50,15 +50,18 @@ class PatternWrapper():
             self.template = json.load(f_json)
         self.pattern = self.template['pattern']
         self.parameters = self.template['parameters']
+        self.properties = self.template['properties']  # TODO mandatory?
 
         self.scaling_for_drawing = self.__verts_to_px_scaling_factor()
+
+        # template normalization - panel translations and curvature to relative coords
+        self.__normalize_template()
 
         # randomization setup
         self.parameter_processors = {
             'length': self.__extend_edge,
             'curve': self.__curve_edge
         }
-
         if randomize:
             self.__randomize_parameters()
             self.__update_pattern_by_param_values()
@@ -83,6 +86,30 @@ class PatternWrapper():
         self.__save_as_image(svg_file, png_file)
 
     # --------- Pattern operations ----------
+    def __normalize_template(self):
+        """
+        Updated template definition for convenient processing:
+            * Converts curvature coordinates to realitive ones (in edge frame) -- for easy length scaling
+            * snaps each panel to start at (0, 0)
+        """
+        for panel in self.pattern['panels']:
+            if self.properties['curvature_coords'] == 'absolute':
+                # convert curvature 
+                vertices = self.pattern['panels'][panel]['vertices']
+                edges = self.pattern['panels'][panel]['edges']
+                for edge in edges:
+                    if 'curvature' in edge:
+                        edge['curvature'] = self.__control_to_relative_coord(
+                            vertices[edge['endpoints'][0]], 
+                            vertices[edge['endpoints'][1]], 
+                            edge['curvature']
+                        )
+            # normalize tranlsation after curvature is converted!
+            self.__normalize_panel_translation(panel)
+        # now we have new property
+        self.properties['curvature_coords'] = 'relative'
+        # self.template['properties']['curvature_coords'] == 'relative'
+
     @staticmethod
     def __new_value(param_range):
         """Random value within range given as an iteratable"""
@@ -202,7 +229,7 @@ class PatternWrapper():
 
         panel['vertices'] = vertices.tolist()
     
-    def __calc_control_coord(self, start, end, control_scale):
+    def __control_to_abs_coord(self, start, end, control_scale):
         """
         Derives absolute coordinates of Bezier control point given as an offset
         """
@@ -213,6 +240,32 @@ class PatternWrapper():
         control_point = control_start + control_scale[1] * edge_perp
 
         return control_point 
+    
+    def __control_to_relative_coord(self, start, end, control_point):
+        """
+        Derives relative (local) coordinates of Bezier control point given as 
+        a absolute (world) coordinates
+        """
+        start, end, control_point = np.array(start), np.array(end), \
+            np.array(control_point)
+
+        control_scale = [None, None]
+        edge_vec = end - start
+        edge_len = np.linalg.norm(edge_vec)
+        control_vec = control_point - start
+        
+        # X
+        # project control_vec on edge_vec by dot product properties
+        control_projected_len = edge_vec.dot(control_vec) / edge_len 
+        control_scale[0] = control_projected_len / edge_len
+        # Y
+        control_projected = edge_vec * control_scale[0]
+        vert_comp = control_vec - control_projected  
+        control_scale[1] = np.linalg.norm(vert_comp) / edge_len
+        # Distinguish left&right curvature
+        control_scale[1] *= np.sign(np.cross(control_point, edge_vec))
+
+        return control_scale 
 
     def __edge_length(self, panel, edge):
         panel = self.pattern['panels'][panel]
@@ -266,7 +319,7 @@ class PatternWrapper():
             end = vertices[edge['endpoints'][1]]
             if ('curvature' in edge):
                 control_scale = edge['curvature']
-                control_point = self.__calc_control_coord(
+                control_point = self.__control_to_abs_coord(
                     start, end, control_scale)
                 path.push(
                     ['Q', control_point[0], control_point[1], end[0], end[1]])
@@ -324,12 +377,11 @@ if __name__ == "__main__":
     random.seed(timestamp)
 
     base_path = Path('F:/GK-Pattern-Data-Gen/')
-    pattern = PatternWrapper(Path('./Patterns') / 'sleeve_test.json',
+    pattern = PatternWrapper(Path('./Patterns') / 'sleeve_test_abs_curv.json',
                              randomize=True)
-    # print (pattern.pattern['panels'])
 
     # log to file
-    log_folder = 'sleeve_top_edge_' + datetime.now().strftime('%y%m%d-%H-%M')
+    log_folder = 'curve_convertion_rand_' + datetime.now().strftime('%y%m%d-%H-%M')
     os.makedirs(base_path / log_folder)
 
     pattern.serialize(base_path / log_folder, to_subfolder=False)

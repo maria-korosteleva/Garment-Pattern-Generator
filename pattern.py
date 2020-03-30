@@ -324,12 +324,12 @@ if __name__ == "__main__":
     random.seed(timestamp)
 
     base_path = Path('F:/GK-Pattern-Data-Gen/')
-    pattern = PatternWrapper(Path('./Patterns') / 'skirt_per_panel.json',
-                             randomize=False)
+    pattern = PatternWrapper(Path('./Patterns') / 'sleeve_test.json',
+                             randomize=True)
     # print (pattern.pattern['panels'])
 
     # log to file
-    log_folder = 'base_skirt_per_panel_' + datetime.now().strftime('%y%m%d-%H-%M')
+    log_folder = 'sleeve_top_edge_' + datetime.now().strftime('%y%m%d-%H-%M')
     os.makedirs(base_path / log_folder)
 
     pattern.serialize(base_path / log_folder, to_subfolder=False)

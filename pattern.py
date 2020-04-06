@@ -14,23 +14,16 @@ from datetime import datetime
 import time
 
 
-class PatternWrapper():
+class BasicPatternWrapper():
     """
-        Loading, represenation convertion, parameter randomization of a pattern template
-        in custom JSON format.
+        Loading & visualization of a pattern specification in custom JSON format.
         Input:
             * Pattern template in custom JSON format
         Output representations: 
             * Pattern instance in custom JSON format 
-                (with updated parameter values and vertex positions)
+                * In the current state
             * SVG (stitching info is lost)
             * PNG for visualization
-
-        Implementation limitations: 
-            * Parameter randomization is only performed once on loading
-            * Only accepts unchanged template files (all parameter values = 1) 
-            otherwise, parameter values will go out of control and outside of the original range
-            (with no way to recognise it)
         
         Not implemented: 
             * Convertion to NN-friendly format
@@ -41,30 +34,21 @@ class PatternWrapper():
 
     # ------------ Interface -------------
 
-    def __init__(self, template_file, randomize=""):
+    def __init__(self, pattern_file):
 
-        self.template_file = Path(template_file)
-        self.name = self.__get_name(self.template_file.stem, randomize)
+        self.spec_file = Path(pattern_file)
+        self.name = self.spec_file.stem
 
-        with open(template_file, 'r') as f_json:
-            self.template = json.load(f_json)
-        self.pattern = self.template['pattern']
-        self.parameters = self.template['parameters']
-        self.properties = self.template['properties']  # TODO mandatory?
+        with open(pattern_file, 'r') as f_json:
+            self.spec = json.load(f_json)
+        self.pattern = self.spec['pattern']
+        self.parameters = self.spec['parameters']
+        self.properties = self.spec['properties']  # mandatory part
 
-        self.scaling_for_drawing = self.__verts_to_px_scaling_factor()
+        self.scaling_for_drawing = self._verts_to_px_scaling_factor()
 
         # template normalization - panel translations and curvature to relative coords
-        self.__normalize_template()
-
-        # randomization setup
-        self.parameter_processors = {
-            'length': self.__extend_edge,
-            'curve': self.__curve_edge
-        }
-        if randomize:
-            self.__randomize_parameters()
-            self.__update_pattern_by_param_values()
+        self._normalize_template()
 
     def serialize(self, path, to_subfolder=True):
         # log context
@@ -81,12 +65,12 @@ class PatternWrapper():
 
         # Save specification
         with open(spec_file, 'w') as f_json:
-            json.dump(self.template, f_json, indent=2)
+            json.dump(self.spec, f_json, indent=2)
         # visualtisation
-        self.__save_as_image(svg_file, png_file)
+        self._save_as_image(svg_file, png_file)
 
     # --------- Pattern operations ----------
-    def __normalize_template(self):
+    def _normalize_template(self):
         """
         Updated template definition for convenient processing:
             * Converts curvature coordinates to realitive ones (in edge frame) -- for easy length scaling
@@ -99,23 +83,195 @@ class PatternWrapper():
                 edges = self.pattern['panels'][panel]['edges']
                 for edge in edges:
                     if 'curvature' in edge:
-                        edge['curvature'] = self.__control_to_relative_coord(
+                        edge['curvature'] = self._control_to_relative_coord(
                             vertices[edge['endpoints'][0]], 
                             vertices[edge['endpoints'][1]], 
                             edge['curvature']
                         )
             # normalize tranlsation after curvature is converted!
-            self.__normalize_panel_translation(panel)
+            self._normalize_panel_translation(panel)
         # now we have new property
         self.properties['curvature_coords'] = 'relative'
-        # self.template['properties']['curvature_coords'] == 'relative'
 
-    @staticmethod
-    def __new_value(param_range):
+    def _normalize_panel_translation(self, panel_name):
+        """
+        Shifts all panel vertices s.t. panel bounding box starts at zero
+        for uniformity across panels & positive coordinates
+        """
+        panel = self.pattern['panels'][panel_name]
+        vertices = np.asarray(panel['vertices'])
+        offset = np.min(vertices, axis=0)
+        vertices = vertices - offset
+
+        panel['vertices'] = vertices.tolist()
+    
+    def _control_to_abs_coord(self, start, end, control_scale):
+        """
+        Derives absolute coordinates of Bezier control point given as an offset
+        """
+        control_start = control_scale[0] * (start + end)
+
+        edge = end - start
+        edge_perp = np.array([-edge[1], edge[0]])
+        control_point = control_start + control_scale[1] * edge_perp
+
+        return control_point 
+    
+    def _control_to_relative_coord(self, start, end, control_point):
+        """
+        Derives relative (local) coordinates of Bezier control point given as 
+        a absolute (world) coordinates
+        """
+        start, end, control_point = np.array(start), np.array(end), \
+            np.array(control_point)
+
+        control_scale = [None, None]
+        edge_vec = end - start
+        edge_len = np.linalg.norm(edge_vec)
+        control_vec = control_point - start
+        
+        # X
+        # project control_vec on edge_vec by dot product properties
+        control_projected_len = edge_vec.dot(control_vec) / edge_len 
+        control_scale[0] = control_projected_len / edge_len
+        # Y
+        control_projected = edge_vec * control_scale[0]
+        vert_comp = control_vec - control_projected  
+        control_scale[1] = np.linalg.norm(vert_comp) / edge_len
+        # Distinguish left&right curvature
+        control_scale[1] *= np.sign(np.cross(control_point, edge_vec))
+
+        return control_scale 
+
+    def _edge_length(self, panel, edge):
+        panel = self.pattern['panels'][panel]
+        v_id_start, v_id_end = tuple(panel['edges'][edge]['endpoints'])
+        v_start, v_end = np.array(panel['vertices'][v_id_start]), \
+            np.array(panel['vertices'][v_id_end])
+        
+        return np.linalg.norm(v_end - v_start)
+
+    # -------- Drawing ---------
+
+    def _verts_to_px_scaling_factor(self):
+        """
+        Estimates multiplicative factor to convert vertex units to pixel coordinates
+        Heuritic approach, s.t. all the patterns from the same template are displayed similarly
+        """
+        any_panel = next(iter(self.pattern['panels'].values()))
+        vertices = np.asarray(any_panel['vertices'])
+
+        box_size = np.max(vertices, axis=0) - np.min(vertices, axis=0) 
+        if box_size[0] < 2:      # meters
+            scaling_to_px = 200
+        elif box_size[0] < 200:  # sentimeters
+            scaling_to_px = 2
+        else:                    # pixels
+            scaling_to_px = 1  
+
+        return scaling_to_px
+
+    def _draw_a_panel(self, drawing, panel_name, offset=[0, 0], scaling=1):
+        """
+        Adds a requested panel to the svg drawing with given offset and scaling
+        Assumes (!!) 
+            that edges are correctly oriented to form a closed loop
+        Returns 
+            the lower-right vertex coordinate for the convenice of future offsetting.
+        """
+        panel = self.pattern['panels'][panel_name]
+        vertices = np.asarray(panel['vertices'], dtype=int)
+
+        # Scale & shift vertices for visibility
+        vertices = vertices * scaling + offset
+
+        # draw
+        start = vertices[panel['edges'][0]['endpoints'][0]]
+        path = drawing.path(['M', start[0], start[1]],
+                            stroke='black', fill='rgb(255,217,194)')
+        for edge in panel['edges']:
+            # TODO add darts visualization here!
+            start = vertices[edge['endpoints'][0]]
+            end = vertices[edge['endpoints'][1]]
+            if ('curvature' in edge):
+                control_scale = edge['curvature']
+                control_point = self._control_to_abs_coord(
+                    start, end, control_scale)
+                path.push(
+                    ['Q', control_point[0], control_point[1], end[0], end[1]])
+            else:
+                path.push(['L', end[0], end[1]])
+        path.push('z')  # path finished
+        drawing.add(path)
+
+        # name the panel
+        panel_center = np.mean(vertices, axis=0)
+        drawing.add(drawing.text(panel_name, insert=panel_center, fill='blue'))
+
+        return np.max(vertices[:, 0]), np.max(vertices[:, 1])
+
+    def _save_as_image(self, svg_filename, png_filename):
+        """Saves current pattern in svg and png format for visualization"""
+
+        dwg = svgwrite.Drawing(svg_filename.as_posix(), profile='tiny')
+        base_offset = [40, 40]
+        panel_offset = [0, 0]
+        for panel in self.pattern['panels']:
+            panel_offset = self._draw_a_panel(
+                dwg, panel,
+                offset=[panel_offset[0] + base_offset[0], base_offset[1]],
+                scaling=self.scaling_for_drawing)
+
+        # final sizing & save
+        dwg['width'] = str(panel_offset[0] + base_offset[0]) + 'px'
+        dwg['height'] = str(panel_offset[1] + base_offset[1]) + 'px'
+        dwg.save(pretty=True)
+
+        # to png
+        svg_pattern = svglib.svg2rlg(svg_filename.as_posix())
+        renderPM.drawToFile(svg_pattern, png_filename, fmt='png')
+
+
+class RandomPatternWrapper(BasicPatternWrapper):
+    """
+        Parameter randomization of a pattern template in custom JSON format.
+        Input:
+            * Pattern template in custom JSON format
+        Output representations: 
+            * Pattern instance in custom JSON format 
+                (with updated parameter values and vertex positions)
+            * SVG (stitching info is lost)
+            * PNG for visualization
+
+        Implementation limitations: 
+            * Parameter randomization is only performed once on loading
+            * Only accepts unchanged template files (all parameter values = 1) 
+            otherwise, parameter values will go out of control and outside of the original range
+            (with no way to recognise it)
+    """
+
+    # ------------ Interface -------------
+    def __init__(self, template_file):
+        super().__init__(template_file)
+
+        # update name for a random pattern
+        self.name = self.name + '_' + self._id_generator()
+
+        # randomization setup
+        self.parameter_processors = {
+            'length': self._extend_edge,
+            'curve': self._curve_edge
+        }
+        self._randomize_parameters()
+        self._update_pattern_by_param_values()
+
+    # --------- Updating pattern by new values  ----------
+
+    def _new_value(self, param_range):
         """Random value within range given as an iteratable"""
         return random.uniform(param_range[0], param_range[1])
 
-    def __randomize_parameters(self):
+    def _randomize_parameters(self):
         """
         Sets new random values for the pattern parameters
         Parameter type agnostic
@@ -127,12 +283,12 @@ class PatternWrapper():
             if isinstance(self.parameters[parameter]['value'], list): 
                 values = []
                 for param_range in param_ranges:
-                    values.append(PatternWrapper.__new_value(param_range))
+                    values.append(self._new_value(param_range))
                 self.parameters[parameter]['value'] = values
             else:  # simple 1-value parameter
-                self.parameters[parameter]['value'] = PatternWrapper.__new_value(param_ranges)
+                self.parameters[parameter]['value'] = self._new_value(param_ranges)
 
-    def __update_pattern_by_param_values(self):
+    def _update_pattern_by_param_values(self):
         """
         Recalculates vertex positions and edge curves according to current
         parameter values
@@ -140,7 +296,7 @@ class PatternWrapper():
                 was created with all the parameters equal to 1
         """
         # Edge length adjustments
-        for parameter in self.template['parameter_order']:
+        for parameter in self.spec['parameter_order']:
             value = self.parameters[parameter]['value']
             param_type = self.parameters[parameter]['type']
             if param_type not in self.parameter_processors:
@@ -152,13 +308,11 @@ class PatternWrapper():
                     self.parameter_processors[param_type](
                         panel_influence['panel'], edge, value)
 
-                self.__normalize_panel_translation(panel_influence['panel'])
+                super()._normalize_panel_translation(panel_influence['panel'])
         
         # print(self.name, self.__edge_length('front', 0), self.__edge_length('back', 0))
 
-    # -------- Updating edges by parameters ---------
-
-    def __extend_edge(self, panel_name, edge_influence, scaling_factor):
+    def _extend_edge(self, panel_name, edge_influence, scaling_factor):
         """
             Shrinks/elongates a given edge of a given panel. Applies equally
             to straight and curvy edges tnks to relative coordinates of curve controls
@@ -192,7 +346,7 @@ class PatternWrapper():
         panel['vertices'][v_id_end] = v_end.tolist()
         panel['vertices'][v_id_start] = v_start.tolist()
 
-    def __curve_edge(self, panel_name, edge, scaling_factor):
+    def _curve_edge(self, panel_name, edge, scaling_factor):
         """
             Updated the curvature of an edge accoding to scaling_factor.
             Can only be applied to edges with curvature information
@@ -215,160 +369,14 @@ class PatternWrapper():
 
         panel['edges'][edge]['curvature'] = control
 
-    # -------- Pattern utils ---------
-
-    def __normalize_panel_translation(self, panel_name):
-        """
-        Shifts all panel vertices s.t. panel bounding box starts at zero
-        for uniformity across panels & positive coordinates
-        """
-        panel = self.pattern['panels'][panel_name]
-        vertices = np.asarray(panel['vertices'])
-        offset = np.min(vertices, axis=0)
-        vertices = vertices - offset
-
-        panel['vertices'] = vertices.tolist()
-    
-    def __control_to_abs_coord(self, start, end, control_scale):
-        """
-        Derives absolute coordinates of Bezier control point given as an offset
-        """
-        control_start = control_scale[0] * (start + end)
-
-        edge = end - start
-        edge_perp = np.array([-edge[1], edge[0]])
-        control_point = control_start + control_scale[1] * edge_perp
-
-        return control_point 
-    
-    def __control_to_relative_coord(self, start, end, control_point):
-        """
-        Derives relative (local) coordinates of Bezier control point given as 
-        a absolute (world) coordinates
-        """
-        start, end, control_point = np.array(start), np.array(end), \
-            np.array(control_point)
-
-        control_scale = [None, None]
-        edge_vec = end - start
-        edge_len = np.linalg.norm(edge_vec)
-        control_vec = control_point - start
-        
-        # X
-        # project control_vec on edge_vec by dot product properties
-        control_projected_len = edge_vec.dot(control_vec) / edge_len 
-        control_scale[0] = control_projected_len / edge_len
-        # Y
-        control_projected = edge_vec * control_scale[0]
-        vert_comp = control_vec - control_projected  
-        control_scale[1] = np.linalg.norm(vert_comp) / edge_len
-        # Distinguish left&right curvature
-        control_scale[1] *= np.sign(np.cross(control_point, edge_vec))
-
-        return control_scale 
-
-    def __edge_length(self, panel, edge):
-        panel = self.pattern['panels'][panel]
-        v_id_start, v_id_end = tuple(panel['edges'][edge]['endpoints'])
-        v_start, v_end = np.array(panel['vertices'][v_id_start]), \
-            np.array(panel['vertices'][v_id_end])
-        
-        return np.linalg.norm(v_end - v_start)
-
-    # -------- Drawing ---------
-
-    def __verts_to_px_scaling_factor(self):
-        """
-        Estimates multiplicative factor to convert vertex units to pixel coordinates
-        Heuritic approach, s.t. all the patterns from the same template are displayed similarly
-        """
-        any_panel = next(iter(self.pattern['panels'].values()))
-        vertices = np.asarray(any_panel['vertices'])
-
-        box_size = np.max(vertices, axis=0) - np.min(vertices, axis=0) 
-        if box_size[0] < 2:      # meters
-            scaling_to_px = 200
-        elif box_size[0] < 200:  # sentimeters
-            scaling_to_px = 2
-        else:                    # pixels
-            scaling_to_px = 1  
-
-        return scaling_to_px
-
-    def ___draw_a_panel(self, drawing, panel_name, offset=[0, 0], scaling=1):
-        """
-        Adds a requested panel to the svg drawing with given offset and scaling
-        Assumes (!!) 
-            that edges are correctly oriented to form a closed loop
-        Returns 
-            the lower-right vertex coordinate for the convenice of future offsetting.
-        """
-        panel = self.pattern['panels'][panel_name]
-        vertices = np.asarray(panel['vertices'], dtype=int)
-
-        # Scale & shift vertices for visibility
-        vertices = vertices * scaling + offset
-
-        # draw
-        start = vertices[panel['edges'][0]['endpoints'][0]]
-        path = drawing.path(['M', start[0], start[1]],
-                            stroke='black', fill='rgb(255,217,194)')
-        for edge in panel['edges']:
-            # TODO add darts visualization here!
-            start = vertices[edge['endpoints'][0]]
-            end = vertices[edge['endpoints'][1]]
-            if ('curvature' in edge):
-                control_scale = edge['curvature']
-                control_point = self.__control_to_abs_coord(
-                    start, end, control_scale)
-                path.push(
-                    ['Q', control_point[0], control_point[1], end[0], end[1]])
-            else:
-                path.push(['L', end[0], end[1]])
-        path.push('z')  # path finished
-        drawing.add(path)
-
-        # name the panel
-        panel_center = np.mean(vertices, axis=0)
-        drawing.add(drawing.text(panel_name, insert=panel_center, fill='blue'))
-
-        return np.max(vertices[:, 0]), np.max(vertices[:, 1])
-
-    def __save_as_image(self, svg_filename, png_filename):
-        """Saves current pattern in svg and png format for visualization"""
-
-        dwg = svgwrite.Drawing(svg_filename.as_posix(), profile='tiny')
-        base_offset = [40, 40]
-        panel_offset = [0, 0]
-        for panel in self.pattern['panels']:
-            panel_offset = self.___draw_a_panel(
-                dwg, panel,
-                offset=[panel_offset[0] + base_offset[0], base_offset[1]],
-                scaling=self.scaling_for_drawing)
-
-        # final sizing & save
-        dwg['width'] = str(panel_offset[0] + base_offset[0]) + 'px'
-        dwg['height'] = str(panel_offset[1] + base_offset[1]) + 'px'
-        dwg.save(pretty=True)
-
-        # to png
-        svg_pattern = svglib.svg2rlg(svg_filename.as_posix())
-        renderPM.drawToFile(svg_pattern, png_filename, fmt='png')
-
     # -------- Other Utils ---------
 
-    def __id_generator(self, size=10,
-                       chars=string.ascii_uppercase + string.digits):
+    def _id_generator(self, size=10,
+                      chars=string.ascii_uppercase + string.digits):
         """Generated a random string of a given size, see
         https://stackoverflow.com/questions/2257441/random-string-generation-with-upper-case-letters-and-digits
         """
         return ''.join(random.choices(chars, k=size))
-
-    def __get_name(self, prefix, randomize):
-        name = prefix
-        if randomize:
-            name = name + '_' + self.__id_generator()
-        return name
 
 
 if __name__ == "__main__":
@@ -377,14 +385,15 @@ if __name__ == "__main__":
     random.seed(timestamp)
 
     base_path = Path('F:/GK-Pattern-Data-Gen/')
-    pattern = PatternWrapper(Path('./Patterns') / 'sleeve_test_abs_curv.json',
-                             randomize=True)
+    pattern = BasicPatternWrapper(Path('./Patterns') / 'sleeve_test_abs_curv.json')
+    newpattern = RandomPatternWrapper(Path('./Patterns') / 'sleeve_test_abs_curv.json')
 
     # log to file
-    log_folder = 'curve_convertion_rand_' + datetime.now().strftime('%y%m%d-%H-%M')
+    log_folder = 'class_separation_' + datetime.now().strftime('%y%m%d-%H-%M')
     os.makedirs(base_path / log_folder)
 
     pattern.serialize(base_path / log_folder, to_subfolder=False)
+    newpattern.serialize(base_path / log_folder, to_subfolder=False)
 
     # log random seed
     with open(base_path / log_folder / 'random_seed.txt', 'w') as f_rand:

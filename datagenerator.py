@@ -82,7 +82,7 @@ def generate(path, templates_path, props):
     props['data_folder'] = data_folder
     path_with_dataset = path / data_folder
     os.makedirs(path_with_dataset)
-    # Copy template for convernience
+    # Copy template for convernience TODO copy with visualization? 
     shutil.copyfile(template_file_path, 
                     path_with_dataset / ('template_' + template_file_path.name))
 
@@ -92,8 +92,7 @@ def generate(path, templates_path, props):
     # generate data
     start_time = time.time()
     for _ in range(props['size']):
-        new_pattern = pattern.PatternWrapper(template_file_path, 
-                                             randomize=True)
+        new_pattern = pattern.RandomPatternWrapper(template_file_path)
         new_pattern.serialize(path_with_dataset, 
                               to_subfolder=props['to_subfolders'])
     elapsed = time.time() - start_time
@@ -111,9 +110,9 @@ if __name__ == "__main__":
     if new:
         props = DatasetProperties(
             'skirt_per_panel.json', 
-            size=200,
+            size=10,
             data_to_subfolders=False, 
-            name='curve_2d')
+            name='random_class')
     else:
         props = DatasetProperties.fromfile(
             'F:/GK-Pattern-Data-Gen/N_skirt_per_panel_200324-17-22/dataset_properties.json')

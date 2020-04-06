@@ -14,7 +14,7 @@ from datetime import datetime
 import time
 
 
-class BasicPatternWrapper():
+class BasicPattern():
     """
         Loading & visualization of a pattern specification in custom JSON format.
         Input:
@@ -232,7 +232,7 @@ class BasicPatternWrapper():
         renderPM.drawToFile(svg_pattern, png_filename, fmt='png')
 
 
-class RandomPatternWrapper(BasicPatternWrapper):
+class RandomPattern(BasicPattern):
     """
         Parameter randomization of a pattern template in custom JSON format.
         Input:
@@ -385,8 +385,8 @@ if __name__ == "__main__":
     random.seed(timestamp)
 
     base_path = Path('F:/GK-Pattern-Data-Gen/')
-    pattern = BasicPatternWrapper(Path('./Patterns') / 'sleeve_test_abs_curv.json')
-    newpattern = RandomPatternWrapper(Path('./Patterns') / 'sleeve_test_abs_curv.json')
+    pattern = BasicPattern(Path('./Patterns') / 'sleeve_test_abs_curv.json')
+    newpattern = RandomPattern(Path('./Patterns') / 'sleeve_test_abs_curv.json')
 
     # log to file
     log_folder = 'class_separation_' + datetime.now().strftime('%y%m%d-%H-%M')

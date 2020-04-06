@@ -92,7 +92,7 @@ def generate(path, templates_path, props):
     # generate data
     start_time = time.time()
     for _ in range(props['size']):
-        new_pattern = pattern.RandomPatternWrapper(template_file_path)
+        new_pattern = pattern.RandomPattern(template_file_path)
         new_pattern.serialize(path_with_dataset, 
                               to_subfolder=props['to_subfolders'])
     elapsed = time.time() - start_time

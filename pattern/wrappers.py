@@ -1,22 +1,30 @@
-# For wrapper
-import json
+"""
+    Adapted to be used in Python 3.6+
+    TODO It might make sence to turn drawing into routines rather then new class
+"""
 import svgwrite
 from svglib import svglib
 from reportlab.graphics import renderPM
-import numpy as np
 import random
 import string
-from pathlib import Path
 import os
+import numpy as np
 
-# for main only
-from datetime import datetime
-import time
+# my -- the construction is needed to run this module with __main__
+if __name__ == '__main__':
+    import os
+    import sys
+    # get an absolute path to the directory that contains mypackage
+    curr_dir = os.path.dirname(os.path.join(os.getcwd(), __file__))
+    sys.path.append(os.path.normpath(os.path.join(curr_dir, '..', '..')))
+    from pattern import core
+else:
+    from . import core
 
 
-class BasicPattern():
+class VisPattern(core.BasicPattern):
     """
-        Loading & visualization of a pattern specification in custom JSON format.
+        "Visualizible" pattern wrapper of pattern specification in custom JSON format.
         Input:
             * Pattern template in custom JSON format
         Output representations: 
@@ -26,130 +34,31 @@ class BasicPattern():
             * PNG for visualization
         
         Not implemented: 
-            * Convertion to NN-friendly format
             * Support for patterns with darts
-            * Convertion to Simulatable format
-            * Panel positioning
     """
 
     # ------------ Interface -------------
 
     def __init__(self, pattern_file):
+        super().__init__(pattern_file)
 
-        self.spec_file = Path(pattern_file)
-        self.name = self.spec_file.stem
-
-        with open(pattern_file, 'r') as f_json:
-            self.spec = json.load(f_json)
-        self.pattern = self.spec['pattern']
-        self.parameters = self.spec['parameters']
-        self.properties = self.spec['properties']  # mandatory part
-
+        # tnx to this all patterns produced from the same template will have the same 
+        # visualization scale
+        # and that's why I need a class object fot 
         self.scaling_for_drawing = self._verts_to_px_scaling_factor()
 
-        # template normalization - panel translations and curvature to relative coords
-        self._normalize_template()
-
     def serialize(self, path, to_subfolder=True):
-        # log context
+
+        log_dir = super().serialize(path, to_subfolder)
         if to_subfolder:
-            log_dir = Path(path) / self.name
-            os.makedirs(log_dir)
-            spec_file = log_dir / 'specification.json'
-            svg_file = log_dir / 'pattern.svg'
-            png_file = log_dir / 'pattern.png'
+            svg_file = os.path.join(log_dir, 'pattern.svg')
+            png_file = os.path.join(log_dir, 'pattern.png')
         else:
-            spec_file = Path(path) / (self.name + '_specification.json')
-            svg_file = Path(path) / (self.name + '_pattern.svg')
-            png_file = Path(path) / (self.name + '_pattern.png')
+            svg_file = os.path.join(log_dir, (self.name + '_pattern.svg'))
+            png_file = os.path.join(log_dir, (self.name + '_pattern.png'))
 
-        # Save specification
-        with open(spec_file, 'w') as f_json:
-            json.dump(self.spec, f_json, indent=2)
-        # visualtisation
+        # save visualtisation
         self._save_as_image(svg_file, png_file)
-
-    # --------- Pattern operations ----------
-    def _normalize_template(self):
-        """
-        Updated template definition for convenient processing:
-            * Converts curvature coordinates to realitive ones (in edge frame) -- for easy length scaling
-            * snaps each panel to start at (0, 0)
-        """
-        for panel in self.pattern['panels']:
-            if self.properties['curvature_coords'] == 'absolute':
-                # convert curvature 
-                vertices = self.pattern['panels'][panel]['vertices']
-                edges = self.pattern['panels'][panel]['edges']
-                for edge in edges:
-                    if 'curvature' in edge:
-                        edge['curvature'] = self._control_to_relative_coord(
-                            vertices[edge['endpoints'][0]], 
-                            vertices[edge['endpoints'][1]], 
-                            edge['curvature']
-                        )
-            # normalize tranlsation after curvature is converted!
-            self._normalize_panel_translation(panel)
-        # now we have new property
-        self.properties['curvature_coords'] = 'relative'
-
-    def _normalize_panel_translation(self, panel_name):
-        """
-        Shifts all panel vertices s.t. panel bounding box starts at zero
-        for uniformity across panels & positive coordinates
-        """
-        panel = self.pattern['panels'][panel_name]
-        vertices = np.asarray(panel['vertices'])
-        offset = np.min(vertices, axis=0)
-        vertices = vertices - offset
-
-        panel['vertices'] = vertices.tolist()
-    
-    def _control_to_abs_coord(self, start, end, control_scale):
-        """
-        Derives absolute coordinates of Bezier control point given as an offset
-        """
-        control_start = control_scale[0] * (start + end)
-
-        edge = end - start
-        edge_perp = np.array([-edge[1], edge[0]])
-        control_point = control_start + control_scale[1] * edge_perp
-
-        return control_point 
-    
-    def _control_to_relative_coord(self, start, end, control_point):
-        """
-        Derives relative (local) coordinates of Bezier control point given as 
-        a absolute (world) coordinates
-        """
-        start, end, control_point = np.array(start), np.array(end), \
-            np.array(control_point)
-
-        control_scale = [None, None]
-        edge_vec = end - start
-        edge_len = np.linalg.norm(edge_vec)
-        control_vec = control_point - start
-        
-        # X
-        # project control_vec on edge_vec by dot product properties
-        control_projected_len = edge_vec.dot(control_vec) / edge_len 
-        control_scale[0] = control_projected_len / edge_len
-        # Y
-        control_projected = edge_vec * control_scale[0]
-        vert_comp = control_vec - control_projected  
-        control_scale[1] = np.linalg.norm(vert_comp) / edge_len
-        # Distinguish left&right curvature
-        control_scale[1] *= np.sign(np.cross(control_point, edge_vec))
-
-        return control_scale 
-
-    def _edge_length(self, panel, edge):
-        panel = self.pattern['panels'][panel]
-        v_id_start, v_id_end = tuple(panel['edges'][edge]['endpoints'])
-        v_start, v_end = np.array(panel['vertices'][v_id_start]), \
-            np.array(panel['vertices'][v_id_end])
-        
-        return np.linalg.norm(v_end - v_start)
 
     # -------- Drawing ---------
 
@@ -213,7 +122,7 @@ class BasicPattern():
     def _save_as_image(self, svg_filename, png_filename):
         """Saves current pattern in svg and png format for visualization"""
 
-        dwg = svgwrite.Drawing(svg_filename.as_posix(), profile='tiny')
+        dwg = svgwrite.Drawing(svg_filename, profile='tiny')
         base_offset = [40, 40]
         panel_offset = [0, 0]
         for panel in self.pattern['panels']:
@@ -228,11 +137,11 @@ class BasicPattern():
         dwg.save(pretty=True)
 
         # to png
-        svg_pattern = svglib.svg2rlg(svg_filename.as_posix())
+        svg_pattern = svglib.svg2rlg(svg_filename)
         renderPM.drawToFile(svg_pattern, png_filename, fmt='png')
 
 
-class RandomPattern(BasicPattern):
+class RandomPattern(VisPattern):
     """
         Parameter randomization of a pattern template in custom JSON format.
         Input:
@@ -380,21 +289,24 @@ class RandomPattern(BasicPattern):
 
 
 if __name__ == "__main__":
+    from datetime import datetime
+    import time
 
     timestamp = int(time.time())
     random.seed(timestamp)
 
-    base_path = Path('F:/GK-Pattern-Data-Gen/')
-    pattern = BasicPattern(Path('./Patterns') / 'sleeve_test_abs_curv.json')
-    newpattern = RandomPattern(Path('./Patterns') / 'sleeve_test_abs_curv.json')
+    base_path = 'F:/GK-Pattern-Data-Gen/'
+    pattern = VisPattern('./Patterns/sleeve_test_abs_curv.json')
+    newpattern = RandomPattern('./Patterns/sleeve_test_abs_curv.json')
 
     # log to file
     log_folder = 'class_separation_' + datetime.now().strftime('%y%m%d-%H-%M')
-    os.makedirs(base_path / log_folder)
+    log_folder = os.path.join(base_path, log_folder)
+    os.makedirs(log_folder)
 
-    pattern.serialize(base_path / log_folder, to_subfolder=False)
-    newpattern.serialize(base_path / log_folder, to_subfolder=False)
+    pattern.serialize(log_folder, to_subfolder=False)
+    newpattern.serialize(log_folder, to_subfolder=False)
 
     # log random seed
-    with open(base_path / log_folder / 'random_seed.txt', 'w') as f_rand:
+    with open(log_folder + '/random_seed.txt', 'w') as f_rand:
         f_rand.write(str(timestamp))

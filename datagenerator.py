@@ -8,7 +8,7 @@ import random
 import shutil
 
 # My module
-import pattern
+import pattern.wrappers as pattern
 
 
 class DatasetProperties():

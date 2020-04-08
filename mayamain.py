@@ -13,6 +13,7 @@ from maya import cmds
 
 # My module
 from pattern.core import BasicPattern
+import qualothwrapper as qw
 
 
 class MayaPattern(BasicPattern):
@@ -122,6 +123,9 @@ if __name__ == "__main__":
     pattern.load(experiment_name)
 
     body_ref = load_body('F:/f_smpl_template.obj', experiment_name)
+
+    # Qualoth procedures
+    qw.load_plugin()
 
     # Fin
     clean_scene(experiment_name)

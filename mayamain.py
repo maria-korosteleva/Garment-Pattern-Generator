@@ -27,7 +27,7 @@ class MayaPattern(BasicPattern):
     def __init__(self, pattern_file):
         super(MayaPattern, self).__init__(pattern_file)
     
-    def load(self):
+    def load(self, parent_group='experiment'):
         """
             Loads current pattern to Maya as curve collection.
             Groups them by panel and by pattern
@@ -35,7 +35,9 @@ class MayaPattern(BasicPattern):
         maya_panel_names = []
         for panel_name in self.pattern['panels']:
             maya_panel_names.append(self._load_panel(panel_name))
-        group_name = cmds.group(maya_panel_names, n=self.name)
+        group_name = cmds.group(maya_panel_names, 
+                                n=self.name,
+                                p=parent_group)
         self.pattern['maya'] = group_name  # Maya modifies specified name for uniquness
         
         print("All panels loaded to Maya")
@@ -83,8 +85,44 @@ class MayaPattern(BasicPattern):
         return list(map(tuple, points))
 
 
+def load_body(filename, group_name):
+    body = cmds.file(filename, i=True, rnn=True)
+    cmds.parent(body[0], group_name)
+
+
+def start_experiment(nametag):
+    cmds.namespace(set=':')  # switch to default namespace JIC
+
+    # group all objects under a common node
+    experiment_name = cmds.group(em=True, n=nametag)
+
+    # activate new namespace to prevet nameclash
+    namespace = cmds.namespace(add=experiment_name)
+    cmds.namespace(set=namespace)
+    print('Starting experiment', experiment_name)
+    return experiment_name
+
+
+def clean_scene(top_group, delete=False):
+    cmds.hide(top_group)
+    if delete:
+        cmds.delete(top_group)
+    # return from custom namespaces, if any
+    cmds.namespace(set=':')
+    return
+
+
 if __name__ == "__main__":
+
+    experiment_name = start_experiment('test')
+
     pattern = MayaPattern(
         'C:/Users/LENOVO/Desktop/Garment-Pattern-Estimation/data_generation/Patterns/skirt_per_panel.json'
     )
-    pattern.load()
+    pattern.load(experiment_name)
+
+    body_ref = load_body('F:/f_smpl_template.obj', experiment_name)
+
+    # Fin
+    clean_scene(experiment_name)
+    print('Finished experiment', experiment_name)

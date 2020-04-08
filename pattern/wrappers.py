@@ -11,6 +11,7 @@ import os
 import numpy as np
 
 # my -- the construction is needed to run this module with __main__
+# See https://stackoverflow.com/questions/8299270/ultimate-answer-to-relative-python-imports
 if __name__ == '__main__':
     import os
     import sys

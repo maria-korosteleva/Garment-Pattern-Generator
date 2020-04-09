@@ -40,6 +40,17 @@ def qlCreatePattern(curves_group):
     return list(set(objects_after) - set(objects_before))
 
 
+def qlCreateSeam(curve1, curve2):
+    """
+        Create a seam between two selected curves
+        TODO add support for 1-many stitches
+    """
+    cmds.select([curve1, curve2])
+    # Operates on selection
+    seam_shape = mel.eval('qlCreateSeam()')
+    return seam_shape
+
+
 def qlCreateCollider(cloth, body):
     """
         Marks body as a collider object for cloth --

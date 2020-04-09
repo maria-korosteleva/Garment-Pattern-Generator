@@ -29,6 +29,7 @@ class MayaPattern(core.BasicPattern):
     """
     def __init__(self, pattern_file):
         super(MayaPattern, self).__init__(pattern_file)
+        self.loaded_to_maya = False
     
     def load(self, parent_group='experiment'):
         """
@@ -40,13 +41,13 @@ class MayaPattern(core.BasicPattern):
             panel_maya = self._load_panel(panel_name)
             maya_panel_names.append(panel_maya)
         
-        print(maya_panel_names)
         group_name = cmds.group(maya_panel_names, 
                                 n=self.name,
                                 p=parent_group)
         self.pattern['maya'] = group_name  # Maya modifies specified name for uniquness
         
         print("All panels loaded to Maya")
+        self.loaded_to_maya = True
 
     def _load_panel(self, panel_name):
         """
@@ -72,13 +73,13 @@ class MayaPattern(core.BasicPattern):
         # Create geometry
         panel_geom = qw.qlCreatePattern(curve_group)
 
-        # take out the solver node -- created with the first panel
+        # take out the solver node -- created only once per scene, no need to store
         solvers = [obj for obj in panel_geom if 'Solver' in obj]
         if solvers:
-            self.pattern['qlSover'] = solvers
             panel_geom = list(set(panel_geom) - set(solvers))
 
-        panel['qualoth'] = panel_geom
+        panel['qualoth'] = panel_geom  # note that the list might get invalid 
+                                       # after stitching -- use carefully
 
         # group all objects belonging to a panel
         panel_group = cmds.group(panel_geom + [curve_group], n=panel_name)
@@ -107,6 +108,40 @@ class MayaPattern(core.BasicPattern):
         points += translation_3d
 
         return list(map(tuple, points))
+
+    def stitch_panels(self):
+        """
+            Create seams between qualoth panels.
+            Calls to load panels if they are not already loaded.
+            Assumes that after stitching the pattern becomes a single piece of geometry
+            Returns
+                Qulaoth cloth object name
+        """
+        if not self.loaded_to_maya:
+            self.load('stitching')
+
+        stitches = []
+        for stitch in self.pattern['stitches']:
+            from_curve = self._maya_curve_name(stitch['from'])
+            # TODO add support for multiple "to" components
+            to_curve = self._maya_curve_name(stitch['to'])
+            stitch_id = qw.qlCreateSeam(from_curve, to_curve)
+            stitch['maya'] = stitch_id
+            stitches.append(stitch_id)
+
+        cmds.parent(stitches, self.pattern['maya'])
+    
+    def _maya_curve_name(self, address):
+        """ Shortcut to retrieve the name of curve corresponding to the edge"""
+        panel_name = address['panel']
+        edge_id = address['edge']
+        return self.pattern['panels'][panel_name]['edges'][edge_id]['maya']
+
+    def _find_qlcloth_object(self):
+        """
+            Find the first Qualoth cloth object belonging to current pattern
+        """
+        
 
 
 def load_body(filename, group_name):
@@ -147,6 +182,7 @@ def main():
             'C:/Users/LENOVO/Desktop/Garment-Pattern-Estimation/data_generation/Patterns/skirt_maya_coords.json'
         )
         pattern.load(experiment_name)
+        pattern.stitch_panels()
 
         body_ref = load_body('F:/f_smpl_templatex300.obj', experiment_name)
 

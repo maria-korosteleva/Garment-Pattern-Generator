@@ -63,7 +63,7 @@
         },
         "to": {
           "panel" : "back",
-          "edge" : 1
+          "edge" : 3
         }
       },
       {
@@ -73,7 +73,7 @@
         },
         "to": {
           "panel" : "back",
-          "edge" : 3
+          "edge" : 1
         }
       }
     ]

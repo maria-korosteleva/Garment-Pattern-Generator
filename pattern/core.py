@@ -78,12 +78,15 @@ class BasicPattern(object):
                             edge['curvature']
                         )
             # normalize tranlsation after curvature is converted!
-            self._normalize_panel_translation(panel)
+            # UPD Do not normalize tranlsation on loading
+            # TODO finalize after proper 3D placement
+            # self._normalize_panel_translation(panel)
         # now we have new property
         self.properties['curvature_coords'] = 'relative'
 
     def _normalize_panel_translation(self, panel_name):
         """
+        DEPRECATED TODO update or remove after finalizinf 3D positioning
         Shifts all panel vertices s.t. panel bounding box starts at zero
         for uniformity across panels & positive coordinates
         """

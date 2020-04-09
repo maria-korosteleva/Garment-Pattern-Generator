@@ -81,7 +81,25 @@ class VisPattern(core.BasicPattern):
 
         return scaling_to_px
 
-    def _draw_a_panel(self, drawing, panel_name, offset=[0, 0], scaling=1):
+    def _verts_to_px_coords(self, vertices):
+        """Convert given to px coordinate frame & units"""
+        # Flip Y coordinate (in SVG Y looks down)
+        vertices[:, 1] *= -1
+        # Put upper left corner of the bounding box at zero
+        offset = np.min(vertices, axis=0)
+        vertices = vertices - offset
+        # Update units scaling
+        vertices *= self.scaling_for_drawing
+        return vertices
+
+    def _flip_y(self, point):
+        """
+            To get to image coordinates one might need to flip Y axis
+        """
+        point[1] *= -1
+        return point
+
+    def _draw_a_panel(self, drawing, panel_name, offset=[0, 0]):
         """
         Adds a requested panel to the svg drawing with given offset and scaling
         Assumes (!!) 
@@ -91,9 +109,9 @@ class VisPattern(core.BasicPattern):
         """
         panel = self.pattern['panels'][panel_name]
         vertices = np.asarray(panel['vertices'], dtype=int)
-
-        # Scale & shift vertices for visibility
-        vertices = vertices * scaling + offset
+        vertices = self._verts_to_px_coords(vertices)
+        # Shift vertices for visibility
+        vertices = vertices + offset
 
         # draw
         start = vertices[panel['edges'][0]['endpoints'][0]]
@@ -104,7 +122,7 @@ class VisPattern(core.BasicPattern):
             start = vertices[edge['endpoints'][0]]
             end = vertices[edge['endpoints'][1]]
             if ('curvature' in edge):
-                control_scale = edge['curvature']
+                control_scale = self._flip_y(edge['curvature'])
                 control_point = self._control_to_abs_coord(
                     start, end, control_scale)
                 path.push(
@@ -129,8 +147,8 @@ class VisPattern(core.BasicPattern):
         for panel in self.pattern['panels']:
             panel_offset = self._draw_a_panel(
                 dwg, panel,
-                offset=[panel_offset[0] + base_offset[0], base_offset[1]],
-                scaling=self.scaling_for_drawing)
+                offset=[panel_offset[0] + base_offset[0], base_offset[1]]
+            )
 
         # final sizing & save
         dwg['width'] = str(panel_offset[0] + base_offset[0]) + 'px'
@@ -297,11 +315,11 @@ if __name__ == "__main__":
     random.seed(timestamp)
 
     base_path = 'F:/GK-Pattern-Data-Gen/'
-    pattern = VisPattern('./Patterns/sleeve_test_abs_curv.json')
-    newpattern = RandomPattern('./Patterns/sleeve_test_abs_curv.json')
+    pattern = VisPattern('./Patterns/skirt_maya_coords.json')
+    newpattern = RandomPattern('./Patterns/skirt_maya_coords.json')
 
     # log to file
-    log_folder = 'class_separation_' + datetime.now().strftime('%y%m%d-%H-%M')
+    log_folder = 'coords_flip_' + datetime.now().strftime('%y%m%d-%H-%M')
     log_folder = os.path.join(base_path, log_folder)
     os.makedirs(log_folder)
 

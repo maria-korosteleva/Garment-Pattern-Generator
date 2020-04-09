@@ -106,9 +106,6 @@ class MayaPattern(core.BasicPattern):
         # 3D placement
         points += translation_3d
 
-        # TESTTEST Scaling 
-        points *= 300
-
         return list(map(tuple, points))
 
 
@@ -141,19 +138,23 @@ def clean_scene(top_group, delete=False):
 
 # ----------- Main loop --------------
 def main():
-    experiment_name = start_experiment('test')
-    qw.load_plugin()
 
-    pattern = MayaPattern(
-        'C:/Users/LENOVO/Desktop/Garment-Pattern-Estimation/data_generation/Patterns/skirt_maya_coords.json'
-    )
-    pattern.load(experiment_name)
+    try:
+        experiment_name = start_experiment('test')
+        qw.load_plugin()
 
-    body_ref = load_body('F:/f_smpl_template.obj', experiment_name)
+        pattern = MayaPattern(
+            'C:/Users/LENOVO/Desktop/Garment-Pattern-Estimation/data_generation/Patterns/skirt_maya_coords.json'
+        )
+        pattern.load(experiment_name)
 
-    # Fin
-    # clean_scene(experiment_name)
-    print('Finished experiment', experiment_name)
+        body_ref = load_body('F:/f_smpl_templatex300.obj', experiment_name)
+
+        # Fin
+        # clean_scene(experiment_name)
+        print('Finished experiment', experiment_name)
+    except Exception as e:
+        print(e)
 
 
 if __name__ == "__main__":

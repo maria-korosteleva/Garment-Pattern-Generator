@@ -130,7 +130,9 @@ class MayaPattern(core.BasicPattern):
             stitches.append(stitch_id)
 
         cmds.parent(stitches, self.pattern['maya'])
-    
+
+        return self._find_qlcloth_object()
+
     def _maya_curve_name(self, address):
         """ Shortcut to retrieve the name of curve corresponding to the edge"""
         panel_name = address['panel']
@@ -141,12 +143,28 @@ class MayaPattern(core.BasicPattern):
         """
             Find the first Qualoth cloth object belonging to current pattern
         """
-        
+        children = cmds.listRelatives(self.pattern['maya'], ad=True)
+        cloths = [obj for obj in children 
+                  if 'qlCloth' in obj and 'Out' in obj and 'Shape' not in obj]
+
+        return cloths[0]
 
 
 def load_body(filename, group_name):
     body = cmds.file(filename, i=True, rnn=True)
     cmds.parent(body[0], group_name)
+    return body[0]
+
+
+def run_sim(garment, body):
+    """
+        Setup and run simulation of the garment on the body
+        Assumes garment is already properly aligned!
+    """
+    # Setup anti-collisions
+    print(garment, body)
+    qw.qlCreateCollider(garment, body)
+    # TODO activate self-collision
 
 
 def start_experiment(nametag):
@@ -182,9 +200,11 @@ def main():
             'C:/Users/LENOVO/Desktop/Garment-Pattern-Estimation/data_generation/Patterns/skirt_maya_coords.json'
         )
         pattern.load(experiment_name)
-        pattern.stitch_panels()
+        cloth_ref = pattern.stitch_panels()
 
         body_ref = load_body('F:/f_smpl_templatex300.obj', experiment_name)
+
+        run_sim(cloth_ref, body_ref)
 
         # Fin
         # clean_scene(experiment_name)

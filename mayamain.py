@@ -55,13 +55,13 @@ class MayaPattern(core.BasicPattern):
         """
         panel = self.pattern['panels'][panel_name]
         vertices = np.asarray(panel['vertices'])
-        # to 3D
-        vertices = np.c_[vertices, np.zeros(len(panel['vertices']))]
 
         # now draw edges
         curve_names = []
         for edge in panel['edges']:
-            curve_points = self._edge_as_3d_tuple_list(edge, vertices)            
+            curve_points = self._edge_as_3d_tuple_list(
+                edge, vertices, panel['translation']
+            )
             curve = cmds.curve(p=curve_points, d=(len(curve_points) - 1))
             curve_names.append(curve)
             edge['maya'] = curve
@@ -86,23 +86,28 @@ class MayaPattern(core.BasicPattern):
 
         return panel_group
 
-    def _edge_as_3d_tuple_list(self, edge, vertices_3d):
+    def _edge_as_3d_tuple_list(self, edge, vertices, translation_3d):
         """
             Represents given edge object as list of control points
             suitable for draing in Maya
         """
-        points = vertices_3d[edge['endpoints'], :]
-
+        points = vertices[edge['endpoints'], :]
         if 'curvature' in edge:
             control_coords = self._control_to_abs_coord(
-                points[0, :2], points[1, :2], edge['curvature']
+                points[0], points[1], edge['curvature']
             )
-            # to 3D
-            control_coords = np.append(control_coords, 0)
             # Rearrange
             points = np.r_[
                 [points[0]], [control_coords], [points[1]]
             ]
+        # to 3D
+        points = np.c_[points, np.zeros(len(points))]
+
+        # 3D placement
+        points += translation_3d
+
+        # TESTTEST Scaling 
+        points *= 300
 
         return list(map(tuple, points))
 
@@ -140,14 +145,14 @@ def main():
     qw.load_plugin()
 
     pattern = MayaPattern(
-        'C:/Users/LENOVO/Desktop/Garment-Pattern-Estimation/data_generation/Patterns/skirt_per_panel.json'
+        'C:/Users/LENOVO/Desktop/Garment-Pattern-Estimation/data_generation/Patterns/skirt_maya_coords.json'
     )
     pattern.load(experiment_name)
 
     body_ref = load_body('F:/f_smpl_template.obj', experiment_name)
 
     # Fin
-    clean_scene(experiment_name)
+    # clean_scene(experiment_name)
     print('Finished experiment', experiment_name)
 
 

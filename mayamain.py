@@ -12,11 +12,13 @@ import numpy as np
 from maya import cmds
 
 # My module
-from pattern.core import BasicPattern
+import pattern.core as core
+reload(core)
 import qualothwrapper as qw
+reload(qw)
 
 
-class MayaPattern(BasicPattern):
+class MayaPattern(core.BasicPattern):
     """
     Extends a pattern specification in custom JSON format to work with Maya
         Input:
@@ -35,7 +37,10 @@ class MayaPattern(BasicPattern):
         """
         maya_panel_names = []
         for panel_name in self.pattern['panels']:
-            maya_panel_names.append(self._load_panel(panel_name))
+            panel_maya = self._load_panel(panel_name)
+            maya_panel_names.append(panel_maya)
+        
+        print(maya_panel_names)
         group_name = cmds.group(maya_panel_names, 
                                 n=self.name,
                                 p=parent_group)
@@ -53,17 +58,33 @@ class MayaPattern(BasicPattern):
         # to 3D
         vertices = np.c_[vertices, np.zeros(len(panel['vertices']))]
 
-        curve_names = []
         # now draw edges
+        curve_names = []
         for edge in panel['edges']:
             curve_points = self._edge_as_3d_tuple_list(edge, vertices)            
             curve = cmds.curve(p=curve_points, d=(len(curve_points) - 1))
             curve_names.append(curve)
             edge['maya'] = curve
-        
-        group_name = cmds.group(curve_names, n=panel_name)
-        panel['maya'] = group_name  # Maya modifies specified name for uniquness
-        return group_name
+        # Group edges        
+        curve_group = cmds.group(curve_names, n='curves')
+        panel['maya_curves'] = curve_group  # Maya modifies specified name for uniquness
+
+        # Create geometry
+        panel_geom = qw.qlCreatePattern(curve_group)
+
+        # take out the solver node -- created with the first panel
+        solvers = [obj for obj in panel_geom if 'Solver' in obj]
+        if solvers:
+            self.pattern['qlSover'] = solvers
+            panel_geom = list(set(panel_geom) - set(solvers))
+
+        panel['qualoth'] = panel_geom
+
+        # group all objects belonging to a panel
+        panel_group = cmds.group(panel_geom + [curve_group], n=panel_name)
+        panel['maya_group'] = panel_group
+
+        return panel_group
 
     def _edge_as_3d_tuple_list(self, edge, vertices_3d):
         """
@@ -113,9 +134,10 @@ def clean_scene(top_group, delete=False):
     return
 
 
-if __name__ == "__main__":
-
+# ----------- Main loop --------------
+def main():
     experiment_name = start_experiment('test')
+    qw.load_plugin()
 
     pattern = MayaPattern(
         'C:/Users/LENOVO/Desktop/Garment-Pattern-Estimation/data_generation/Patterns/skirt_per_panel.json'
@@ -124,9 +146,10 @@ if __name__ == "__main__":
 
     body_ref = load_body('F:/f_smpl_template.obj', experiment_name)
 
-    # Qualoth procedures
-    qw.load_plugin()
-
     # Fin
     clean_scene(experiment_name)
     print('Finished experiment', experiment_name)
+
+
+if __name__ == "__main__":
+    main()

@@ -15,15 +15,30 @@ def load_plugin():
         Note that plugin should be installed and licensed to use it!
         Inquire here: http://www.fxgear.net/vfxpricing
     """
-    maya_year = mel.eval('getApplicationVersionAsFloat')
+    maya_year = int(mel.eval('getApplicationVersionAsFloat'))
     plugin_name = 'qualoth_' + str(maya_year) + '_x64'
     print('Loading ', plugin_name)
-    
+
     cmds.loadPlugin(plugin_name)
 
 
 # -------- Wrappers -----------
 # Make sure that Qualoth plugin is loaded before running any wrappers!
+
+def qlCreatePattern(curves_group):
+    """
+        Converts given 2D closed curve to a flat geometry piece
+    """
+    objects_before = cmds.ls(assemblies=True)
+    # run
+    cmds.select(curves_group)
+    mel.eval('qlCreatePattern()')
+    
+    # Identify newly created objects
+    objects_after = cmds.ls(assemblies=True)
+    # No need for symmetric difference because we don't care if some objects were deleted
+    return list(set(objects_after) - set(objects_before))
+
 
 def qlCreateCollider(cloth, body):
     """
@@ -32,4 +47,4 @@ def qlCreateCollider(cloth, body):
     """
     cmds.select([cloth, body])
     # Operates on selection
-    mel.eval('qlCreateCollider()')
+    return mel.eval('qlCreateCollider()')

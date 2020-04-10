@@ -153,7 +153,7 @@ def load_body(filename, group_name):
     return body[0]
 
 
-def run_sim(garment, body, experiment):
+def run_sim(garment, body, experiment, save_to):
     """
         Setup and run simulation of the garment on the body
         Assumes garment is already properly aligned!
@@ -165,6 +165,11 @@ def run_sim(garment, body, experiment):
     collider_objects = qw.qlCreateCollider(garment, body)
     cmds.parent(collider_objects, experiment)
 
+    # run
+    # NOTE! It will run all cloth existing in the scene
+    cmds.playbackOptions(ps=0)  # 0 playback speed = play every frame
+    cmds.currentTime(1)
+    cmds.play(f=True)
 
 
 def start_experiment(nametag):
@@ -201,7 +206,7 @@ def main():
 
         body_ref = load_body('F:/f_smpl_templatex300.obj', experiment_name)
 
-        run_sim(cloth_ref, body_ref, experiment_name)
+        run_sim(cloth_ref, body_ref, experiment_name, 'F:/GK-Pattern-Data-Gen/Sims/')
 
         # Fin
         # clean_scene(experiment_name)

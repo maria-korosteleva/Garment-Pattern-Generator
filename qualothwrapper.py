@@ -80,3 +80,11 @@ def activateSelfCollisions(solver):
         Activates self-collision through solver's properties
     """
     cmds.setAttr(solver + '.selfCollision', 1)
+
+
+def cashTo(solver, save_to):
+    """
+        When simulation is run, each frame will be chashed to save_to folder
+    """
+    # TODO implement
+    # cmds.setAttr(solver + '.selfCollision', 1)

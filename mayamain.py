@@ -158,13 +158,13 @@ def run_sim(garment, body, experiment):
         Setup and run simulation of the garment on the body
         Assumes garment is already properly aligned!
     """
-    # Setup anti-collisions
-    print(garment, body)
+    solver = qw.findSolver()
+
+    # Setup collision handling
+    qw.activateSelfCollisions(solver)
     collider_objects = qw.qlCreateCollider(garment, body)
     cmds.parent(collider_objects, experiment)
-    print(collider_objects)
 
-    # TODO activate self-collision
 
 
 def start_experiment(nametag):

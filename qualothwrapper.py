@@ -65,3 +65,18 @@ def qlCreateCollider(cloth, body):
     objects_after = cmds.ls(assemblies=True)
     return list(set(objects_after) - set(objects_before))
 
+
+def findSolver():
+    """
+        Returns the name of the qlSover existing in the scene
+        (usully solver is created once per scene)
+    """
+    solver = cmds.ls('*qlSolver*Shape*')
+    return solver[0]
+
+
+def activateSelfCollisions(solver):
+    """
+        Activates self-collision through solver's properties
+    """
+    cmds.setAttr(solver + '.selfCollision', 1)

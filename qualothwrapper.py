@@ -56,6 +56,12 @@ def qlCreateCollider(cloth, body):
         Marks body as a collider object for cloth --
         eshures that cloth won't penetrate body when simulated
     """
+    objects_before = cmds.ls(assemblies=True)
+
     cmds.select([cloth, body])
     # Operates on selection
-    return mel.eval('qlCreateCollider()')
+    mel.eval('qlCreateCollider()')
+
+    objects_after = cmds.ls(assemblies=True)
+    return list(set(objects_after) - set(objects_before))
+

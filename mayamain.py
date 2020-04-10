@@ -120,16 +120,13 @@ class MayaPattern(core.BasicPattern):
         if not self.loaded_to_maya:
             self.load('stitching')
 
-        stitches = []
         for stitch in self.pattern['stitches']:
             from_curve = self._maya_curve_name(stitch['from'])
             # TODO add support for multiple "to" components
             to_curve = self._maya_curve_name(stitch['to'])
             stitch_id = qw.qlCreateSeam(from_curve, to_curve)
-            stitch['maya'] = stitch_id
-            stitches.append(stitch_id)
-
-        cmds.parent(stitches, self.pattern['maya'])
+            stitch_id = cmds.parent(stitch_id, self.pattern['maya'])  # organization
+            stitch['maya'] = stitch_id[0]
 
         return self._find_qlcloth_object()
 
@@ -145,25 +142,28 @@ class MayaPattern(core.BasicPattern):
         """
         children = cmds.listRelatives(self.pattern['maya'], ad=True)
         cloths = [obj for obj in children 
-                  if 'qlCloth' in obj and 'Out' in obj and 'Shape' not in obj]
+                  if 'qlCloth' in obj and 'Out' in obj and 'Shape' in obj]
 
         return cloths[0]
 
 
 def load_body(filename, group_name):
     body = cmds.file(filename, i=True, rnn=True)
-    cmds.parent(body[0], group_name)
+    body = cmds.parent(body[0], group_name)
     return body[0]
 
 
-def run_sim(garment, body):
+def run_sim(garment, body, experiment):
     """
         Setup and run simulation of the garment on the body
         Assumes garment is already properly aligned!
     """
     # Setup anti-collisions
     print(garment, body)
-    qw.qlCreateCollider(garment, body)
+    collider_objects = qw.qlCreateCollider(garment, body)
+    cmds.parent(collider_objects, experiment)
+    print(collider_objects)
+
     # TODO activate self-collision
 
 
@@ -172,10 +172,7 @@ def start_experiment(nametag):
 
     # group all objects under a common node
     experiment_name = cmds.group(em=True, n=nametag)
-
-    # activate new namespace to prevet nameclash
-    namespace = cmds.namespace(add=experiment_name)
-    cmds.namespace(set=namespace)
+    
     print('Starting experiment', experiment_name)
     return experiment_name
 
@@ -204,7 +201,7 @@ def main():
 
         body_ref = load_body('F:/f_smpl_templatex300.obj', experiment_name)
 
-        run_sim(cloth_ref, body_ref)
+        run_sim(cloth_ref, body_ref, experiment_name)
 
         # Fin
         # clean_scene(experiment_name)

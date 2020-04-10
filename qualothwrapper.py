@@ -1,7 +1,11 @@
 """
     Qualoth scripts are written in MEL. 
     This module makes a python interface to them
-    Note that's Python 2.7-friendly
+    Notes:
+        * this module is Python 2.7-friendly
+        * Error checks are sparse to save coding time & lines. 
+            This sould not be a problem during the normal workflow
+    
 """
 from __future__ import print_function
 
@@ -75,16 +79,18 @@ def findSolver():
     return solver[0]
 
 
-def activateSelfCollisions(solver):
-    """
-        Activates self-collision through solver's properties
-    """
-    cmds.setAttr(solver + '.selfCollision', 1)
-
-
 def cashTo(solver, save_to):
     """
         When simulation is run, each frame will be chashed to save_to folder
     """
     # TODO implement
     # cmds.setAttr(solver + '.selfCollision', 1)
+
+
+def setColliderFriction(collider_objects, friction_value):
+    """Sets the level of friction of the given collider to friction_value"""
+
+    main_collider = [obj for obj in collider_objects if 'Offset' not in obj]
+    collider_shape = cmds.listRelatives(main_collider[0], shapes=True)
+
+    cmds.setAttr(collider_shape[0] + '.friction', friction_value)

@@ -13,8 +13,8 @@ from maya import cmds
 
 # My module
 import pattern.core as core
-reload(core)
 import qualothwrapper as qw
+reload(core)
 reload(qw)
 
 
@@ -78,8 +78,8 @@ class MayaPattern(core.BasicPattern):
         if solvers:
             panel_geom = list(set(panel_geom) - set(solvers))
 
-        panel['qualoth'] = panel_geom  # note that the list might get invalid 
-                                       # after stitching -- use carefully
+        # note that the list might get invalid after stitching
+        panel['qualoth'] = panel_geom  
 
         # group all objects belonging to a panel
         panel_group = cmds.group(panel_geom + [curve_group], n=panel_name)
@@ -128,7 +128,20 @@ class MayaPattern(core.BasicPattern):
             stitch_id = cmds.parent(stitch_id, self.pattern['maya'])  # organization
             stitch['maya'] = stitch_id[0]
 
-        return self._find_qlcloth_object()
+    def setMaterialProps(self):
+        """
+            Sets material properties for the cloth object created from current panel
+        """
+        # TODO accept input from file
+        # TODO Make a standalone function? 
+        cloth = self.get_qlcloth_props_obj()
+
+        # Controls stretchness of the fabric
+        cmds.setAttr(cloth + '.stretch', 100)
+
+        # Friction between cloth and itself 
+        # (friction with body controlled by collider props)
+        cmds.setAttr(cloth + '.friction', 0.25)
 
     def _maya_curve_name(self, address):
         """ Shortcut to retrieve the name of curve corresponding to the edge"""
@@ -136,9 +149,9 @@ class MayaPattern(core.BasicPattern):
         edge_id = address['edge']
         return self.pattern['panels'][panel_name]['edges'][edge_id]['maya']
 
-    def _find_qlcloth_object(self):
+    def get_qlcloth_geomentry(self):
         """
-            Find the first Qualoth cloth object belonging to current pattern
+            Find the first Qualoth cloth geometry object belonging to current pattern
         """
         children = cmds.listRelatives(self.pattern['maya'], ad=True)
         cloths = [obj for obj in children 
@@ -146,10 +159,31 @@ class MayaPattern(core.BasicPattern):
 
         return cloths[0]
 
+    def get_qlcloth_props_obj(self):
+        """
+            Find the first qlCloth object belonging to current pattern
+        """
+        children = cmds.listRelatives(self.pattern['maya'], ad=True)
+        cloths = [obj for obj in children 
+                  if 'qlCloth' in obj and 'Out' not in obj and 'Shape' in obj]
 
-def load_body(filename, group_name):
+        return cloths[0]
+
+
+def load_body_as_collider(filename, garment, experiment):
+    solver = qw.findSolver()
+
     body = cmds.file(filename, i=True, rnn=True)
-    body = cmds.parent(body[0], group_name)
+    body = cmds.parent(body[0], experiment)
+
+    # Setup collision handling
+    collider_objects = qw.qlCreateCollider(garment, body[0])
+    collider_objects = cmds.parent(collider_objects, experiment)
+
+    # add body properties
+    # TODO experiment with the value -- it's now set randomly
+    qw.setColliderFriction(collider_objects, 0.5)
+
     return body[0]
 
 
@@ -160,16 +194,26 @@ def run_sim(garment, body, experiment, save_to):
     """
     solver = qw.findSolver()
 
-    # Setup collision handling
-    qw.activateSelfCollisions(solver)
-    collider_objects = qw.qlCreateCollider(garment, body)
-    cmds.parent(collider_objects, experiment)
+    # properties
+    cmds.setAttr(solver + '.selfCollision', 1)
+    cmds.setAttr(solver + '.startTime', 1)
+    cmds.setAttr(
+        solver + '.postSimScript', 
+        'print "testPostSim";',  
+        type='string' 
+    )
 
     # run
-    # NOTE! It will run all cloth existing in the scene
+    # NOTE! It will run simulate all cloth existing in the scene
     cmds.playbackOptions(ps=0)  # 0 playback speed = play every frame
-    cmds.currentTime(1)
-    cmds.play(f=True)
+    cmds.currentTime(1)  # needed to suppress "Frames skipped warning"
+
+    # Manual "play"
+    for frame in range(1, 100):
+        cmds.currentTime(frame)
+        # TODO Check if it's ok to finish simulation
+    
+    # TODO record time to sim + fps (or Sec per Frame =))
 
 
 def start_experiment(nametag):
@@ -202,9 +246,15 @@ def main():
             'C:/Users/LENOVO/Desktop/Garment-Pattern-Estimation/data_generation/Patterns/skirt_maya_coords.json'
         )
         pattern.load(experiment_name)
-        cloth_ref = pattern.stitch_panels()
+        pattern.stitch_panels()
+        pattern.setMaterialProps()
+        cloth_ref = pattern.get_qlcloth_geomentry()
 
-        body_ref = load_body('F:/f_smpl_templatex300.obj', experiment_name)
+        body_ref = load_body_as_collider(
+            'F:/f_smpl_templatex300.obj', 
+            cloth_ref,
+            experiment_name
+        )
 
         run_sim(cloth_ref, body_ref, experiment_name, 'F:/GK-Pattern-Data-Gen/Sims/')
 

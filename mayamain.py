@@ -5,8 +5,9 @@
 # Basic
 from __future__ import print_function
 import json
-from os import path
+import os
 import numpy as np
+import time
 
 # Maya
 from maya import cmds
@@ -187,7 +188,29 @@ def load_body_as_collider(filename, garment, experiment):
     return body[0]
 
 
-def run_sim(garment, body, experiment, save_to):
+def is_static(garment):
+    return False
+
+
+def save_mesh(garment, save_to):
+    return 
+
+
+def render(save_to):
+    return
+
+
+def record_fail(current_path, props):
+    """records current simulation case as fail"""
+    # discard last slash for basenme to work correctly
+    if current_path[-1] == '/' or current_path[-1] == '\\':
+        current_path = current_path[:-1] 
+    
+    name = os.path.basename(current_path)
+    props['sim_fails'].append(name)
+
+
+def run_sim(garment, body, experiment, save_to, props):
     """
         Setup and run simulation of the garment on the body
         Assumes garment is already properly aligned!
@@ -197,24 +220,27 @@ def run_sim(garment, body, experiment, save_to):
     # properties
     cmds.setAttr(solver + '.selfCollision', 1)
     cmds.setAttr(solver + '.startTime', 1)
-    cmds.setAttr(
-        solver + '.postSimScript', 
-        'print "testPostSim";',  
-        type='string' 
-    )
-
-    # run
-    # NOTE! It will run simulate all cloth existing in the scene
-    cmds.playbackOptions(ps=0)  # 0 playback speed = play every frame
+    cmds.setAttr(solver + '.solverStatistics', 0)  # for easy reading of console output
+    cmds.playbackOptions(ps=0, max=props['max_sim_steps'])  # 0 playback speed = play every frame
     cmds.currentTime(1)  # needed to suppress "Frames skipped warning"
 
-    # Manual "play"
-    for frame in range(1, 100):
-        cmds.currentTime(frame)
-        # TODO Check if it's ok to finish simulation
-    
-    # TODO record time to sim + fps (or Sec per Frame =))
+    # run -- Manual "play"
+    # NOTE! It will run simulate all cloth existing in the scene
+    start_time = time.time()
+    for frame in range(1, props['max_sim_steps']):
+        cmds.currentTime(frame)  # step
+        if is_static(garment):  # TODO Add penetration checks
+            save_mesh(save_to)
+            render(save_to)
+            break
+    # Record time to sim + fps (or Sec per Frame =))
+    # TODO make recording pattern-specific, not dataset-specific
+    props['spf'] = (time.time() - start_time) / frame
 
+    # static equilibrium never detected
+    if frame == props['max_sim_steps'] - 1:
+        record_fail(save_to, props)
+    
 
 def start_experiment(nametag):
     cmds.namespace(set=':')  # switch to default namespace JIC
@@ -239,8 +265,15 @@ def clean_scene(top_group, delete=False):
 def main():
 
     try:
-        experiment_name = start_experiment('test')
+        sim_options = {
+            'max_sim_steps': 20, 
+            'sim_fails': []
+        }
+
         qw.load_plugin()
+
+        # --- future loop of batch processing ---
+        experiment_name = start_experiment('test')
 
         pattern = MayaPattern(
             'C:/Users/LENOVO/Desktop/Garment-Pattern-Estimation/data_generation/Patterns/skirt_maya_coords.json'
@@ -256,11 +289,15 @@ def main():
             experiment_name
         )
 
-        run_sim(cloth_ref, body_ref, experiment_name, 'F:/GK-Pattern-Data-Gen/Sims/')
+        run_sim(cloth_ref, body_ref, 
+                experiment_name, 'F:/GK-Pattern-Data-Gen/Sims', 
+                sim_options)
 
         # Fin
         # clean_scene(experiment_name)
         print('Finished experiment', experiment_name)
+        # TODO save to file
+        print(sim_options)
     except Exception as e:
         print(e)
 

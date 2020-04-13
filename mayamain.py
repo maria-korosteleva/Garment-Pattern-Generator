@@ -31,9 +31,9 @@ class MayaGarment(core.BasicPattern):
     """
     def __init__(self, pattern_file):
         super(MayaGarment, self).__init__(pattern_file)
-        self.loaded_to_maya = False
         self.maya_shape = None
         self.maya_cloth_object = None
+        self.maya_shape_dag = None
         self.last_verts = None
         self.current_verts = None
     
@@ -57,8 +57,6 @@ class MayaGarment(core.BasicPattern):
 
         # stitch them
         self._stitch_panels()
-
-        self.loaded_to_maya = True
 
     def get_qlcloth_geomentry(self):
         """
@@ -84,6 +82,19 @@ class MayaGarment(core.BasicPattern):
 
         return self.maya_cloth_object
 
+    def get_qlcloth_geom_dag(self):
+        """
+            returns DAG reference to cloth shape object
+        """
+        if not self.maya_shape_dag:
+            # https://help.autodesk.com/view/MAYAUL/2016/ENU/?guid=__files_Maya_Python_API_Using_the_Maya_Python_API_htm
+            selectionList = OpenMaya.MSelectionList()
+            selectionList.add(self.get_qlcloth_geomentry())
+            self.maya_shape_dag = OpenMaya.MDagPath()
+            selectionList.getDagPath(0, self.maya_shape_dag)
+
+        return self.maya_shape_dag
+
     def update_verts_info(self):
         """
             Retrieves current vertex positions from Maya & updates the last state.
@@ -91,7 +102,7 @@ class MayaGarment(core.BasicPattern):
             Assumes the object is already loaded & stitched
         """
         # working with meshes http://www.fevrierdorian.com/blog/post/2011/09/27/Quickly-retrieve-vertex-positions-of-a-Maya-mesh-%28English-Translation%29
-        cloth_dag = name_to_dag(self.get_qlcloth_geomentry())
+        cloth_dag = self.get_qlcloth_geom_dag()
         
         mesh = OpenMaya.MFnMesh(cloth_dag)
         maya_vertices = OpenMaya.MPointArray()
@@ -122,6 +133,28 @@ class MayaGarment(core.BasicPattern):
             return True
         else:
             return False
+
+    def save_mesh(self, folder=''):
+        """
+            Saves cloth as obj file to a given folder or 
+            to the folder with the pattern if not given
+        """
+        if self.current_verts is None:
+            raise ValueError('MayaGarment::Pattern is not yet loaded')
+
+        if folder:
+            filepath = folder
+        else:
+            filepath = self.path
+        filepath = os.path.join(filepath, self.name + '_sim.obj')
+
+        cmds.select(self.get_qlcloth_geomentry())
+        cmds.file(
+            filepath + '.obj',  # Maya 2020 stupidly cuts file extention 
+            typ='OBJExport',
+            es=1,  # export selected
+            op='groups=0;ptgroups=0;materials=0;smoothing=0;normals=1'  # very simple
+        )
 
     def _load_panel(self, panel_name):
         """
@@ -239,33 +272,8 @@ def load_body_as_collider(filename, garment, experiment):
     return body[0]
 
 
-def name_to_dag(name):
-    """returns a dag path given a name
-        https://help.autodesk.com/view/MAYAUL/2016/ENU/?guid=__files_Maya_Python_API_Using_the_Maya_Python_API_htm
-    """
-    selectionList = OpenMaya.MSelectionList()
-    selectionList.add(name)
-    dagPath = OpenMaya.MDagPath()
-    selectionList.getDagPath(0, dagPath)
-    return dagPath
-
-
-def save_mesh(garment, save_to):
-    return 
-
-
 def render(save_to):
     return
-
-
-def record_fail(current_path, props):
-    """records current simulation case as fail"""
-    # discard last slash for basenme to work correctly
-    if current_path[-1] == '/' or current_path[-1] == '\\':
-        current_path = current_path[:-1] 
-    
-    name = os.path.basename(current_path)
-    props['sim_fails'].append(name)
 
 
 def init_sim(solver, props):
@@ -276,7 +284,6 @@ def init_sim(solver, props):
     cmds.setAttr(solver + '.startTime', 1)
     cmds.setAttr(solver + '.solverStatistics', 0)  # for easy reading of console output
     cmds.playbackOptions(ps=0, max=props['max_sim_steps'])  # 0 playback speed = play every frame
-    cmds.currentTime(1)  # needed to suppress "Frames skipped warning"
 
 
 def run_sim(garment, body, experiment, save_to, props):
@@ -292,11 +299,18 @@ def run_sim(garment, body, experiment, save_to, props):
     # run -- Manual "play"
     # NOTE! It will run simulate all cloth existing in the scene
     start_time = time.time()
-    for frame in range(1, props['max_sim_steps']):
+    # sim without checks
+    for frame in range(1, props['min_sim_steps']):
+        cmds.currentTime(frame)  # step
+
+    # sim with checks
+    for frame in range(props['min_sim_steps'], props['max_sim_steps']):
         cmds.currentTime(frame)  # step
         garment.update_verts_info()
         if garment.is_static(props['static_threshold']):  # TODO Add penetration checks
-            save_mesh(garment, save_to)
+            # Success!
+            # TODO move out of this function? 
+            garment.save_mesh(save_to)
             render(save_to)
             break
     # Record time to sim + fps (or Sec per Frame =))
@@ -306,8 +320,9 @@ def run_sim(garment, body, experiment, save_to, props):
     props['fin_frame'] = frame
 
     # static equilibrium never detected -- might have false negs!
+    # TODO should I save the result anyway? 
     if frame == props['max_sim_steps'] - 1:
-        record_fail(save_to, props)
+        props['sim_fails'].append(garment.name)
     
 
 def start_experiment(nametag):
@@ -335,8 +350,9 @@ def main():
     try:
         sim_options = {
             'max_sim_steps': 1500, 
+            'min_sim_steps': 40,  # no need to check for static equilibrium until min_steps 
             'sim_fails': [], 
-            'static_threshold': 0.01  # depends on the units used
+            'static_threshold': 0.05  # 0.01  # depends on the units used
         }
 
         qw.load_plugin()

@@ -30,6 +30,7 @@ class BasicPattern(object):
     def __init__(self, pattern_file):
 
         self.spec_file = pattern_file
+        self.path = os.path.dirname(pattern_file)
         self.name = os.path.basename(self.spec_file)
         self.name = os.path.splitext(self.name)[0]
 

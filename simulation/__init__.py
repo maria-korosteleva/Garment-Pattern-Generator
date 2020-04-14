@@ -48,9 +48,9 @@ def single_file_sim(pattern_json_file, body_path, save_to):
         garment = mayasetup.MayaGarment(pattern_json_file)
         garment.load()
         garment.setMaterialProps(scene.cloth_shader)
-        garment.add_colliders(scene.body, scene.floor)
+        garment.add_colliders(scene.body)  # I don't add floor s.t. garment falls infinitely if falls
 
-        qw.run_sim(garment, options['sim'])
+        # qw.run_sim(garment, options['sim'])
 
         # save even if sim failed -- to see what happened!
         garment.save_mesh(save_to)

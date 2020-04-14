@@ -41,6 +41,7 @@ class MayaGarment(core.BasicPattern):
         self.last_verts = None
         self.current_verts = None
         self.loaded_to_maya = False
+        self.obstacles = []
     
     def load(self, parent_group=None):
         """
@@ -96,6 +97,7 @@ class MayaGarment(core.BasicPattern):
             raise RuntimeError(
                 'MayaGarmentError::Pattern is not yet loaded. Cannot load colliders')
 
+        self.obstacles = obstacles
         for obj in obstacles:
             collider = qw.qlCreateCollider(
                 self.get_qlcloth_geomentry(), 
@@ -106,6 +108,9 @@ class MayaGarment(core.BasicPattern):
             qw.setColliderFriction(collider, 0.5)
             # organize object tree
             cmds.parent(collider, self.pattern['maya'])
+
+        # TEST
+        self.is_penetrating()
 
     def clean(self, delete=False):
         """ Hides/removes the garment from Maya scene 
@@ -210,12 +215,39 @@ class MayaGarment(core.BasicPattern):
         else:
             return False
 
+    def is_penetrating(self, obstacles=[]):
+        """Checks wheter garment intersects given obstacles or
+        its colliders if obstacles are not given
+        NOTE Implementation is lazy & might have false negatives
+        TODO proper penetration check
+        """
+        if not obstacles:
+            obstacles = self.obstacles
+        
+        print('Penetration check')
+
+        for obj in obstacles:
+            # experiment on copies
+            obj_2 = cmds.duplicate(obj)[0]
+            cloth_2 = cmds.duplicate(self.get_qlcloth_geomentry())[0]
+
+            intersect = cmds.polyBoolOp(cloth_2, obj_2, op=3)
+            print(intersect)
+
+            # check if empty
+            print(cmds.polyEvaluate(intersect[0], t=True))
+
+            # delete all the extra objects
+            # cmds.delete(obj_2)
+            # cmds.delete(cloth_2)
+            # cmds.delete(intersect)
+
     def save_mesh(self, folder=''):
         """
             Saves cloth as obj file to a given folder or 
             to the folder with the pattern if not given
         """
-        if not self.loaded_to_mayae:
+        if not self.loaded_to_maya:
             print('MayaGarmentWarning::Pattern is not yet loaded. Nothing saved')
             return
 

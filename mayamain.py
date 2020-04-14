@@ -13,7 +13,10 @@ import time
 from maya import cmds
 from maya import OpenMaya
 
-# My module
+# Arnold
+import mtoa.utils as mutils
+
+# My modules
 import pattern.core as core
 import qualothwrapper as qw
 reload(core)
@@ -156,6 +159,25 @@ class MayaGarment(core.BasicPattern):
             op='groups=0;ptgroups=0;materials=0;smoothing=0;normals=1'  # very simple
         )
 
+    def setMaterialProps(self, shader=None):
+        """
+            Sets material properties for the cloth object created from current panel
+        """
+        # TODO accept input from file
+        # TODO Make a standalone function? 
+        cloth = self.get_qlcloth_props_obj()
+
+        # Controls stretchness of the fabric
+        cmds.setAttr(cloth + '.stretch', 100)
+
+        # Friction between cloth and itself 
+        # (friction with body controlled by collider props)
+        cmds.setAttr(cloth + '.friction', 0.25)
+
+        if shader is not None:
+            cmds.select(self.get_qlcloth_geomentry())
+            cmds.hyperShade(assign=shader)
+
     def _load_panel(self, panel_name):
         """
             Loads curves contituting given panel to Maya. 
@@ -233,27 +255,74 @@ class MayaGarment(core.BasicPattern):
             stitch_id = cmds.parent(stitch_id, self.pattern['maya'])  # organization
             stitch['maya'] = stitch_id[0]
 
-    def setMaterialProps(self):
-        """
-            Sets material properties for the cloth object created from current panel
-        """
-        # TODO accept input from file
-        # TODO Make a standalone function? 
-        cloth = self.get_qlcloth_props_obj()
-
-        # Controls stretchness of the fabric
-        cmds.setAttr(cloth + '.stretch', 100)
-
-        # Friction between cloth and itself 
-        # (friction with body controlled by collider props)
-        cmds.setAttr(cloth + '.friction', 0.25)
-
     def _maya_curve_name(self, address):
         """ Shortcut to retrieve the name of curve corresponding to the edge"""
         panel_name = address['panel']
         edge_id = address['edge']
         return self.pattern['panels'][panel_name]['edges'][edge_id]['maya']
 
+
+class Scene(object):
+    """
+        Decribes scene setup
+        Assumes 
+            * body the scene revolved aroung faces z+ direction
+    """
+    def __init__(self, body_obj, options):
+        """
+            Set up scene for rendering using loaded body as a reference
+        """
+        # load body to be used as a translation reference
+        self.body_filepath = body_obj
+        self.body = cmds.file(body_obj, i=True, rnn=True)[0]
+        self.body = cmds.rename(self.body, 'body#')
+
+        # Add 'floor'
+        self.floor = self._add_floor(self.body)
+
+        # Put camera. NOTE Assumes body is facing +z direction
+        self.camera = cmds.camera()
+        cmds.viewFit(self.camera, self.body, f=0.75)
+
+        # Add light (Arnold)
+        self.light = mutils.createLocator('aiSkyDomeLight', asLight=True)
+
+        # create materials
+        self.body_shader = self._new_lambert(options['body_color'], self.body)
+        self.floor_shader = self._new_lambert(options['floor_color'], self.floor)
+        self.cloth_shader = self._new_lambert(options['cloth_color'])
+    
+    def _add_floor(self, target):
+        """
+            adds a floor under a given object
+        """
+        target_bb = cmds.exactWorldBoundingBox(target)
+
+        size = 10 * (target_bb[4] - target_bb[1])
+        floor = cmds.polyPlane(n='floor', w=size, h=size)
+
+        # place under the body
+        floor_level = target_bb[1]
+        cmds.move((target_bb[3] + target_bb[0]) / 2,  # bbox center
+                  floor_level, 
+                  (target_bb[5] + target_bb[2]) / 2,  # bbox center
+                  floor, a=1)
+
+        return floor
+
+    def _new_lambert(self, color, target=None):
+        """created a new shader node with given color"""
+        shader = cmds.shadingNode('lambert', asShader=True)
+        cmds.setAttr((shader + '.color'), 
+                     color[0], color[1], color[2],
+                     type='double3')
+
+        if target is not None:
+            cmds.select(target)
+            cmds.hyperShade(assign=shader)
+
+        return shader
+        
 
 def load_body_as_collider(filename, garment, experiment):
     solver = qw.findSolver()
@@ -270,10 +339,6 @@ def load_body_as_collider(filename, garment, experiment):
     qw.setColliderFriction(collider_objects, 0.5)
 
     return body[0]
-
-
-def render(save_to):
-    return
 
 
 def init_sim(solver, props):
@@ -348,14 +413,24 @@ def clean_scene(top_group, delete=False):
 def main():
 
     try:
-        sim_options = {
-            'max_sim_steps': 1500, 
-            'min_sim_steps': 40,  # no need to check for static equilibrium until min_steps 
-            'sim_fails': [], 
-            'static_threshold': 0.05  # 0.01  # depends on the units used
+        # ----- Init -----
+        options = {
+            'sim': {
+                'max_sim_steps': 1500, 
+                'min_sim_steps': 40,  # no need to check for static equilibrium until min_steps 
+                'sim_fails': [], 
+                'static_threshold': 0.05  # 0.01  # depends on the units used
+            },
+            'render': {
+                'body_color': [0.1, 0.2, 0.7], 
+                'cloth_color': [0.8, 0.2, 0.2],
+                'floor_color': [0.1, 0.1, 0.1]
+            }
+            
         }
-
         qw.load_plugin()
+
+        scene = Scene('F:/f_smpl_templatex300.obj', options['render'])
 
         # --- future loop of batch processing ---
         experiment_name = start_experiment('test')
@@ -364,24 +439,24 @@ def main():
             'C:/Users/LENOVO/Desktop/Garment-Pattern-Estimation/data_generation/Patterns/skirt_maya_coords.json'
         )
         garment.load(experiment_name)
-        garment.setMaterialProps()
+        garment.setMaterialProps(scene.cloth_shader)
 
-        body_ref = load_body_as_collider(
-            'F:/f_smpl_templatex300.obj', 
-            garment.get_qlcloth_geomentry(),
-            experiment_name
-        )
+        # body_ref = load_body_as_collider(
+        #     'F:/f_smpl_templatex300.obj', 
+        #     garment.get_qlcloth_geomentry(),
+        #     experiment_name
+        # )
 
-        run_sim(garment, body_ref, 
-                experiment_name, 
-                'F:/GK-Pattern-Data-Gen/Sims', 
-                sim_options)
+        # run_sim(garment, body_ref, 
+        #        experiment_name, 
+        #        'F:/GK-Pattern-Data-Gen/Sims', 
+        #        options['sim'])
 
         # Fin
         # clean_scene(experiment_name)
         print('Finished experiment', experiment_name)
         # TODO save to file
-        print(sim_options)
+        print(options)
     except Exception as e:
         print(e)
 

@@ -15,6 +15,7 @@ from maya import OpenMaya
 
 # Arnold
 import mtoa.utils as mutils
+from mtoa.cmds.arnoldRender import arnoldRender
 
 # My modules
 import pattern.core as core
@@ -186,8 +187,10 @@ class MayaGarment(core.BasicPattern):
             Saves cloth as obj file to a given folder or 
             to the folder with the pattern if not given
         """
+        # TODO fix not saving when sim was not run
         if self.current_verts is None:
-            raise ValueError('MayaGarment::Pattern is not yet loaded')
+            print('MayaGarmentWarning::Pattern is not yet loaded. Nothing saved')
+            return
 
         if folder:
             filepath = folder
@@ -289,7 +292,10 @@ class MayaGarment(core.BasicPattern):
 
 class Scene(object):
     """
-        Decribes scene setup
+        Decribes scene setup that includes:
+            * body object
+            * floor
+            * light(s) & camera(s)
         Assumes 
             * body the scene revolved aroung faces z+ direction
     """
@@ -297,6 +303,7 @@ class Scene(object):
         """
             Set up scene for rendering using loaded body as a reference
         """
+        self.options = options
         # load body to be used as a translation reference
         self.body_filepath = body_obj
         self.body = cmds.file(body_obj, i=True, rnn=True)[0]
@@ -306,8 +313,9 @@ class Scene(object):
         self.floor = self._add_floor(self.body)[0]
 
         # Put camera. NOTE Assumes body is facing +z direction
-        self.camera = cmds.camera()
-        cmds.viewFit(self.camera, self.body, f=0.75)
+        aspect_ratio = options['resolution'][0] / options['resolution'][1]
+        self.camera = cmds.camera(ar=aspect_ratio)[0]
+        cmds.viewFit(self.camera, self.body, f=0.85)
 
         # Add light (Arnold)
         self.light = mutils.createLocator('aiSkyDomeLight', asLight=True)
@@ -321,7 +329,20 @@ class Scene(object):
         """
             Makes a rendering of a current scene, and saves it to a given path
         """
-        return
+        # Set saving to file
+        filename = os.path.join(save_to, 'scene')
+        
+        # https://forums.autodesk.com/t5/maya-programming/rendering-with-arnold-in-a-python-script/td-p/7710875
+        # NOTE that attribute names depend on the Maya version. These are for Maya2020
+        cmds.setAttr("defaultArnoldDriver.aiTranslator", "png", type="string")
+        cmds.setAttr("defaultArnoldDriver.prefix", filename, type="string")
+
+        start_time = time.time()
+        im_size = self.options['resolution']
+
+        arnoldRender(im_size[0], im_size[1], True, True, self.camera, ' -layer defaultRenderLayer')
+        
+        self.options['render_time'] = time.time() - start_time
 
     def _add_floor(self, target):
         """
@@ -407,7 +428,7 @@ def main():
         # ----- Init -----
         options = {
             'sim': {
-                'max_sim_steps': 20, 
+                'max_sim_steps': 1500, 
                 'min_sim_steps': 10,  # no need to check for static equilibrium until min_steps 
                 'sim_fails': [], 
                 'static_threshold': 0.05  # 0.01  # depends on the units used
@@ -415,7 +436,8 @@ def main():
             'render': {
                 'body_color': [0.1, 0.2, 0.7], 
                 'cloth_color': [0.8, 0.2, 0.2],
-                'floor_color': [0.1, 0.1, 0.1]
+                'floor_color': [0.1, 0.1, 0.1],
+                'resolution': [800, 800]
             }
             
         }
@@ -431,11 +453,11 @@ def main():
         garment.setMaterialProps(scene.cloth_shader)
         garment.add_colliders(scene.body, scene.floor)
 
-        run_sim(garment, 
-                options['sim'])
+        run_sim(garment, options['sim'])
 
+        # save even if sim failed -- to see what happened!
         garment.save_mesh('F:/GK-Pattern-Data-Gen/Sims')
-        render('F:/GK-Pattern-Data-Gen/Sims')
+        scene.render('F:/GK-Pattern-Data-Gen/Sims')
 
         # Fin
         garment.clean()

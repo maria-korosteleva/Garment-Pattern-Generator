@@ -40,6 +40,7 @@ class MayaGarment(core.BasicPattern):
         self.maya_shape_dag = None
         self.last_verts = None
         self.current_verts = None
+        self.loaded_to_maya = False
     
     def load(self, parent_group=None):
         """
@@ -61,12 +62,18 @@ class MayaGarment(core.BasicPattern):
         # assemble
         self._stitch_panels()
 
+        self.loaded_to_maya = True
+
         print('Garment ' + self.name + 'is loaded to Maya')
 
     def setMaterialProps(self, shader=None):
         """
             Sets material properties for the cloth object created from current panel
         """
+        if not self.loaded_to_maya:
+            raise RuntimeError(
+                'MayaGarmentError::Pattern is not yet loaded. Cannot set materials')
+
         # TODO accept input from file
         cloth = self.get_qlcloth_props_obj()
 
@@ -85,6 +92,10 @@ class MayaGarment(core.BasicPattern):
         """
             Adds given Maya objects as colliders of the garment
         """
+        if not self.loaded_to_maya:
+            raise RuntimeError(
+                'MayaGarmentError::Pattern is not yet loaded. Cannot load colliders')
+
         for obj in obstacles:
             collider = qw.qlCreateCollider(
                 self.get_qlcloth_geomentry(), 
@@ -104,11 +115,15 @@ class MayaGarment(core.BasicPattern):
         cmds.hide(self.pattern['maya'])
         if delete:
             cmds.delete(self.pattern['maya'])
+            self.loaded_to_maya = False
 
     def get_qlcloth_geomentry(self):
         """
             Find the first Qualoth cloth geometry object belonging to current pattern
         """
+        if not self.loaded_to_maya:
+            raise RuntimeError('MayaGarmentError::Pattern is not yet loaded.')
+
         if not self.maya_shape:
             children = cmds.listRelatives(self.pattern['maya'], ad=True)
             cloths = [obj for obj in children 
@@ -121,6 +136,9 @@ class MayaGarment(core.BasicPattern):
         """
             Find the first qlCloth object belonging to current pattern
         """
+        if not self.loaded_to_maya:
+            raise RuntimeError('MayaGarmentError::Pattern is not yet loaded.')
+
         if not self.maya_cloth_object:
             children = cmds.listRelatives(self.pattern['maya'], ad=True)
             cloths = [obj for obj in children 
@@ -133,6 +151,9 @@ class MayaGarment(core.BasicPattern):
         """
             returns DAG reference to cloth shape object
         """
+        if not self.loaded_to_maya:
+            raise RuntimeError('MayaGarmentError::Pattern is not yet loaded.')
+
         if not self.maya_shape_dag:
             # https://help.autodesk.com/view/MAYAUL/2016/ENU/?guid=__files_Maya_Python_API_Using_the_Maya_Python_API_htm
             selectionList = OpenMaya.MSelectionList()
@@ -148,6 +169,10 @@ class MayaGarment(core.BasicPattern):
             For best performance, should be called on each iteration of simulation
             Assumes the object is already loaded & stitched
         """
+        if not self.loaded_to_maya:
+            raise RuntimeError(
+                'MayaGarmentError::Pattern is not yet loaded. Cannot update verts info')
+
         # working with meshes http://www.fevrierdorian.com/blog/post/2011/09/27/Quickly-retrieve-vertex-positions-of-a-Maya-mesh-%28English-Translation%29
         cloth_dag = self.get_qlcloth_geom_dag()
         
@@ -168,6 +193,10 @@ class MayaGarment(core.BasicPattern):
             Checks wether garment is in the static equilibrium
             Compares current state with the last recorded state
         """
+        if not self.loaded_to_maya:
+            raise RuntimeError(
+                'MayaGarmentError::Pattern is not yet loaded. Cannot check static')
+        
         if self.last_verts is None:  # first iteration
             return False
         
@@ -186,8 +215,7 @@ class MayaGarment(core.BasicPattern):
             Saves cloth as obj file to a given folder or 
             to the folder with the pattern if not given
         """
-        # TODO fix not saving when sim was not run
-        if self.current_verts is None:
+        if not self.loaded_to_mayae:
             print('MayaGarmentWarning::Pattern is not yet loaded. Nothing saved')
             return
 

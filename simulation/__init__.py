@@ -6,7 +6,7 @@
         * Maya 2018+
         * Qualoth (compatible with your Maya version)
     
-    To run custom packages in Maya don't foget to add them to PYTHONPATH
+    To run the package in Maya don't foget to add it to PYTHONPATH!
 """
 
 # Basic
@@ -33,9 +33,9 @@ def single_file_sim(pattern_json_file, body_path, save_to):
                 'static_threshold': 0.05  # 0.01  # depends on the units used
             },
             'render': {
-                'body_color': [0.1, 0.2, 0.7], 
+                'body_color': [0.5, 0.5, 0.7], 
                 'cloth_color': [0.8, 0.2, 0.2],
-                'floor_color': [0.1, 0.1, 0.1],
+                'floor_color': [0.8, 0.8, 0.8],
                 'resolution': [800, 800]
             }
             

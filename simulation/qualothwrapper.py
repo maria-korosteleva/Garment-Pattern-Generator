@@ -8,6 +8,7 @@
     
 """
 from __future__ import print_function
+import time
 
 from maya import mel
 from maya import cmds
@@ -70,6 +71,52 @@ def qlCreateCollider(cloth, target):
     return list(set(objects_after) - set(objects_before))
 
 
+# ------- Higher-level functions --------
+
+def _init_sim(solver, props):
+    """
+        Basic simulation settings before starting simulation
+    """
+    cmds.setAttr(solver + '.selfCollision', 1)
+    cmds.setAttr(solver + '.startTime', 1)
+    cmds.setAttr(solver + '.solverStatistics', 0)  # for easy reading of console output
+    cmds.playbackOptions(ps=0, max=props['max_sim_steps'])  # 0 playback speed = play every frame
+
+
+def run_sim(garment, props):
+    """
+        Setup and run cloth simulator untill static equlibrium of 
+        a garment is achieved.
+        Note:
+            * Assumes garment is already properly aligned!
+            * All of the garments existing in Maya scene will be simulated
+                because solver is shared!!
+    """
+    solver = findSolver()
+    _init_sim(solver, props)
+
+    start_time = time.time()
+    # skip checks for first few frames
+    for frame in range(1, props['min_sim_steps']):
+        cmds.currentTime(frame)  # step
+    for frame in range(props['min_sim_steps'], props['max_sim_steps']):
+        cmds.currentTime(frame)  # step
+        garment.update_verts_info()
+        if garment.is_static(props['static_threshold']):  
+            # TODO Add penetration checks
+            # Success!
+            break
+    
+    # Fail check: static equilibrium never detected -- might have false negs!
+    if frame == props['max_sim_steps'] - 1:
+        props['sim_fails'].append(garment.name)
+
+    # TODO make recording pattern-specific, not dataset-specific
+    props['sim_time'] = (time.time() - start_time)
+    props['spf'] = props['sim_time'] / frame
+    props['fin_frame'] = frame
+
+
 def findSolver():
     """
         Returns the name of the qlSover existing in the scene
@@ -77,14 +124,6 @@ def findSolver():
     """
     solver = cmds.ls('*qlSolver*Shape*')
     return solver[0]
-
-
-def cashTo(solver, save_to):
-    """
-        When simulation is run, each frame will be chashed to save_to folder
-    """
-    # TODO implement
-    # cmds.setAttr(solver + '.selfCollision', 1)
 
 
 def setColliderFriction(collider_objects, friction_value):

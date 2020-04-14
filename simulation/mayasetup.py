@@ -1,5 +1,5 @@
 """
-    Module to batch-simulate garments from patterns in Maya.
+    Module contains classes needed to simulate garments from patterns in Maya.
     Note that Maya uses Python 2.7 (incl Maya 2020) hence this module is adapted to Python 2.7
 """
 # Basic
@@ -68,7 +68,6 @@ class MayaGarment(core.BasicPattern):
             Sets material properties for the cloth object created from current panel
         """
         # TODO accept input from file
-        # TODO Make a standalone function? 
         cloth = self.get_qlcloth_props_obj()
 
         # Controls stretchness of the fabric
@@ -329,6 +328,7 @@ class Scene(object):
         """
             Makes a rendering of a current scene, and saves it to a given path
         """
+        # TODO saving for datasets in subfolders & not
         # Set saving to file
         filename = os.path.join(save_to, 'scene')
         
@@ -374,99 +374,3 @@ class Scene(object):
             cmds.hyperShade(assign=shader)
 
         return shader
-        
-
-def init_sim(solver, props):
-    """
-        Basic simulation settings before starting simulation
-    """
-    cmds.setAttr(solver + '.selfCollision', 1)
-    cmds.setAttr(solver + '.startTime', 1)
-    cmds.setAttr(solver + '.solverStatistics', 0)  # for easy reading of console output
-    cmds.playbackOptions(ps=0, max=props['max_sim_steps'])  # 0 playback speed = play every frame
-
-
-def run_sim(garment, props):
-    """
-        Setup and run simulation of the garment on the body
-        Assumes garment is already properly aligned!
-    """
-    solver = qw.findSolver()
-
-    # init
-    init_sim(solver, props)
-
-    # run -- Manual "play"
-    # NOTE! It will run simulate all cloth existing in the scene
-    start_time = time.time()
-    # sim without checks
-    for frame in range(1, props['min_sim_steps']):
-        cmds.currentTime(frame)  # step
-
-    # sim with checks
-    for frame in range(props['min_sim_steps'], props['max_sim_steps']):
-        cmds.currentTime(frame)  # step
-        garment.update_verts_info()
-        if garment.is_static(props['static_threshold']):  # TODO Add penetration checks
-            # Success!
-            break
-    # Record time to sim + fps (or Sec per Frame =))
-    # TODO make recording pattern-specific, not dataset-specific
-    props['sim_time'] = (time.time() - start_time)
-    props['spf'] = props['sim_time'] / frame
-    props['fin_frame'] = frame
-
-    # Fail check: static equilibrium never detected -- might have false negs!
-    # TODO should I save the result anyway? 
-    if frame == props['max_sim_steps'] - 1:
-        props['sim_fails'].append(garment.name)
-
-
-# ----------- Main loop --------------
-def main():
-    try:
-        # ----- Init -----
-        options = {
-            'sim': {
-                'max_sim_steps': 1500, 
-                'min_sim_steps': 10,  # no need to check for static equilibrium until min_steps 
-                'sim_fails': [], 
-                'static_threshold': 0.05  # 0.01  # depends on the units used
-            },
-            'render': {
-                'body_color': [0.1, 0.2, 0.7], 
-                'cloth_color': [0.8, 0.2, 0.2],
-                'floor_color': [0.1, 0.1, 0.1],
-                'resolution': [800, 800]
-            }
-            
-        }
-        qw.load_plugin()
-
-        scene = Scene('F:/f_smpl_templatex300.obj', options['render'])
-
-        # --- future loop of batch processing ---
-        garment = MayaGarment(
-            'C:/Users/LENOVO/Desktop/Garment-Pattern-Estimation/data_generation/Patterns/skirt_maya_coords.json'
-        )
-        garment.load()
-        garment.setMaterialProps(scene.cloth_shader)
-        garment.add_colliders(scene.body, scene.floor)
-
-        run_sim(garment, options['sim'])
-
-        # save even if sim failed -- to see what happened!
-        garment.save_mesh('F:/GK-Pattern-Data-Gen/Sims')
-        scene.render('F:/GK-Pattern-Data-Gen/Sims')
-
-        # Fin
-        garment.clean()
-        print('Finished experiment')
-        # TODO save to file
-        print(options)
-    except Exception as e:
-        print(e)
-
-
-if __name__ == "__main__":
-    main()

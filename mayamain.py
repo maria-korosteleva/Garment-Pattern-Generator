@@ -40,7 +40,7 @@ class MayaGarment(core.BasicPattern):
         self.last_verts = None
         self.current_verts = None
     
-    def load(self, parent_group='experiment'):
+    def load(self, parent_group=None):
         """
             Loads current pattern to Maya as curve collection.
             Groups them by panel and by pattern
@@ -51,15 +51,16 @@ class MayaGarment(core.BasicPattern):
             panel_maya = self._load_panel(panel_name)
             maya_panel_names.append(panel_maya)
         
-        group_name = cmds.group(maya_panel_names, 
-                                n=self.name,
-                                p=parent_group)
-        self.pattern['maya'] = group_name  # Maya modifies specified name for uniquness
-        
-        print("All panels loaded to Maya")
+        group_name = cmds.group(maya_panel_names, n=self.name)
+        if parent_group is not None:
+            group_name = cmds.parent(group_name, parent_group)
 
-        # stitch them
+        self.pattern['maya'] = group_name
+        
+        # assemble
         self._stitch_panels()
+
+        print('Garment ' + self.name + 'is loaded to Maya')
 
     def setMaterialProps(self, shader=None):
         """
@@ -94,6 +95,15 @@ class MayaGarment(core.BasicPattern):
             qw.setColliderFriction(collider, 0.5)
             # organize object tree
             cmds.parent(collider, self.pattern['maya'])
+
+    def clean(self, delete=False):
+        """ Hides/removes the garment from Maya scene 
+            NOTE all of the maya ids assosiated with the garment become invalidated, 
+            if delete flag is True
+        """
+        cmds.hide(self.pattern['maya'])
+        if delete:
+            cmds.delete(self.pattern['maya'])
 
     def get_qlcloth_geomentry(self):
         """
@@ -306,7 +316,13 @@ class Scene(object):
         self.body_shader = self._new_lambert(options['body_color'], self.body)
         self.floor_shader = self._new_lambert(options['floor_color'], self.floor)
         self.cloth_shader = self._new_lambert(options['cloth_color'])
-    
+
+    def render(self, save_to):
+        """
+            Makes a rendering of a current scene, and saves it to a given path
+        """
+        return
+
     def _add_floor(self, target):
         """
             adds a floor under a given object
@@ -349,7 +365,7 @@ def init_sim(solver, props):
     cmds.playbackOptions(ps=0, max=props['max_sim_steps'])  # 0 playback speed = play every frame
 
 
-def run_sim(garment, body, experiment, save_to, props):
+def run_sim(garment, props):
     """
         Setup and run simulation of the garment on the body
         Assumes garment is already properly aligned!
@@ -372,9 +388,6 @@ def run_sim(garment, body, experiment, save_to, props):
         garment.update_verts_info()
         if garment.is_static(props['static_threshold']):  # TODO Add penetration checks
             # Success!
-            # TODO move out of this function? 
-            garment.save_mesh(save_to)
-            render(save_to)
             break
     # Record time to sim + fps (or Sec per Frame =))
     # TODO make recording pattern-specific, not dataset-specific
@@ -382,40 +395,20 @@ def run_sim(garment, body, experiment, save_to, props):
     props['spf'] = props['sim_time'] / frame
     props['fin_frame'] = frame
 
-    # static equilibrium never detected -- might have false negs!
+    # Fail check: static equilibrium never detected -- might have false negs!
     # TODO should I save the result anyway? 
     if frame == props['max_sim_steps'] - 1:
         props['sim_fails'].append(garment.name)
-    
-
-def start_experiment(nametag):
-    cmds.namespace(set=':')  # switch to default namespace JIC
-
-    # group all objects under a common node
-    experiment_name = cmds.group(em=True, n=nametag)
-    
-    print('Starting experiment', experiment_name)
-    return experiment_name
-
-
-def clean_scene(top_group, delete=False):
-    cmds.hide(top_group)
-    if delete:
-        cmds.delete(top_group)
-    # return from custom namespaces, if any
-    cmds.namespace(set=':')
-    return
 
 
 # ----------- Main loop --------------
 def main():
-
     try:
         # ----- Init -----
         options = {
             'sim': {
-                'max_sim_steps': 1500, 
-                'min_sim_steps': 40,  # no need to check for static equilibrium until min_steps 
+                'max_sim_steps': 20, 
+                'min_sim_steps': 10,  # no need to check for static equilibrium until min_steps 
                 'sim_fails': [], 
                 'static_threshold': 0.05  # 0.01  # depends on the units used
             },
@@ -431,24 +424,22 @@ def main():
         scene = Scene('F:/f_smpl_templatex300.obj', options['render'])
 
         # --- future loop of batch processing ---
-        experiment_name = start_experiment('test')
-
         garment = MayaGarment(
             'C:/Users/LENOVO/Desktop/Garment-Pattern-Estimation/data_generation/Patterns/skirt_maya_coords.json'
         )
-        garment.load(experiment_name)
+        garment.load()
         garment.setMaterialProps(scene.cloth_shader)
-
         garment.add_colliders(scene.body, scene.floor)
 
-        run_sim(garment, scene.body, 
-               experiment_name, 
-               'F:/GK-Pattern-Data-Gen/Sims', 
-               options['sim'])
+        run_sim(garment, 
+                options['sim'])
+
+        garment.save_mesh('F:/GK-Pattern-Data-Gen/Sims')
+        render('F:/GK-Pattern-Data-Gen/Sims')
 
         # Fin
-        # clean_scene(experiment_name)
-        print('Finished experiment', experiment_name)
+        garment.clean()
+        print('Finished experiment')
         # TODO save to file
         print(options)
     except Exception as e:

@@ -55,14 +55,14 @@ def qlCreateSeam(curve1, curve2):
     return seam_shape
 
 
-def qlCreateCollider(cloth, body):
+def qlCreateCollider(cloth, target):
     """
-        Marks body as a collider object for cloth --
+        Marks object as a collider object for cloth --
         eshures that cloth won't penetrate body when simulated
     """
     objects_before = cmds.ls(assemblies=True)
 
-    cmds.select([cloth, body])
+    cmds.select([cloth, target])
     # Operates on selection
     mel.eval('qlCreateCollider()')
 

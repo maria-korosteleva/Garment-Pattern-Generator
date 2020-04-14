@@ -61,6 +61,40 @@ class MayaGarment(core.BasicPattern):
         # stitch them
         self._stitch_panels()
 
+    def setMaterialProps(self, shader=None):
+        """
+            Sets material properties for the cloth object created from current panel
+        """
+        # TODO accept input from file
+        # TODO Make a standalone function? 
+        cloth = self.get_qlcloth_props_obj()
+
+        # Controls stretchness of the fabric
+        cmds.setAttr(cloth + '.stretch', 100)
+
+        # Friction between cloth and itself 
+        # (friction with body controlled by collider props)
+        cmds.setAttr(cloth + '.friction', 0.25)
+
+        if shader is not None:
+            cmds.select(self.get_qlcloth_geomentry())
+            cmds.hyperShade(assign=shader)
+
+    def add_colliders(self, *obstacles):
+        """
+            Adds given Maya objects as colliders of the garment
+        """
+        for obj in obstacles:
+            collider = qw.qlCreateCollider(
+                self.get_qlcloth_geomentry(), 
+                obj
+            )
+            # properties
+            # TODO experiment with the value -- it's now set arbitrarily
+            qw.setColliderFriction(collider, 0.5)
+            # organize object tree
+            cmds.parent(collider, self.pattern['maya'])
+
     def get_qlcloth_geomentry(self):
         """
             Find the first Qualoth cloth geometry object belonging to current pattern
@@ -158,25 +192,6 @@ class MayaGarment(core.BasicPattern):
             es=1,  # export selected
             op='groups=0;ptgroups=0;materials=0;smoothing=0;normals=1'  # very simple
         )
-
-    def setMaterialProps(self, shader=None):
-        """
-            Sets material properties for the cloth object created from current panel
-        """
-        # TODO accept input from file
-        # TODO Make a standalone function? 
-        cloth = self.get_qlcloth_props_obj()
-
-        # Controls stretchness of the fabric
-        cmds.setAttr(cloth + '.stretch', 100)
-
-        # Friction between cloth and itself 
-        # (friction with body controlled by collider props)
-        cmds.setAttr(cloth + '.friction', 0.25)
-
-        if shader is not None:
-            cmds.select(self.get_qlcloth_geomentry())
-            cmds.hyperShade(assign=shader)
 
     def _load_panel(self, panel_name):
         """
@@ -278,7 +293,7 @@ class Scene(object):
         self.body = cmds.rename(self.body, 'body#')
 
         # Add 'floor'
-        self.floor = self._add_floor(self.body)
+        self.floor = self._add_floor(self.body)[0]
 
         # Put camera. NOTE Assumes body is facing +z direction
         self.camera = cmds.camera()
@@ -323,23 +338,6 @@ class Scene(object):
 
         return shader
         
-
-def load_body_as_collider(filename, garment, experiment):
-    solver = qw.findSolver()
-
-    body = cmds.file(filename, i=True, rnn=True)
-    body = cmds.parent(body[0], experiment)
-
-    # Setup collision handling
-    collider_objects = qw.qlCreateCollider(garment, body[0])
-    collider_objects = cmds.parent(collider_objects, experiment)
-
-    # add body properties
-    # TODO experiment with the value -- it's now set randomly
-    qw.setColliderFriction(collider_objects, 0.5)
-
-    return body[0]
-
 
 def init_sim(solver, props):
     """
@@ -441,16 +439,12 @@ def main():
         garment.load(experiment_name)
         garment.setMaterialProps(scene.cloth_shader)
 
-        # body_ref = load_body_as_collider(
-        #     'F:/f_smpl_templatex300.obj', 
-        #     garment.get_qlcloth_geomentry(),
-        #     experiment_name
-        # )
+        garment.add_colliders(scene.body, scene.floor)
 
-        # run_sim(garment, body_ref, 
-        #        experiment_name, 
-        #        'F:/GK-Pattern-Data-Gen/Sims', 
-        #        options['sim'])
+        run_sim(garment, scene.body, 
+               experiment_name, 
+               'F:/GK-Pattern-Data-Gen/Sims', 
+               options['sim'])
 
         # Fin
         # clean_scene(experiment_name)

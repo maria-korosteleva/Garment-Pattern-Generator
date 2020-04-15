@@ -27,7 +27,7 @@ def single_file_sim(pattern_json_file, body_path, save_to):
         options = {
             'body': body_path,
             'sim': {
-                'max_sim_steps': 1500, 
+                'max_sim_steps': 1000, 
                 'min_sim_steps': 10,  # no need to check for static equilibrium until min_steps 
                 'sim_fails': [], 
                 'static_threshold': 0.05  # 0.01  # depends on the units used

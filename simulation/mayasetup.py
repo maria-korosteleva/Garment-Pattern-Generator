@@ -19,7 +19,7 @@ from mtoa.cmds.arnoldRender import arnoldRender
 
 # My modules
 import pattern.core as core
-import qualothwrapper as qw
+import simulation.qualothwrapper as qw
 reload(core)
 reload(qw)
 
@@ -65,7 +65,7 @@ class MayaGarment(core.BasicPattern):
 
         self.loaded_to_maya = True
 
-        print('Garment ' + self.name + 'is loaded to Maya')
+        print('Garment ' + self.name + ' is loaded to Maya')
 
     def setMaterialProps(self, shader=None):
         """
@@ -377,16 +377,26 @@ class Scene(object):
 
         # Add light (Arnold)
         self.light = mutils.createLocator('aiSkyDomeLight', asLight=True)
+        self._init_arnold()
 
         # create materials
         self.body_shader = self._new_lambert(options['body_color'], self.body)
         self.floor_shader = self._new_lambert(options['floor_color'], self.floor)
         self.cloth_shader = self._new_lambert(options['cloth_color'])
 
+    def _init_arnold(self):
+        """call for fake rendering s.t. Arnold created its objects in Maya"""
+        objects = cmds.ls('defaultArnoldDriver')
+        if not objects:  
+            # Arnold objects not found
+            # NOTE that it saves an image to the latest/default location
+            arnoldRender(1, 1, True, True, self.camera, ' -layer defaultRenderLayer')
+
     def render(self, save_to):
         """
             Makes a rendering of a current scene, and saves it to a given path
         """
+
         # TODO saving for datasets in subfolders & not
         # Set saving to file
         filename = os.path.join(save_to, 'scene')

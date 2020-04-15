@@ -109,9 +109,6 @@ class MayaGarment(core.BasicPattern):
             # organize object tree
             cmds.parent(collider, self.pattern['maya'])
 
-        # TEST
-        self.is_penetrating()
-
     def clean(self, delete=False):
         """ Hides/removes the garment from Maya scene 
             NOTE all of the maya ids assosiated with the garment become invalidated, 
@@ -221,6 +218,8 @@ class MayaGarment(core.BasicPattern):
         NOTE Implementation is lazy & might have false negatives
         TODO proper penetration check
         """
+        raise NotImplementedError()
+
         if not obstacles:
             obstacles = self.obstacles
         

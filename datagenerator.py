@@ -7,56 +7,29 @@ import os
 import random
 import shutil
 
-# My module
+# My modules
 import pattern.wrappers as pattern
+from utils import Properties
 
 
-class DatasetProperties():
-    """Keeps loads, and saves properties of a synthetic dataset.
-        Objects of the class can be treated as dictionaries.
-        Mandatory properties include
-            * size (number of datapoints)
-            * template (name of template file which variation forms a datapoint)
-            * random_seed (for reproducibility)
-            * to_subfolders (whether each datapoint is stored in a separate subfolder)
-            * name (of a current dataset)
+def _create_data_folder(path, props):
+    """ Create a new directory to put dataset in 
+        & generate appropriate name & update dataset properties
     """
-    def __init__(self, template_names, size, 
-                 data_to_subfolders=True, name="", random_seed=None):
-        self.properties = {}
-        # Init mandatory dataset properties
-        self['size'] = size
-        self['templates'] = template_names
-        self['to_subfolders'] = data_to_subfolders
-        self['name'] = name
-        if random_seed is None:
-            self['random_seed'] = int(time.time())  # new random seed
-        else:
-            self['random_seed'] = random_seed
-    
-    @classmethod
-    def fromfile(cls, prop_file):
-        with open(prop_file, 'r') as f_json:
-            props = json.load(f_json) 
-        if 'data_folder' in props:
-            # props of the previous dataset
-            props['name'] = props['data_folder'] + '_regen'
+    if 'data_folder' in props:  # will this work?
+        # => regenerating from existing data
+        props['name'] = props['data_folder'] + '_regen'
+        data_folder = props['name']
+    else:
+        data_folder = props['name'] + '_' + Path(props['templates']).stem
 
-        return cls(props['templates'], 
-                   props['size'],
-                   props['to_subfolders'], 
-                   props['name'],
-                   props['random_seed'])
+    # make unique
+    data_folder += '_' + datetime.now().strftime('%y%m%d-%H-%M')
+    props['data_folder'] = data_folder
+    path_with_dataset = path / data_folder
+    os.makedirs(path_with_dataset)
 
-    def __getitem__(self, key):
-        return self.properties[key]
-
-    def __setitem__(self, key, value):
-        self.properties[key] = value
-    
-    def serialize(self, filename):
-        with open(filename, 'w') as f_json:
-            json.dump(self.properties, f_json, indent=2)
+    return path_with_dataset
 
 
 def generate(path, templates_path, props):
@@ -71,23 +44,26 @@ def generate(path, templates_path, props):
             * Physics simulation of garments
     """
     path = Path(path)
+    gen_config = props['generator']['config']
+    gen_stats = props['generator']['stats']
+
     # TODO modify to support multiple templates
     if isinstance(props['templates'], list):
         raise NotImplemented('Generation from multiple templates is not supported')
     template_file_path = Path(templates_path) / props['templates']
 
     # create data folder
-    data_folder = props['name'] + '_' + template_file_path.stem + '_' \
-        + datetime.now().strftime('%y%m%d-%H-%M')
-    props['data_folder'] = data_folder
-    path_with_dataset = path / data_folder
-    os.makedirs(path_with_dataset)
-    # Copy template for convernience TODO copy with visualization? 
+    path_with_dataset = _create_data_folder(path, props)
+
+    # Copy template for convernience 
+    # TODO copy with visualization? 
     shutil.copyfile(template_file_path, 
                     path_with_dataset / ('template_' + template_file_path.name))
 
     # init random seed
-    random.seed(props['random_seed'])
+    if 'random_seed' not in gen_config or gen_config['random_seed'] is None:
+        gen_config['random_seed'] = int(time.time())
+    random.seed(gen_config['random_seed'])
 
     # generate data
     start_time = time.time()
@@ -96,7 +72,7 @@ def generate(path, templates_path, props):
         new_pattern.serialize(path_with_dataset, 
                               to_subfolder=props['to_subfolders'])
     elapsed = time.time() - start_time
-    props['generation_time'] = f'{elapsed:.3f} s'
+    gen_stats['generation_time'] = f'{elapsed:.3f} s'
 
     # log properties
     props.serialize(path_with_dataset / 'dataset_properties.json')
@@ -105,17 +81,21 @@ def generate(path, templates_path, props):
 # ------------------ MAIN ------------------------
 if __name__ == "__main__":
     
-    new = True
+    new = False
+    system_props = Properties('../system.json')
 
     if new:
-        props = DatasetProperties(
-            'skirt_per_panel.json', 
+        props = Properties()
+        props.set_basic(
+            templates='basic skirt/skirt_maya_coords.json',
+            name='props_style',
             size=10,
-            data_to_subfolders=False, 
-            name='random_class')
+            to_subfolders=False)
+        props.set_section_config('generator')
     else:
-        props = DatasetProperties.fromfile(
-            'F:/GK-Pattern-Data-Gen/N_skirt_per_panel_200324-17-22/dataset_properties.json')
+        props = Properties(
+            Path(system_props['output']) / 'props_style_skirt_maya_coords_200416-12-48/dataset_properties.json', 
+            True)
 
     # Generator
-    generate('F:/GK-Pattern-Data-Gen/', './Patterns', props)
+    generate(system_props['output'], system_props['templates_path'], props)

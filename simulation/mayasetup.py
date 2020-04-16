@@ -359,11 +359,13 @@ class Scene(object):
         Assumes 
             * body the scene revolved aroung faces z+ direction
     """
-    def __init__(self, body_obj, options):
+    def __init__(self, body_obj, props):
         """
             Set up scene for rendering using loaded body as a reference
         """
-        self.options = options
+        self.props = props
+        self.config = props['config']
+        self.stats = props['stats']
         # load body to be used as a translation reference
         self.body_filepath = body_obj
         self.body = cmds.file(body_obj, i=True, rnn=True)[0]
@@ -373,7 +375,7 @@ class Scene(object):
         self.floor = self._add_floor(self.body)[0]
 
         # Put camera. NOTE Assumes body is facing +z direction
-        aspect_ratio = options['resolution'][0] / options['resolution'][1]
+        aspect_ratio = self.config['resolution'][0] / self.config['resolution'][1]
         self.camera = cmds.camera(ar=aspect_ratio)[0]
         cmds.viewFit(self.camera, self.body, f=0.85)
 
@@ -382,9 +384,9 @@ class Scene(object):
         self._init_arnold()
 
         # create materials
-        self.body_shader = self._new_lambert(options['body_color'], self.body)
-        self.floor_shader = self._new_lambert(options['floor_color'], self.floor)
-        self.cloth_shader = self._new_lambert(options['cloth_color'])
+        self.body_shader = self._new_lambert(self.config['body_color'], self.body)
+        self.floor_shader = self._new_lambert(self.config['floor_color'], self.floor)
+        self.cloth_shader = self._new_lambert(self.config['cloth_color'])
 
     def _init_arnold(self):
         """Endure Arnold objects are launched in Maya"""
@@ -410,11 +412,11 @@ class Scene(object):
         cmds.setAttr("defaultArnoldDriver.prefix", filename, type="string")
 
         start_time = time.time()
-        im_size = self.options['resolution']
+        im_size = self.config['resolution']
 
         arnoldRender(im_size[0], im_size[1], True, True, self.camera, ' -layer defaultRenderLayer')
         
-        self.options['render_time'] = time.time() - start_time
+        self.stats['render_time'] = time.time() - start_time
 
     def _add_floor(self, target):
         """

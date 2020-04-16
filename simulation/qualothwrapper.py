@@ -73,14 +73,14 @@ def qlCreateCollider(cloth, target):
 
 # ------- Higher-level functions --------
 
-def _init_sim(solver, props):
+def _init_sim(solver, config):
     """
         Basic simulation settings before starting simulation
     """
     cmds.setAttr(solver + '.selfCollision', 1)
     cmds.setAttr(solver + '.startTime', 1)
     cmds.setAttr(solver + '.solverStatistics', 0)  # for easy reading of console output
-    cmds.playbackOptions(ps=0, max=props['max_sim_steps'])  # 0 playback speed = play every frame
+    cmds.playbackOptions(ps=0, max=config['max_sim_steps'])  # 0 playback speed = play every frame
 
 
 def run_sim(garment, props):
@@ -93,28 +93,29 @@ def run_sim(garment, props):
                 because solver is shared!!
     """
     solver = findSolver()
-    _init_sim(solver, props)
+    config = props['config']
+    _init_sim(solver, config)
 
     start_time = time.time()
     # skip checks for first few frames
-    for frame in range(1, props['min_sim_steps']):
+    for frame in range(1, config['min_sim_steps']):
         cmds.currentTime(frame)  # step
-    for frame in range(props['min_sim_steps'], props['max_sim_steps']):
+    for frame in range(config['min_sim_steps'], config['max_sim_steps']):
         cmds.currentTime(frame)  # step
         garment.update_verts_info()
-        if garment.is_static(props['static_threshold']):  
+        if garment.is_static(config['static_threshold']):  
             # TODO Add penetration checks
             # Success!
             break
     
     # Fail check: static equilibrium never detected -- might have false negs!
-    if frame == props['max_sim_steps'] - 1:
-        props['sim_fails'].append(garment.name)
+    if frame == config['max_sim_steps'] - 1:
+        props['stats']['sim_fails'].append(garment.name)
 
     # TODO make recording pattern-specific, not dataset-specific
-    props['sim_time'] = (time.time() - start_time)
-    props['spf'] = props['sim_time'] / frame
-    props['fin_frame'] = frame
+    props['stats']['sim_time'].append(time.time() - start_time)
+    props['stats']['spf'].append(props['stats']['sim_time'][-1] / frame)
+    props['stats']['fin_frame'].append(frame)
 
 
 def findSolver():

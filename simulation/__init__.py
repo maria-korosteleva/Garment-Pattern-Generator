@@ -4,6 +4,7 @@
 
     Main dependencies:
         * Maya 2018+
+        * Arnold Renderer
         * Qualoth (compatible with your Maya version)
     
     To run the package in Maya don't foget to add it to PYTHONPATH!

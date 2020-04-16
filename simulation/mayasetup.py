@@ -16,6 +16,7 @@ from maya import OpenMaya
 # Arnold
 import mtoa.utils as mutils
 from mtoa.cmds.arnoldRender import arnoldRender
+import mtoa.core as mtoa
 
 # My modules
 import pattern.core as core
@@ -261,7 +262,8 @@ class MayaGarment(core.BasicPattern):
             filepath + '.obj',  # Maya 2020 stupidly cuts file extention 
             typ='OBJExport',
             es=1,  # export selected
-            op='groups=0;ptgroups=0;materials=0;smoothing=0;normals=1'  # very simple
+            op='groups=0;ptgroups=0;materials=0;smoothing=0;normals=1',  # very simple obj
+            f=1  # force override if file exists
         )
 
     def _load_panel(self, panel_name):
@@ -385,12 +387,13 @@ class Scene(object):
         self.cloth_shader = self._new_lambert(options['cloth_color'])
 
     def _init_arnold(self):
-        """call for fake rendering s.t. Arnold created its objects in Maya"""
+        """Endure Arnold objects are launched in Maya"""
+
         objects = cmds.ls('defaultArnoldDriver')
-        if not objects:  
-            # Arnold objects not found
-            # NOTE that it saves an image to the latest/default location
-            arnoldRender(1, 1, True, True, self.camera, ' -layer defaultRenderLayer')
+        if not objects:  # Arnold objects not found
+            # https://arnoldsupport.com/2015/12/09/mtoa-creating-the-defaultarnold-nodes-in-scripting/
+            print('Initialized Arnold')
+            mtoa.createOptions()
 
     def render(self, save_to):
         """

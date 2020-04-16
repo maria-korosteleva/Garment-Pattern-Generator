@@ -9,10 +9,10 @@ reload(mysim)
 
 if __name__ == "__main__":
     path = 'C:/Users/LENOVO/Desktop/Garment-Pattern-Estimation/data_generation/Patterns/'
-    sub = 'too small/'
+    sub = 'basic skirt/'
     
     mysim.single_file_sim(
-        path + sub + 'skirt_maya_coords_small.json', 
+        path + sub + 'skirt_maya_coords.json', 
         path + 'f_smpl_templatex300.obj', 
         path + sub)
 

@@ -236,7 +236,7 @@ class RandomPattern(VisPattern):
                     self.parameter_processors[param_type](
                         panel_influence['panel'], edge, value)
 
-                super()._normalize_panel_translation(panel_influence['panel'])
+                # super()._normalize_panel_translation(panel_influence['panel'])
         
         # print(self.name, self.__edge_length('front', 0), self.__edge_length('back', 0))
 

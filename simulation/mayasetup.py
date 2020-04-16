@@ -397,14 +397,14 @@ class Scene(object):
             print('Initialized Arnold')
             mtoa.createOptions()
 
-    def render(self, save_to):
+    def render(self, save_to, name='scene'):
         """
             Makes a rendering of a current scene, and saves it to a given path
         """
 
         # TODO saving for datasets in subfolders & not
         # Set saving to file
-        filename = os.path.join(save_to, 'scene')
+        filename = os.path.join(save_to, name)
         
         # https://forums.autodesk.com/t5/maya-programming/rendering-with-arnold-in-a-python-script/td-p/7710875
         # NOTE that attribute names depend on the Maya version. These are for Maya2020

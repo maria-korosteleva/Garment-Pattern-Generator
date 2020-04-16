@@ -9,9 +9,10 @@ This is work-in-progress, and licensing terms are not finalized. If you want to 
 * for libraries, refer to import sections that are grouped at the beginning of each .py file. All libs can be simply installed with pip.
 
 ## Filesystem paths settings
-Fill out system.json for using your machine's file paths including
+Create system.json file in the root of this directory with your machine's file paths including
 * path to pattern templated folder ('templates_path') 
 * path for creating logs & putting new datasets to ('output')
+Use system.template.json as a template. 
 
 ## Components of the generation system
 Note: Run _help_(module) for detailed descriptions of python modules

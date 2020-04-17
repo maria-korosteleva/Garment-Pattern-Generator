@@ -9,7 +9,7 @@ import shutil
 
 # My modules
 import pattern.wrappers as pattern
-from utils import Properties
+from customconfig import Properties
 
 
 def _create_data_folder(path, props):

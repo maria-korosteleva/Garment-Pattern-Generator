@@ -65,21 +65,20 @@ def batch_sim(template_path, body_path, data_path, dataset_props):
 
     # get files
     dataset_path = os.path.join(data_path, dataset_props['data_folder'])
+    pattern_specs = []
+    root, dirs, files = next(os.walk(dataset_path))
     if dataset_props['to_subfolders']:
         # https://stackoverflow.com/questions/800197/how-to-get-all-of-the-immediate-subdirectories-in-python
         # cannot use os.scandir in python 2.7
-        pattern_specs = []
-        root, dirs, _ = next(os.walk(dataset_path))
         for directory in dirs:
-            pattern_specs.append(os.path.join(root, directory, 'specification.json'))
+            pattern_specs.append(os.path.join(root, directory, 'specification.json'))  # cereful for file name changes ^^
     else:
-        pattern_specs = []
-        for file in os.scandir(data_path):
+        for file in files:
             # NOTE filtering might not be very robust
-            if (not file.is_dir() and '.json' in file.name
-                    and 'template' not in file.name 
-                    and 'dataset_properties' not in file.name):
-                pattern_specs.append[file.path]
+            if ('.json' in file
+                    and 'template' not in file
+                    and 'dataset_properties' not in file):
+                pattern_specs.append(os.path.join(root, file))
 
     # Simulate every template
     for pattern_spec in pattern_specs:

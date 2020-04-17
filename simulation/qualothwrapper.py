@@ -100,6 +100,7 @@ def run_sim(garment, props):
     # skip checks for first few frames
     for frame in range(1, config['min_sim_steps']):
         cmds.currentTime(frame)  # step
+
     for frame in range(config['min_sim_steps'], config['max_sim_steps']):
         cmds.currentTime(frame)  # step
         garment.update_verts_info()
@@ -107,7 +108,7 @@ def run_sim(garment, props):
             # TODO Add penetration checks
             # Success!
             break
-    
+
     # Fail check: static equilibrium never detected -- might have false negs!
     if frame == config['max_sim_steps'] - 1:
         props['stats']['sim_fails'].append(garment.name)

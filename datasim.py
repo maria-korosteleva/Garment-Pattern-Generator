@@ -15,13 +15,12 @@ if __name__ == "__main__":
     path = system_config['templates_path']
 
     # ------ Dataset Example ------
-    dataset_path = system_config['output'] + '/test_skirt_maya_coords_200416-17-16-copy'
+    dataset_path = system_config['output'] + '/test_skirt_maya_coords_200417-10-18'
     dataset_file = dataset_path + '/dataset_properties.json'
     props = utils.Properties(dataset_file)
     props.set_basic(body='f_smpl_templatex300.obj')
 
     mysim.batch_sim(path, path, system_config['output'], props)
-
     props.serialize(dataset_file)
 
     # ------ Example for single template generation ------

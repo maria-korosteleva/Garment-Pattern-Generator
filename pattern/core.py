@@ -8,6 +8,12 @@ import json
 import numpy as np
 import os
 
+standard_names = [
+    'specification',  # e.g. used by dataset generation
+    'template', 
+    'prediction'
+]
+
 
 class BasicPattern(object):
     """
@@ -31,8 +37,9 @@ class BasicPattern(object):
 
         self.spec_file = pattern_file
         self.path = os.path.dirname(pattern_file)
-        self.name = os.path.basename(self.spec_file)
-        self.name = os.path.splitext(self.name)[0]
+        self.name = os.path.splitext(os.path.basename(self.spec_file))[0]
+        if self.name in standard_names:  # use name of directory instead
+            self.name = os.path.basename(os.path.normpath(self.path))
 
         with open(pattern_file, 'r') as f_json:
             self.spec = json.load(f_json)

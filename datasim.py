@@ -15,7 +15,7 @@ if __name__ == "__main__":
     path = system_config['templates_path']
 
     # ------ Dataset Example ------
-    dataset_path = system_config['output'] + '/test_skirt_maya_coords_200416-17-14'
+    dataset_path = system_config['output'] + '/test_skirt_maya_coords_200416-17-16-copy'
     dataset_file = dataset_path + '/dataset_properties.json'
     props = utils.Properties(dataset_file)
     props.set_basic(body='f_smpl_templatex300.obj')
@@ -24,9 +24,10 @@ if __name__ == "__main__":
 
     props.serialize(dataset_file)
 
-    print(props)
-
     # ------ Example for single template generation ------
     # props = utils.Properties(path + '/basic_skirt/props.json', True)  
-    # mysim.single_file_sim(path, path, props)
-    # print(props.properties)
+    # props['templates'] = 'specification.json'
+    # path_example = 'F:/GK-Pattern-Data-Gen/test_skirt_maya_coords_200416-17-16-copy/skirt_maya_coords_5H2GM5649T'
+    # # TODO Give path to template directly
+    # mysim.single_file_sim(path_example, path, props)
+    # print(props)

@@ -86,7 +86,7 @@ def batch_sim(template_path, body_path, data_path, dataset_props):
         _template_simulation(pattern_spec, 
                              scene, 
                              dataset_props['sim'], 
-                             True)  # delete geometry after simulation s.t. it doesn't resimulate on each iteraition
+                             True)  # delete geometry after sim s.t. it doesn't resim with each new example
 
     # Fin
     print('Finished ' + dataset_props['data_folder'])
@@ -113,12 +113,18 @@ def _init_sim_props(props):
             resolution=[800, 800]
         )
     
+    # Prepare commulative stats
     props.set_section_stats(
         'sim', 
         sim_fails=[], 
         sim_time=[], 
         spf=[], 
         fin_frame=[])
+    
+    props.set_section_stats(
+        'render', 
+        render_time=[]
+    )
 
 
 def _template_simulation(spec, scene, sim_props, delete_on_clean=False):

@@ -416,7 +416,7 @@ class Scene(object):
 
         arnoldRender(im_size[0], im_size[1], True, True, self.camera, ' -layer defaultRenderLayer')
         
-        self.stats['render_time'] = time.time() - start_time
+        self.stats['render_time'].append(time.time() - start_time)
 
     def _add_floor(self, target):
         """

@@ -17,12 +17,12 @@ if __name__ == "__main__":
     path = system_config['templates_path']
 
     # ------ Dataset Example ------
-    dataset = 'test_skirt_maya_coords_200420-10-58'
+    dataset = 'test_skirt_maya_coords_200417-10-18-resumes'
     dataset_file = os.path.join(system_config['output'], dataset, 'dataset_properties.json')
     props = customconfig.Properties(dataset_file)
     props.set_basic(body='f_smpl_templatex300.obj')
 
-    mysim.batch_sim(path, path, system_config['output'], props, caching=True)
+    mysim.batch_sim(path, path, system_config['output'], props, caching=False)
     props.serialize(dataset_file)
 
     # ------ Example for single template generation ------

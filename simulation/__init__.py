@@ -64,7 +64,7 @@ def batch_sim(template_path, body_path, data_path, dataset_props,
         Parameters:
             * template_path -- path to folder with pattern templates
             * body_path -- path to folder with body meshes
-            * data_path -- path to folder with datasets
+            * data_path -- path to folder with the dataset
             * dataset_props -- dataset properties. Properties has to be of custom customconfig.Properties() class and contain
                     * dataset folder (inside data_path) 
                     * name of pattern template
@@ -81,7 +81,7 @@ def batch_sim(template_path, body_path, data_path, dataset_props,
     qw.load_plugin()
     scene = mayasetup.Scene(body_path + '/' + dataset_props['body'], dataset_props['render'])
     pattern_specs = _get_pattern_files(data_path, dataset_props)
-    data_props_file = os.path.join(data_path, dataset_props['data_folder'], 'dataset_properties.json')
+    data_props_file = os.path.join(data_path, 'dataset_properties.json')
 
     # Simulate every template
     for pattern_spec in pattern_specs:
@@ -98,7 +98,7 @@ def batch_sim(template_path, body_path, data_path, dataset_props,
                              caching=caching)  
 
     # Fin
-    print('Finished ' + dataset_props['data_folder'])
+    print('Finished ' + os.path.basename(data_path))
     try:
         # processing successfully finished -- no need to resume later
         del dataset_props['sim']['stats']['processed']
@@ -177,9 +177,8 @@ def _template_simulation(spec, scene, sim_props, delete_on_clean=False, caching=
 def _get_pattern_files(data_path, dataset_props):
     """ Collects paths to all the pattern files in given folder"""
 
-    dataset_path = os.path.join(data_path, dataset_props['data_folder'])
     pattern_specs = []
-    root, dirs, files = next(os.walk(dataset_path))
+    root, dirs, files = next(os.walk(data_path))
     if dataset_props['to_subfolders']:
         # https://stackoverflow.com/questions/800197/how-to-get-all-of-the-immediate-subdirectories-in-python
         # cannot use os.scandir in python 2.7

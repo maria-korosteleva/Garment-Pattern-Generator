@@ -73,16 +73,6 @@ def qlCreateCollider(cloth, target):
 
 # ------- Higher-level functions --------
 
-def _init_sim(solver, config):
-    """
-        Basic simulation settings before starting simulation
-    """
-    cmds.setAttr(solver + '.selfCollision', 1)
-    cmds.setAttr(solver + '.startTime', 1)
-    cmds.setAttr(solver + '.solverStatistics', 0)  # for easy reading of console output
-    cmds.playbackOptions(ps=0, max=config['max_sim_steps'])  # 0 playback speed = play every frame
-
-
 def run_sim(garment, props):
     """
         Setup and run cloth simulator untill static equlibrium of 
@@ -97,12 +87,15 @@ def run_sim(garment, props):
     _init_sim(solver, config)
 
     start_time = time.time()
-    # skip checks for first few frames
-    for frame in range(1, config['min_sim_steps']):
+    # Allow to assemble without gravity + skip checks for first few frames
+    _set_gravity(solver, 0)
+    for frame in range(1, config['zero_gravity_steps']):
         cmds.currentTime(frame)  # step
         garment.cache_if_enabled(frame)
-
-    for frame in range(config['min_sim_steps'], config['max_sim_steps']):
+    # resume normally
+    print('Turn on Gravity')
+    _set_gravity(solver, -980)
+    for frame in range(config['zero_gravity_steps'], config['max_sim_steps']):
         cmds.currentTime(frame)  # step
         garment.cache_if_enabled(frame)
         garment.update_verts_info()
@@ -137,3 +130,19 @@ def setColliderFriction(collider_objects, friction_value):
     collider_shape = cmds.listRelatives(main_collider[0], shapes=True)
 
     cmds.setAttr(collider_shape[0] + '.friction', friction_value)
+
+
+# ------- Utils ---------
+def _init_sim(solver, config):
+    """
+        Basic simulation settings before starting simulation
+    """
+    cmds.setAttr(solver + '.selfCollision', 1)
+    cmds.setAttr(solver + '.startTime', 1)
+    cmds.setAttr(solver + '.solverStatistics', 0)  # for easy reading of console output
+    cmds.playbackOptions(ps=0, max=config['max_sim_steps'])  # 0 playback speed = play every frame
+
+
+def _set_gravity(solver, gravity):
+    """Set a given value of gravity to sim solver"""
+    cmds.setAttr(solver + '.gravity1', gravity)

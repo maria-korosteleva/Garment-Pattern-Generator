@@ -118,7 +118,7 @@ def _init_sim_props(props, force_restart):
         props.set_section_config(
             'sim', 
             max_sim_steps=500, 
-            min_sim_steps=10,  # no need to check for static equilibrium until min_steps 
+            zero_gravity_steps=5,  # time to assembly 
             static_threshold=0.05  # 0.01  # depends on the units used
         )
 

@@ -23,7 +23,7 @@ reload(qw)
 
 
 # ----------- single file sim for testing --------------
-def single_file_sim(template_path, body_path, props):
+def single_file_sim(template_path, body_path, props, caching=False):
     """
         Simulates the given template and puts the results in original template folder, 
         including config and statistics
@@ -37,7 +37,8 @@ def single_file_sim(template_path, body_path, props):
         # Main part
         _template_simulation(template_path + '/' + props['templates'], 
                              scene, 
-                             props['sim'])
+                             props['sim'], 
+                             caching=caching)
 
         # Fin
         print('Finished experiment')
@@ -46,7 +47,7 @@ def single_file_sim(template_path, body_path, props):
         print(e)
 
 
-def batch_sim(template_path, body_path, data_path, dataset_props):
+def batch_sim(template_path, body_path, data_path, dataset_props, caching=False):
     """
         Performs pattern simulation for each example in the dataset 
         given by dataset_props
@@ -57,6 +58,8 @@ def batch_sim(template_path, body_path, data_path, dataset_props):
             * type of dataset structure (with/without subfolders for patterns)
         Other needed properties will be filles with default values if the corresponding sections
         are not found in props object
+
+        Batch processing is automatically resumed from the last unporcessed datapoint if processing stopped abruptly
     """
     # ----- Init -----
     _init_sim_props(dataset_props)
@@ -85,7 +88,8 @@ def batch_sim(template_path, body_path, data_path, dataset_props):
         _template_simulation(pattern_spec, 
                              scene, 
                              dataset_props['sim'], 
-                             True)  # delete geometry after sim s.t. it doesn't resim with each new example
+                             delete_on_clean=True,  # delete geometry after sim s.t. it doesn't resim with each new example
+                             caching=caching)  
 
     # Fin
     print('Finished ' + dataset_props['data_folder'])
@@ -126,7 +130,7 @@ def _init_sim_props(props):
     )
 
 
-def _template_simulation(spec, scene, sim_props, delete_on_clean=False):
+def _template_simulation(spec, scene, sim_props, delete_on_clean=False, caching=False):
     """
         Simulate given template withing given scene & save log files
     """
@@ -134,6 +138,7 @@ def _template_simulation(spec, scene, sim_props, delete_on_clean=False):
     garment.load()
     garment.setMaterialProps(scene.cloth_shader)
     garment.add_colliders(scene.body)  # I don't add floor s.t. garment falls infinitely if falls
+    garment.sim_caching(caching)
 
     qw.run_sim(garment, sim_props)
 

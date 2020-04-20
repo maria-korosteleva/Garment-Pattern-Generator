@@ -100,9 +100,11 @@ def run_sim(garment, props):
     # skip checks for first few frames
     for frame in range(1, config['min_sim_steps']):
         cmds.currentTime(frame)  # step
+        garment.cache_if_enabled(frame)
 
     for frame in range(config['min_sim_steps'], config['max_sim_steps']):
         cmds.currentTime(frame)  # step
+        garment.cache_if_enabled(frame)
         garment.update_verts_info()
         if garment.is_static(config['static_threshold']):  
             # TODO Add penetration checks

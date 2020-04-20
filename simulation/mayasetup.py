@@ -6,6 +6,7 @@
 from __future__ import print_function
 import json
 import os
+import errno
 import numpy as np
 import time
 
@@ -242,10 +243,25 @@ class MayaGarment(core.BasicPattern):
             # cmds.delete(cloth_2)
             # cmds.delete(intersect)
 
+    def sim_caching(self, caching=True):
+        """Toggles the caching of simulation steps to garment folder"""
+        if caching:
+            # create folder
+            self.cache_path = os.path.join(self.path, self.name + '_simcache')
+            try:
+                os.makedirs(self.cache_path)
+            except OSError as exc:
+                if exc.errno != errno.EEXIST:  # ok if directory exists
+                    raise
+                pass
+        else:
+            # disable caching
+            self.cache_path = ''            
+
     def save_mesh(self, folder=''):
         """
             Saves cloth as obj file to a given folder or 
-            to the folder with the pattern if not given
+            to the folder with the pattern if not given.
         """
         if not self.loaded_to_maya:
             print('MayaGarmentWarning::Pattern is not yet loaded. Nothing saved')
@@ -255,16 +271,17 @@ class MayaGarment(core.BasicPattern):
             filepath = folder
         else:
             filepath = self.path
-        filepath = os.path.join(filepath, self.name + '_sim.obj')
+        self._save_to_path(filepath, self.name + '_sim')
 
-        cmds.select(self.get_qlcloth_geomentry())
-        cmds.file(
-            filepath + '.obj',  # Maya 2020 stupidly cuts file extention 
-            typ='OBJExport',
-            es=1,  # export selected
-            op='groups=0;ptgroups=0;materials=0;smoothing=0;normals=1',  # very simple obj
-            f=1  # force override if file exists
-        )
+    def cache_if_enabled(self, frame):
+        """If caching is enabled -> saves current geometry to cache folder
+            Does nothing otherwise """
+        if not self.loaded_to_maya:
+            print('MayaGarmentWarning::Pattern is not yet loaded. Nothing cached')
+            return
+
+        if hasattr(self, 'cache_path') and self.cache_path:
+            self._save_to_path(self.cache_path, self.name + '_{:04d}'.format(frame))
 
     def _load_panel(self, panel_name):
         """
@@ -348,6 +365,19 @@ class MayaGarment(core.BasicPattern):
         panel_name = address['panel']
         edge_id = address['edge']
         return self.pattern['panels'][panel_name]['edges'][edge_id]['maya']
+
+    def _save_to_path(self, path, filename):
+        """Save current state of cloth object to given path with given filename as OBJ"""
+
+        filepath = os.path.join(path, filename + '.obj')
+        cmds.select(self.get_qlcloth_geomentry())
+        cmds.file(
+            filepath + '.obj',  # Maya 2020 stupidly cuts file extention 
+            typ='OBJExport',
+            es=1,  # export selected
+            op='groups=0;ptgroups=0;materials=0;smoothing=0;normals=1',  # very simple obj
+            f=1  # force override if file exists
+        )
 
 
 class Scene(object):

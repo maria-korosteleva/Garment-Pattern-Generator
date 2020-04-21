@@ -116,10 +116,13 @@ class MayaGarment(core.BasicPattern):
             NOTE all of the maya ids assosiated with the garment become invalidated, 
             if delete flag is True
         """
-        cmds.hide(self.pattern['maya'])
-        if delete:
-            cmds.delete(self.pattern['maya'])
-            self.loaded_to_maya = False
+        if self.loaded_to_maya:
+            cmds.hide(self.pattern['maya'])
+            if delete:
+                cmds.delete(self.pattern['maya'])
+                self.loaded_to_maya = False
+
+        # do nothing if not loaded -- already clean =)
 
     def get_qlcloth_geomentry(self):
         """

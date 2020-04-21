@@ -22,7 +22,7 @@ reload(mayasetup)
 reload(qw)
 
 
-# ----------- single file sim for testing --------------
+# ----------- High-level requests --------------
 def single_file_sim(template_path, body_path, props, caching=False):
     """
         Simulates the given template and puts the results in original template folder, 
@@ -109,7 +109,7 @@ def batch_sim(template_path, body_path, data_path, dataset_props,
 
 
 # ------- Utils -------
-def _init_sim_props(props, force_restart):
+def init_sim_props(props, force_restart=False):
     """ 
         Add default config values if not given in props & clean-up stats if not resuming previous processing
         Returns a flag wheter current simulation is a resumed last one
@@ -155,7 +155,7 @@ def _init_sim_props(props, force_restart):
     return resume
         
 
-def _template_simulation(spec, scene, sim_props, delete_on_clean=False, caching=False):
+def template_simulation(spec, scene, sim_props, delete_on_clean=False, caching=False):
     """
         Simulate given template withing given scene & save log files
     """

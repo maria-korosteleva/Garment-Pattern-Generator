@@ -35,8 +35,10 @@ class MayaGarment(core.BasicPattern):
         * cleaning imported stuff TODO
         * Basic operations on panels in Maya TODO
     """
-    def __init__(self, pattern_file):
+    def __init__(self, pattern_file, clean_on_die=False):
         super(MayaGarment, self).__init__(pattern_file)
+        self.self_clean = clean_on_die
+
         self.maya_shape = None
         self.maya_cloth_object = None
         self.maya_shape_dag = None
@@ -45,6 +47,11 @@ class MayaGarment(core.BasicPattern):
         self.loaded_to_maya = False
         self.obstacles = []
     
+    def __del__(self):
+        """Remove Maya objects when dying"""
+        if self.self_clean:
+            self.clean(True)
+
     def load(self, parent_group=None):
         """
             Loads current pattern to Maya as curve collection.
@@ -392,10 +399,12 @@ class Scene(object):
         Assumes 
             * body the scene revolved aroung faces z+ direction
     """
-    def __init__(self, body_obj, props):
+    def __init__(self, body_obj, props, clean_on_die=False):
         """
             Set up scene for rendering using loaded body as a reference
         """
+        self.self_clean = clean_on_die
+
         self.props = props
         self.config = props['config']
         self.stats = props['stats']
@@ -420,6 +429,17 @@ class Scene(object):
         self.body_shader = self._new_lambert(self.config['body_color'], self.body)
         self.floor_shader = self._new_lambert(self.config['floor_color'], self.floor)
         self.cloth_shader = self._new_lambert(self.config['cloth_color'])
+
+    def __del__(self):
+        """Remove all objects related to current scene if requested on creation"""
+        if self.self_clean:
+            cmds.delete(self.body)
+            cmds.delete(self.floor)
+            cmds.delete(self.camera)
+            cmds.delete(self.light)
+            cmds.delete(self.body_shader)
+            cmds.delete(self.floor_shader)
+            cmds.delete(self.cloth_shader)  # garment color migh become invalid
 
     def _init_arnold(self):
         """Endure Arnold objects are launched in Maya"""

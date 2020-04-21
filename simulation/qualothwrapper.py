@@ -73,10 +73,31 @@ def qlCreateCollider(cloth, target):
 
 # ------- Higher-level functions --------
 
+def start_maya_sim(garment, props):
+    """Start simulation through Maya defalut playback without checks
+        Gives Maya user default control over stopping & resuming sim
+        Recommended to use in visual applications
+    """
+    solver = findSolver()
+    config = props['config']
+    _init_sim(solver, config)
+
+    # Allow to assemble without gravity
+    print('Simulation::Assemble without gravity')
+    _set_gravity(solver, 0)
+    for frame in range(1, config['zero_gravity_steps']):
+        cmds.currentTime(frame)  # step
+
+    # resume normally
+    print('Simulation::normal playback.. Use ESC key to stop simulation')
+    _set_gravity(solver, -980)
+    cmds.currentTime(frame - 1)  # one step back to start from simulated state
+    cmds.play()
+
+
 def run_sim(garment, props):
     """
-        Setup and run cloth simulator untill static equlibrium of 
-        a garment is achieved.
+        Setup and run cloth simulator untill static equlibrium is achieved.
         Note:
             * Assumes garment is already properly aligned!
             * All of the garments existing in Maya scene will be simulated

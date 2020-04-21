@@ -8,6 +8,7 @@
 from __future__ import print_function
 from __future__ import division
 from functools import partial
+from datetime import datetime
 import os
 import numpy as np
 
@@ -27,6 +28,7 @@ class State(object):
     def __init__(self):
         self.garment = None
         self.scene = None
+        self.save_to = None
         self.config = customconfig.Properties()
         mysim.init_sim_props(self.config)  # use default setup for simulation -- for now
 
@@ -115,6 +117,54 @@ def win_closed_callback():
     # Other created objects will be automatically deleted through destructors
 
 
+def saving_folder_callback(view_field, state):
+    """Choose folder to save files to"""
+    directory = cmds.fileDialog2(
+        dialogStyle=2, 
+        fileMode=3,  # directories 
+        caption='Choose body obj file'
+    )
+    if not directory:  # do nothing
+        return 
+
+    directory = directory[0]
+    cmds.textField(view_field, edit=True, text=directory)
+
+    state.save_to = directory
+
+
+def _new_dir(root_dir, tag='snap'):
+    """create fresh directory for saving files"""
+    folder = tag + '_' + datetime.now().strftime('%y%m%d-%H-%M-%S')
+    path = os.path.join(root_dir, folder)
+    os.makedirs(path)
+    return path
+
+
+def quick_save_callback(view_field, state):
+    """Quick save with pattern spec and sim config"""
+    if state.save_to is None:
+        saving_folder_callback(view_field, state)
+    
+    new_dir = _new_dir(state.save_to, state.garment.name)
+    # serialize
+    state.garment.serialize(new_dir, to_subfolder=False)
+    state.config.serialize(os.path.join(new_dir, 'sim_props.json'))
+
+
+def full_save_callback(view_field, state):
+    """Full save with pattern spec, sim config, garment mesh & rendering"""
+    if state.save_to is None:
+        saving_folder_callback(view_field, state)
+    
+    new_dir = _new_dir(state.save_to, state.garment.name)
+    # serialize
+    state.garment.serialize(new_dir, to_subfolder=False)
+    state.config.serialize(os.path.join(new_dir, 'sim_props.json'))
+    state.garment.save_mesh(new_dir)
+    state.scene.render(new_dir)
+
+
 # --------- UI Drawing ----------
 def equal_rowlayout(num_columns, win_width, offset):
     """Create new layout with given number of columns + extra columns for spacing"""
@@ -149,7 +199,7 @@ def init_UI(state):
     cmds.rowLayout(nc=3, adj=2)
     cmds.text(label='Pattern spec: ')
     template_filename_field = cmds.textField(editable=False)
-    template_button = cmds.button(
+    cmds.button(
         label='Load', backgroundColor=[255 / 256, 169 / 256, 119 / 256], 
         command=lambda *args: template_field_callback(template_filename_field, state))   
     # Body load
@@ -157,7 +207,7 @@ def init_UI(state):
     cmds.rowLayout(nc=3, adj=2)
     cmds.text(label='Body file: ')
     body_filename_field = cmds.textField(editable=False)
-    body_button = cmds.button(
+    cmds.button(
         label='Load', backgroundColor=[227 / 256, 255 / 256, 119 / 256], 
         command=lambda *args: load_body_callback(body_filename_field, state))
     # separate
@@ -179,6 +229,27 @@ def init_UI(state):
                 command=lambda *args: sim_callback(state))
     cmds.button(label='Clean', backgroundColor=[255 / 256, 140 / 256, 73 / 256], 
                 command=lambda *args: clean_scene_callback(state))
+
+    # separate
+    cmds.setParent('..')
+    cmds.separator()
+
+    # Saving folder
+    cmds.rowLayout(nc=3, adj=2)
+    cmds.text(label='Saving to: ')
+    saving_to_field = cmds.textField(editable=False)
+    cmds.button(
+        label='Choose', backgroundColor=[255 / 256, 169 / 256, 119 / 256], 
+        command=lambda *args: saving_folder_callback(saving_to_field, state))
+    # saving requests
+    cmds.setParent('..')
+    equal_rowlayout(2, win_width=window_width, offset=main_offset)
+    cmds.button(label='Save snapshot', backgroundColor=[227 / 256, 255 / 256, 119 / 256],
+                command=lambda *args: quick_save_callback(saving_to_field, state), 
+                ann='Quick save with pattern spec and sim config')
+    cmds.button(label='Save with 3D', backgroundColor=[255 / 256, 140 / 256, 73 / 256], 
+                command=lambda *args: full_save_callback(saving_to_field, state), 
+                ann='Full save with pattern spec, sim config, garment mesh & rendering')
 
     # Last
     cmds.setParent('..')

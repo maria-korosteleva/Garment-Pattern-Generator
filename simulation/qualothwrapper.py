@@ -71,6 +71,13 @@ def qlCreateCollider(cloth, target):
     return list(set(objects_after) - set(objects_before))
 
 
+def qlCleanSimCache():
+    """Clean simulation cache before re-starting simulation"""
+    solver = findSolver()
+    cmds.select(solver)
+    results = mel.eval('qlReinitializeSolver()')
+
+
 # ------- Higher-level functions --------
 
 def start_maya_sim(garment, props):

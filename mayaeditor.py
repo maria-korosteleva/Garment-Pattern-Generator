@@ -100,7 +100,7 @@ def sim_callback(state):
         cmds.confirmDialog(title='Error', message='Load pattern specification & body info first')
         return
     print('Simulating..')
-    # TODO Move to the loaders
+    mysim.qw.qlCleanSimCache()
     mysim.qw.start_maya_sim(state.garment, state.config['sim'])
 
 

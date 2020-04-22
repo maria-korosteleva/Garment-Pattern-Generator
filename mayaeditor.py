@@ -52,12 +52,16 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
     #     super(MayaGarmentWithUI, self).load()
     #     self.drawUI(top_layout)
 
-    def drawUI(self, top_layout):
+    def drawUI(self, top_layout=None):
         """ Draw pattern controls in the given layout"""
-        self.ui_top_layout = top_layout
-        self._clean_layout(top_layout)
+        if top_layout is not None:
+            self.ui_top_layout = top_layout
+        if self.ui_top_layout is None:
+            raise ValueError('GarmentDrawUI::top level layout not found')
 
-        cmds.setParent(top_layout)
+        self._clean_layout(self.ui_top_layout)
+
+        cmds.setParent(self.ui_top_layout)
         cmds.text(label=self.name, al='left')
 
         # load panels

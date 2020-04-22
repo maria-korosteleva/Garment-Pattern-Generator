@@ -23,6 +23,254 @@ reload(mysim)
 reload(customconfig)
 
 
+class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
+    """Extension of MayaGarment that can generate GUI for controlling the pattern"""
+    def __init__(self, pattern_file, clean_on_die=False):
+        super(MayaGarmentWithUI, self).__init__(pattern_file, clean_on_die)
+        self.ui_top_layout = None
+        self.ui_controls = {}
+        # TODO - move to Parametrized class
+        self.param_types_list = [
+            'length', 
+            'curve'
+        ]
+        self.edge_dirs_list = [
+            'start', 
+            'end', 
+            'both'
+        ]
+    
+    def __del__(self):
+        super(MayaGarmentWithUI, self).__del__()
+        if self.ui_top_layout is not None:
+            self._clean_layout(self.ui_top_layout)
+
+    # TODO reaload clean() with UI
+
+    # def load(self, top_layout):
+    #     """Draw UI when loading pattern to Maya"""
+    #     super(MayaGarmentWithUI, self).load()
+    #     self.drawUI(top_layout)
+
+    def drawUI(self, top_layout):
+        """ Draw pattern controls in the given layout"""
+        self.ui_top_layout = top_layout
+        self._clean_layout(top_layout)
+
+        cmds.setParent(top_layout)
+        cmds.text(label=self.name, al='left')
+
+        # load panels
+        for panel in self.pattern['panels']:
+            panel_layout = cmds.frameLayout(
+                label=panel,
+                collapsable=True, 
+                collapse=True,
+                borderVisible=True,
+                mh=10, 
+                mw=10
+            )
+            self._ui_panel(panel)
+            cmds.setParent('..')
+
+        # Stitch info
+        cmds.frameLayout(
+            label='stitches',
+            collapsable=True, 
+            collapse=True,
+            borderVisible=True,
+            mh=10, 
+            mw=10
+        )
+        self._ui_stitches(self.pattern['stitches'])
+        cmds.setParent('..')
+
+        # Parameters
+        cmds.frameLayout(
+            label='parameters',
+            collapsable=True, 
+            collapse=True,
+            borderVisible=True,
+            mh=10, 
+            mw=10
+        )
+        self._ui_params(self.parameters)
+        cmds.setParent('..')
+
+        # fin
+        cmds.setParent('..')
+        
+    def _clean_layout(self, layout):
+        """Removes all of the childer from layout"""
+        # TODO make static or move outside? 
+        children = cmds.layout(layout, query=True, childArray=True)
+        cmds.deleteUI(children)
+
+    def _ui_panel(self, panel):
+        """draw UI for current panel"""
+        # vertices
+        cmds.frameLayout(label='Vertices', collapsable=True, collapse=True)
+        self._ui_verts(self.pattern['panels'][panel]['vertices'])
+        cmds.setParent('..')
+        
+        # edges
+        cmds.frameLayout(label='Edges', collapsable=True, collapse=True)
+        self._ui_edges(self.pattern['panels'][panel]['edges'])
+        cmds.setParent('..')
+
+        # 3d position
+        cmds.frameLayout(label='3D placement', collapsable=True, collapse=True)
+        self._ui_3d_placement(self.pattern['panels'][panel]['translation'], [0, 0, 0])
+        cmds.setParent('..')
+
+    def _ui_verts(self, verts):
+        """Add fields to view vertex coords"""
+        for idx, vertex in enumerate(verts):
+            values = [0, 0, 0, 0]
+            values[:len(vertex)] = vertex
+            cmds.floatFieldGrp(
+                label='Vertex ' + str(idx), 
+                numberOfFields=len(vertex), 
+                value=values
+            )
+            # TODO add command on change
+
+    def _ui_edges(self, edges):
+        """Draw edges controls"""
+        for idx, edge in enumerate(edges):
+            values = [0, 0, 0, 0]
+            values[:len(edge['endpoints'])] = edge['endpoints']
+            cmds.intFieldGrp(
+                label='Edge ' + str(idx), 
+                numberOfFields=2, 
+                value=values
+            )
+            if 'curvature' in edge:
+                values = [0, 0, 0, 0]
+                values[:len(edge['curvature'])] = edge['curvature']
+                cmds.floatFieldGrp(
+                    label='Edge ' + str(idx) + ' curvature', 
+                    numberOfFields=len(edge['curvature']), 
+                    value=values
+                )
+            # TODO add curvature add\remove buttons
+
+    def _ui_3d_placement(self, transation, rotation):
+        """Panel 3D position"""
+        values = [0, 0, 0, 0]
+        values[:len(transation)] = transation
+        cmds.floatFieldGrp(
+            label='Translation', 
+            numberOfFields=len(transation), 
+            value=values
+        )
+
+        values = [0, 0, 0, 0]
+        values[:len(rotation)] = rotation
+        cmds.floatFieldGrp(
+            label='Rotation', 
+            numberOfFields=len(rotation), 
+            value=values
+        )
+
+    def _ui_stitches(self, stitches):
+        """draw stitches UI"""
+        cmds.gridLayout(numberOfColumns=6, enableKeyboardFocus=True, 
+                        cellWidth=50)
+        # header
+        cmds.text(label='')
+        cmds.text(label='Panel')
+        cmds.text(label='Edge')
+        cmds.text(label='')
+        cmds.text(label='Panel')
+        cmds.text(label='Edge')
+
+        for idx, stitch in enumerate(stitches): 
+            cmds.text(label='Stitch ' + str(idx))
+            cmds.textField(text=stitch['from']['panel'])
+            cmds.intField(value=stitch['from']['edge'])
+            # ---
+            cmds.text(label='To')
+            cmds.textField(text=stitch['to']['panel'])
+            cmds.intField(value=stitch['to']['edge'])
+            # ----
+            # TODO Add support for T-stitches
+            # TODO Curve names instead of stitches? 
+        
+        # TODO add new stitch
+
+        cmds.setParent('..')
+
+    def _ui_params(self, params):
+        """draw params UI"""
+        # TODO Parameters order
+
+        # Parameters
+        for param_name in params:
+            cmds.frameLayout(
+                label=param_name,
+                collapsable=True, 
+                collapse=True, 
+                mh=10, mw=10
+            )
+            # type 
+            self._quick_dropdown(
+                self.param_types_list, 
+                params[param_name]['type'], 'Type')
+
+            # range # TODO add two-value params support
+            ranges = params[param_name]['range']
+            cmds.floatFieldGrp(label='Range: ', nf=2, value=ranges + [0, 0])
+            # value
+            cmds.floatSliderGrp(
+                label='Value', field=True, 
+                value=params[param_name]['value'], 
+                minValue=ranges[0], 
+                maxValue=ranges[1]
+            )
+            # influence
+            self._ui_param_influence(params[param_name]['influence'], params[param_name]['type'])
+            # fin
+            cmds.setParent('..')
+
+    def _ui_param_influence(self, influence_list, type):
+        """Draw UI for parameter influence"""
+        cmds.frameLayout(
+            label='Influence list',
+            collapsable=False
+        )
+        cmds.gridLayout(numberOfColumns=3, enableKeyboardFocus=True, 
+                        cellWidth=100, 
+                        )
+        # header
+        cmds.text(label='Panel')
+        cmds.text(label='Edge')
+        cmds.text(label='Direction')
+
+        for instance in influence_list:
+            for edge in instance['edge_list']:
+                self._quick_dropdown(self.pattern['panels'], instance['panel'])
+                if type == 'length':
+                    cmds.intField(value=edge['id'])
+                    self._quick_dropdown(self.edge_dirs_list, edge['direction'])
+                else:
+                    cmds.intField(value=edge)
+                    cmds.text(label='')
+
+        cmds.setParent('..')
+        cmds.setParent('..')
+
+    def _quick_dropdown(self, options, chosen='', label=''):
+        """Add a dropdown with given options"""
+        menu = cmds.optionMenu(label=label)
+        for option in options:
+            cmds.menuItem(label=option)
+        if chosen:
+            cmds.optionMenu(menu, e=True, value=option)
+
+        return menu
+
+
 # ----- State -------
 class State(object):
     def __init__(self):
@@ -54,7 +302,8 @@ def template_field_callback(view_field, state):
     cmds.textField(view_field, edit=True, text=template_file)
 
     # create new grament
-    state.garment = mysim.mayasetup.MayaGarment(template_file, True)  # previous object will autoclean
+    state.garment = MayaGarmentWithUI(template_file, True)  # previous object will autoclean
+    state.garment.drawUI(state.pattern_layout)
     if state.scene is not None:
         reload_garment_callback(state)
 
@@ -196,6 +445,7 @@ def init_UI(state):
     # ------ Draw GUI -------
     # Setup
     # Pattern load
+    # TODO Change to https://download.autodesk.com/us/maya/2009help/CommandsPython/textFieldButtonGrp.html
     cmds.rowLayout(nc=3, adj=2)
     cmds.text(label='Pattern spec: ')
     template_filename_field = cmds.textField(editable=False)
@@ -215,7 +465,8 @@ def init_UI(state):
     cmds.separator()
 
     # Pattern description 
-    state.pattern_layout = cmds.columnLayout(columnAttach=('both', 0), rowSpacing=main_offset)
+    state.pattern_layout = cmds.columnLayout(
+        columnAttach=('both', 0), rowSpacing=main_offset, adj=1)
     filename_field = cmds.text(label='<pattern_here>', al='left')
     
     # separate

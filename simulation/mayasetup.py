@@ -518,4 +518,4 @@ class Scene(object):
 
     def _fetch_color(self, shader):
         """Return current color of a given shader node"""
-        return cmds.getAttr(shader + '.color')
+        return cmds.getAttr(shader + '.color')[0]

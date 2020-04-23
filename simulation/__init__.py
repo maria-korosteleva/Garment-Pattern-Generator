@@ -77,7 +77,7 @@ def batch_sim(template_path, body_path, data_path, dataset_props,
         
     """
     # ----- Init -----
-    resume = init_sim_props(dataset_props, force_restart)
+    resume = init_sim_props(dataset_props, batch_run=True, force_restart=force_restart)
     qw.load_plugin()
     scene = mayasetup.Scene(body_path + '/' + dataset_props['body'], dataset_props['render'])
     pattern_specs = _get_pattern_files(data_path, dataset_props)
@@ -109,7 +109,7 @@ def batch_sim(template_path, body_path, data_path, dataset_props,
 
 
 # ------- Utils -------
-def init_sim_props(props, force_restart=False):
+def init_sim_props(props, batch_run=False, force_restart=False):
     """ 
         Add default config values if not given in props & clean-up stats if not resuming previous processing
         Returns a flag wheter current simulation is a resumed last one
@@ -132,27 +132,30 @@ def init_sim_props(props, force_restart=False):
             resolution=[800, 800]
         )
     
-    if force_restart or 'processed' not in props['sim']['stats']:  # new life
-        # Prepare commulative stats
-        props.set_section_stats(
-            'sim', 
-            sim_fails=[], 
-            sim_time=[], 
-            spf=[], 
-            fin_frame=[], 
-            processed=[])
-
-        props.set_section_stats(
-            'render', 
-            render_time=[]
-        )
-        resume = False
-    else:
+    if batch_run and 'processed' in props['sim']['stats'] and not force_restart:
         # resuming existing batch processing -- do not clean stats 
         # Assuming the last example processed example caused the failure
         props['sim']['stats']['sim_fails'].append(props['sim']['stats']['processed'][-1])
-        resume = True
-    return resume
+        return True
+    
+    # new life
+    # Prepare commulative stats
+    props.set_section_stats(
+        'sim', 
+        sim_fails=[], 
+        sim_time=[], 
+        spf=[], 
+        fin_frame=[])
+
+    props.set_section_stats(
+        'render', 
+        render_time=[]
+    )
+
+    if batch_run:  # track batch processing
+        props.set_section_stats('sim', processed=[])
+
+    return False
         
 
 def template_simulation(spec, scene, sim_props, delete_on_clean=False, caching=False):

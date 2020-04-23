@@ -236,6 +236,7 @@ class State(object):
         self.garment = None
         self.scene = None
         self.save_to = None
+        self.body_file = None
         self.config = customconfig.Properties()
         mysim.init_sim_props(self.config)  # use default setup for simulation -- for now
 
@@ -286,6 +287,7 @@ def load_body_callback(view_field, state):
     cmds.textField(view_field, edit=True, text=file)
 
     state.config['body'] = os.path.basename(file)  # update info
+    state.body_file = file
     state.scene = mysim.mayasetup.Scene(file, state.config['render'], clean_on_die=True)  # previous scene will autodelete
     if state.garment is not None:
         state.garment.load(
@@ -293,6 +295,41 @@ def load_body_callback(view_field, state):
             obstacles=[state.scene.body, state.scene.floor]
         )
             
+
+def load_props_callback(view_field, state):
+    """Load sim & renderign properties from file rather then use defaults"""
+    multipleFilters = "JSON (*.json);;All Files (*.*)"
+    file = cmds.fileDialog2(
+        fileFilter=multipleFilters, 
+        dialogStyle=2, 
+        fileMode=1, 
+        caption='Choose sim & rendering properties file'
+    )
+    if not file:  # do nothing
+        return
+
+    file = file[0]
+    cmds.textField(view_field, edit=True, text=file)
+    
+    # update props, fill in the gaps
+    state.config = customconfig.Properties(file)
+    mysim.init_sim_props(state.config)  # fill the empty parts
+
+    # Use current body info instead of one from config
+    if state.body_file is not None:
+        state.config['body'] = os.path.basename(state.body_file)
+
+    # Update scene with new config
+    if state.scene is not None:
+        state.scene = mysim.mayasetup.Scene(
+            state.body_file, state.config['render'], clean_on_die=True)  
+        
+        if state.garment is not None:
+            state.garment.load(
+                shader=state.scene.cloth_shader, 
+                obstacles=[state.scene.body, state.scene.floor]
+            )
+
 
 def reload_garment_callback(state):
     """
@@ -437,6 +474,8 @@ def init_UI(state):
     text_button_group(template_field_callback, state, label='Pattern spec: ', button_label='Load')
     # body load
     text_button_group(load_body_callback, state, label='Body file: ', button_label='Load')
+    # props load
+    text_button_group(load_props_callback, state, label='Properties: ', button_label='Load')
     # separate
     cmds.separator()
 

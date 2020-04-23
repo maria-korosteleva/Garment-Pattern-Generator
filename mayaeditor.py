@@ -45,13 +45,6 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
         if self.ui_top_layout is not None:
             self._clean_layout(self.ui_top_layout)
 
-    # TODO reaload clean() with UI
-
-    # def load(self, top_layout):
-    #     """Draw UI when loading pattern to Maya"""
-    #     super(MayaGarmentWithUI, self).load()
-    #     self.drawUI(top_layout)
-
     def drawUI(self, top_layout=None):
         """ Draw pattern controls in the given layout"""
         if top_layout is not None:
@@ -62,9 +55,19 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
         self._clean_layout(self.ui_top_layout)
 
         cmds.setParent(self.ui_top_layout)
-        cmds.text(label=self.name, al='left')
 
-        # load panels
+        # Pattern name
+        cmds.textFieldGrp(label='Pattern:', text=self.name, editable=False, 
+                          cal=[1, 'left'], cw=[1, 50])
+
+        # load panels info
+        cmds.frameLayout(
+            label='Panel Placement',
+            collapsable=False, 
+            borderVisible=True,
+            mh=10, 
+            mw=10
+        )
         for panel in self.pattern['panels']:
             panel_layout = cmds.frameLayout(
                 label=panel,
@@ -74,29 +77,26 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
                 mh=10, 
                 mw=10
             )
-            self._ui_panel(panel)
+            self._ui_3d_placement(self.pattern['panels'][panel]['translation'], [0, 0, 0])
             cmds.setParent('..')
+
+        cmds.setParent('..')
 
         # Stitch info
         cmds.frameLayout(
-            label='stitches',
-            collapsable=True, 
-            collapse=True,
+            label='Stitches',
+            collapsable=True, collapse=True,
             borderVisible=True,
-            mh=10, 
-            mw=10
+            mh=10, mw=10
         )
         self._ui_stitches(self.pattern['stitches'])
         cmds.setParent('..')
 
         # Parameters
         cmds.frameLayout(
-            label='parameters',
-            collapsable=True, 
-            collapse=True,
-            borderVisible=True,
-            mh=10, 
-            mw=10
+            label='Parameters',
+            collapsable=False, borderVisible=True,
+            mh=10, mw=10
         )
         self._ui_params(self.parameters)
         cmds.setParent('..')
@@ -110,55 +110,6 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
         children = cmds.layout(layout, query=True, childArray=True)
         cmds.deleteUI(children)
 
-    def _ui_panel(self, panel):
-        """draw UI for current panel"""
-        # vertices
-        cmds.frameLayout(label='Vertices', collapsable=True, collapse=True)
-        self._ui_verts(self.pattern['panels'][panel]['vertices'])
-        cmds.setParent('..')
-        
-        # edges
-        cmds.frameLayout(label='Edges', collapsable=True, collapse=True)
-        self._ui_edges(self.pattern['panels'][panel]['edges'])
-        cmds.setParent('..')
-
-        # 3d position
-        cmds.frameLayout(label='3D placement', collapsable=True, collapse=True)
-        self._ui_3d_placement(self.pattern['panels'][panel]['translation'], [0, 0, 0])
-        cmds.setParent('..')
-
-    def _ui_verts(self, verts):
-        """Add fields to view vertex coords"""
-        for idx, vertex in enumerate(verts):
-            values = [0, 0, 0, 0]
-            values[:len(vertex)] = vertex
-            cmds.floatFieldGrp(
-                label='Vertex ' + str(idx), 
-                numberOfFields=len(vertex), 
-                value=values
-            )
-            # TODO add command on change
-
-    def _ui_edges(self, edges):
-        """Draw edges controls"""
-        for idx, edge in enumerate(edges):
-            values = [0, 0, 0, 0]
-            values[:len(edge['endpoints'])] = edge['endpoints']
-            cmds.intFieldGrp(
-                label='Edge ' + str(idx), 
-                numberOfFields=2, 
-                value=values
-            )
-            if 'curvature' in edge:
-                values = [0, 0, 0, 0]
-                values[:len(edge['curvature'])] = edge['curvature']
-                cmds.floatFieldGrp(
-                    label='Edge ' + str(idx) + ' curvature', 
-                    numberOfFields=len(edge['curvature']), 
-                    value=values
-                )
-            # TODO add curvature add\remove buttons
-
     def _ui_3d_placement(self, transation, rotation):
         """Panel 3D position"""
         values = [0, 0, 0, 0]
@@ -166,7 +117,8 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
         cmds.floatFieldGrp(
             label='Translation', 
             numberOfFields=len(transation), 
-            value=values
+            value=values, 
+            cal=[1, 'left'], cw=[1, 50]
         )
 
         values = [0, 0, 0, 0]
@@ -174,7 +126,8 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
         cmds.floatFieldGrp(
             label='Rotation', 
             numberOfFields=len(rotation), 
-            value=values
+            value=values, 
+            cal=[1, 'left'], cw=[1, 50]
         )
 
     def _ui_stitches(self, stitches):
@@ -191,12 +144,12 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
 
         for idx, stitch in enumerate(stitches): 
             cmds.text(label='Stitch ' + str(idx))
-            cmds.textField(text=stitch['from']['panel'])
-            cmds.intField(value=stitch['from']['edge'])
+            cmds.textField(text=stitch['from']['panel'], editable=False)
+            cmds.intField(value=stitch['from']['edge'], editable=False)
             # ---
             cmds.text(label='To')
-            cmds.textField(text=stitch['to']['panel'])
-            cmds.intField(value=stitch['to']['edge'])
+            cmds.textField(text=stitch['to']['panel'], editable=False)
+            cmds.intField(value=stitch['to']['edge'], editable=False)
             # ----
             # TODO Add support for T-stitches
             # TODO Curve names instead of stitches? 
@@ -218,19 +171,23 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
                 mh=10, mw=10
             )
             # type 
-            self._quick_dropdown(
-                self.param_types_list, 
-                params[param_name]['type'], 'Type')
+            cmds.textFieldGrp(label='Type:', text=params[param_name]['type'], editable=False, 
+                              cal=[1, 'left'], cw=[1, 30])
 
             # range # TODO add two-value params support
             ranges = params[param_name]['range']
-            cmds.floatFieldGrp(label='Range: ', nf=2, value=ranges + [0, 0])
+            cmds.rowLayout(numberOfColumns=3)
+            cmds.text(label='Range info:')
+            cmds.floatField(value=ranges[0], editable=False)
+            cmds.floatField(value=ranges[1], editable=False)
+            cmds.setParent('..')
+
             # value
             cmds.floatSliderGrp(
                 label='Value', field=True, 
                 value=params[param_name]['value'], 
-                minValue=ranges[0], 
-                maxValue=ranges[1]
+                minValue=ranges[0], maxValue=ranges[1], 
+                cal=[1, 'left'], cw=[1, 30]
             )
             # influence
             self._ui_param_influence(params[param_name]['influence'], params[param_name]['type'])
@@ -253,12 +210,12 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
 
         for instance in influence_list:
             for edge in instance['edge_list']:
-                self._quick_dropdown(self.pattern['panels'], instance['panel'])
+                cmds.textField(text=instance['panel'], editable=False)
                 if type == 'length':
-                    cmds.intField(value=edge['id'])
+                    cmds.intField(value=edge['id'], editable=False)
                     self._quick_dropdown(self.edge_dirs_list, edge['direction'])
                 else:
-                    cmds.intField(value=edge)
+                    cmds.intField(value=edge, editable=False)
                     cmds.text(label='')
 
         cmds.setParent('..')

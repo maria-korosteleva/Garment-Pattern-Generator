@@ -151,6 +151,6 @@
   },
 
   "parameter_order": [
-    "length", "wideness", "wideness"
+    "length", "wideness", "wideness_curve"
   ]
 }

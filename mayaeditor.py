@@ -75,7 +75,6 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
             )
             self._ui_3d_placement(self.pattern['panels'][panel]['translation'], [0, 0, 0])
             cmds.setParent('..')
-
         cmds.setParent('..')
 
         # Stitch info
@@ -94,7 +93,7 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
             collapsable=False, borderVisible=True,
             mh=10, mw=10
         )
-        self._ui_params(self.parameters)
+        self._ui_params(self.parameters, self.spec['parameter_order'])
         cmds.setParent('..')
 
         # fin
@@ -154,12 +153,12 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
 
         cmds.setParent('..')
 
-    def _ui_params(self, params):
+    def _ui_params(self, params, order):
         """draw params UI"""
         # TODO Parameters order
 
         # Parameters
-        for param_name in params:
+        for param_name in order:
             cmds.frameLayout(
                 label=param_name,
                 collapsable=True, 
@@ -296,16 +295,16 @@ def reload_garment_callback(state):
     """
         (re)loads current garment object to Maya if it exists
     """
-    if state.garment is None or state.scene is None:
-        cmds.confirmDialog(title='Error', message='Load pattern specification & body info first')
-        return
-
-    state.garment.reloadJSON()
-    state.garment.load(
-        shader=state.scene.cloth_shader, 
-        obstacles=[state.scene.body, state.scene.floor]
-    )
-    state.garment.drawUI()  # update UI too 
+    if state.garment is not None:
+        state.garment.reloadJSON()
+        state.garment.drawUI()  # update UI too 
+        
+        if state.scene is not None:
+            state.garment.load(
+                shader=state.scene.cloth_shader, 
+                obstacles=[state.scene.body, state.scene.floor]
+            )
+    
 
 
 def sim_callback(state):

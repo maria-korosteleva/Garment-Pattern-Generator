@@ -30,10 +30,6 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
         self.ui_top_layout = None
         self.ui_controls = {}
         # TODO - move to Parametrized class
-        self.param_types_list = [
-            'length', 
-            'curve'
-        ]
         self.edge_dirs_list = [
             'start', 
             'end', 
@@ -268,7 +264,7 @@ def template_field_callback(view_field, state):
     if state.scene is not None:
         state.garment.load(
             shader=state.scene.cloth_shader, 
-            obstacles=(state.scene.body, state.scene.floor)
+            obstacles=[state.scene.body, state.scene.floor]
         )
 
 
@@ -292,7 +288,7 @@ def load_body_callback(view_field, state):
     if state.garment is not None:
         state.garment.load(
             shader=state.scene.cloth_shader, 
-            obstacles=(state.scene.body, state.scene.floor)
+            obstacles=[state.scene.body, state.scene.floor]
         )
             
 
@@ -304,10 +300,12 @@ def reload_garment_callback(state):
         cmds.confirmDialog(title='Error', message='Load pattern specification & body info first')
         return
 
+    state.garment.reloadJSON()
     state.garment.load(
         shader=state.scene.cloth_shader, 
-        obstacles=(state.scene.body, state.scene.floor)
+        obstacles=[state.scene.body, state.scene.floor]
     )
+    state.garment.drawUI()  # update UI too 
 
 
 def sim_callback(state):
@@ -321,15 +319,9 @@ def sim_callback(state):
     # Reload geometry in case something changed
     state.garment.load(
         shader=state.scene.cloth_shader, 
-        obstacles=(state.scene.body, state.scene.floor)
+        obstacles=[state.scene.body, state.scene.floor]
     )
     mysim.qw.start_maya_sim(state.garment, state.config['sim'])
-
-
-def clean_scene_callback(state):
-    """Remove existing garment from the scene"""
-    if state.garment is not None:
-        state.garment.clean(True)  # Delete maya objects for smooth operation of future simulations
 
 
 def win_closed_callback():
@@ -373,6 +365,8 @@ def quick_save_callback(view_field, state):
     state.garment.serialize(new_dir, to_subfolder=False)
     state.config.serialize(os.path.join(new_dir, 'sim_props.json'))
 
+    print('Pattern spec and sim config saved to ' + new_dir)
+
 
 def full_save_callback(view_field, state):
     """Full save with pattern spec, sim config, garment mesh & rendering"""
@@ -385,6 +379,8 @@ def full_save_callback(view_field, state):
     state.config.serialize(os.path.join(new_dir, 'sim_props.json'))
     state.garment.save_mesh(new_dir)
     state.scene.render(new_dir)
+
+    print('Pattern spec, sim config, 3D mesh & render saved to ' + new_dir)
 
 
 # --------- UI Drawing ----------
@@ -446,13 +442,11 @@ def init_UI(state):
     cmds.setParent('..')
     cmds.separator()
     # Operations
-    equal_rowlayout(3, win_width=window_width, offset=main_offset)
-    cmds.button(label='Reload', backgroundColor=[255 / 256, 169 / 256, 119 / 256], 
+    equal_rowlayout(2, win_width=window_width, offset=main_offset)
+    cmds.button(label='Reload from JSON', backgroundColor=[255 / 256, 169 / 256, 119 / 256], 
                 command=lambda *args: reload_garment_callback(state))
     cmds.button(label='Start Sim', backgroundColor=[227 / 256, 255 / 256, 119 / 256],
                 command=lambda *args: sim_callback(state))
-    cmds.button(label='Clean', backgroundColor=[255 / 256, 140 / 256, 73 / 256], 
-                command=lambda *args: clean_scene_callback(state))
 
     # separate
     cmds.setParent('..')

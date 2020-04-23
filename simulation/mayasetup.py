@@ -39,20 +39,18 @@ class MayaGarment(core.BasicPattern):
         super(MayaGarment, self).__init__(pattern_file)
         self.self_clean = clean_on_die
 
-        self.maya_shape = None
-        self.maya_cloth_object = None
-        self.maya_shape_dag = None
         self.last_verts = None
         self.current_verts = None
         self.loaded_to_maya = False
         self.obstacles = []
+        self.MayaObjects = {}
     
     def __del__(self):
         """Remove Maya objects when dying"""
         if self.self_clean:
             self.clean(True)
 
-    def load(self, obstacles=(), shader=None, parent_group=None):
+    def load(self, obstacles=[], shader=None, parent_group=None):
         """
             Loads current pattern to Maya as simulatable garment.
             If already loaded, cleans previous geometry & reloads
@@ -65,7 +63,7 @@ class MayaGarment(core.BasicPattern):
 
         self.setMaterialProps(shader)
         self.add_colliders(obstacles)
-        
+
         print('Garment ' + self.name + ' is loaded to Maya')
 
     def load_panels(self, parent_group=None):
@@ -73,6 +71,7 @@ class MayaGarment(core.BasicPattern):
             Groups them by panel and by pattern"""
         # Load panels as curves
         maya_panel_names = []
+        self.MayaObjects['panels'] = {}
         for panel_name in self.pattern['panels']:
             panel_maya = self._load_panel(panel_name)
             maya_panel_names.append(panel_maya)
@@ -81,7 +80,7 @@ class MayaGarment(core.BasicPattern):
         if parent_group is not None:
             group_name = cmds.parent(group_name, parent_group)
 
-        self.pattern['maya'] = group_name
+        self.MayaObjects['pattern'] = group_name
 
     def setMaterialProps(self, shader=None):
         """
@@ -105,7 +104,7 @@ class MayaGarment(core.BasicPattern):
             cmds.select(self.get_qlcloth_geomentry())
             cmds.hyperShade(assign=shader)
 
-    def add_colliders(self, *obstacles):
+    def add_colliders(self, obstacles=[]):
         """
             Adds given Maya objects as colliders of the garment
         """
@@ -123,7 +122,7 @@ class MayaGarment(core.BasicPattern):
             # TODO experiment with the value -- it's now set arbitrarily
             qw.setColliderFriction(collider, 0.5)
             # organize object tree
-            cmds.parent(collider, self.pattern['maya'])
+            cmds.parent(collider, self.MayaObjects['pattern'])
 
     def clean(self, delete=False):
         """ Hides/removes the garment from Maya scene 
@@ -131,10 +130,11 @@ class MayaGarment(core.BasicPattern):
             if delete flag is True
         """
         if self.loaded_to_maya:
-            cmds.hide(self.pattern['maya'])
+            cmds.hide(self.MayaObjects['pattern'])
             if delete:
-                cmds.delete(self.pattern['maya'])
+                cmds.delete(self.MayaObjects['pattern'])
                 self.loaded_to_maya = False
+                self.MayaObjects = {}  # clean 
 
         # do nothing if not loaded -- already clean =)
 
@@ -145,13 +145,13 @@ class MayaGarment(core.BasicPattern):
         if not self.loaded_to_maya:
             raise RuntimeError('MayaGarmentError::Pattern is not yet loaded.')
 
-        if not self.maya_shape:
-            children = cmds.listRelatives(self.pattern['maya'], ad=True)
+        if 'qlClothShape' not in self.MayaObjects:
+            children = cmds.listRelatives(self.MayaObjects['pattern'], ad=True)
             cloths = [obj for obj in children 
                       if 'qlCloth' in obj and 'Out' in obj and 'Shape' in obj]
-            self.maya_shape = cloths[0]
+            self.MayaObjects['qlClothShape'] = cloths[0]
 
-        return self.maya_shape
+        return self.MayaObjects['qlClothShape']
 
     def get_qlcloth_props_obj(self):
         """
@@ -160,13 +160,13 @@ class MayaGarment(core.BasicPattern):
         if not self.loaded_to_maya:
             raise RuntimeError('MayaGarmentError::Pattern is not yet loaded.')
 
-        if not self.maya_cloth_object:
-            children = cmds.listRelatives(self.pattern['maya'], ad=True)
+        if 'qlCloth' not in self.MayaObjects:
+            children = cmds.listRelatives(self.MayaObjects['pattern'], ad=True)
             cloths = [obj for obj in children 
                       if 'qlCloth' in obj and 'Out' not in obj and 'Shape' in obj]
-            self.maya_cloth_object = cloths[0]
+            self.MayaObjects['qlCloth'] = cloths[0]
 
-        return self.maya_cloth_object
+        return self.MayaObjects['qlCloth']
 
     def get_qlcloth_geom_dag(self):
         """
@@ -175,14 +175,14 @@ class MayaGarment(core.BasicPattern):
         if not self.loaded_to_maya:
             raise RuntimeError('MayaGarmentError::Pattern is not yet loaded.')
 
-        if not self.maya_shape_dag:
+        if 'shapeDAG' not in self.MayaObjects:
             # https://help.autodesk.com/view/MAYAUL/2016/ENU/?guid=__files_Maya_Python_API_Using_the_Maya_Python_API_htm
             selectionList = OpenMaya.MSelectionList()
             selectionList.add(self.get_qlcloth_geomentry())
-            self.maya_shape_dag = OpenMaya.MDagPath()
-            selectionList.getDagPath(0, self.maya_shape_dag)
+            self.MayaObjects['shapeDAG'] = OpenMaya.MDagPath()
+            selectionList.getDagPath(0, self.MayaObjects['shapeDAG'])
 
-        return self.maya_shape_dag
+        return self.MayaObjects['shapeDAG']
 
     def update_verts_info(self):
         """
@@ -307,6 +307,8 @@ class MayaGarment(core.BasicPattern):
         """
         panel = self.pattern['panels'][panel_name]
         vertices = np.asarray(panel['vertices'])
+        self.MayaObjects['panels'][panel_name] = {}
+        self.MayaObjects['panels'][panel_name]['edges'] = []
 
         # now draw edges
         curve_names = []
@@ -316,10 +318,11 @@ class MayaGarment(core.BasicPattern):
             )
             curve = cmds.curve(p=curve_points, d=(len(curve_points) - 1))
             curve_names.append(curve)
-            edge['maya'] = curve
+            self.MayaObjects['panels'][panel_name]['edges'].append(curve)
+
         # Group edges        
         curve_group = cmds.group(curve_names, n='curves')
-        panel['maya_curves'] = curve_group  # Maya modifies specified name for uniquness
+        self.MayaObjects['panels'][panel_name]['curve_group'] = curve_group
 
         # Create geometry
         panel_geom = qw.qlCreatePattern(curve_group)
@@ -329,12 +332,9 @@ class MayaGarment(core.BasicPattern):
         if solvers:
             panel_geom = list(set(panel_geom) - set(solvers))
 
-        # note that the list might get invalid after stitching
-        panel['qualoth'] = panel_geom  
-
         # group all objects belonging to a panel
         panel_group = cmds.group(panel_geom + [curve_group], n=panel_name)
-        panel['maya_group'] = panel_group
+        self.MayaObjects['panels'][panel_name]['group'] = panel_group
 
         return panel_group
 
@@ -368,20 +368,20 @@ class MayaGarment(core.BasicPattern):
             Returns
                 Qulaoth cloth object name
         """
-
+        self.MayaObjects['stitches'] = []
         for stitch in self.pattern['stitches']:
             from_curve = self._maya_curve_name(stitch['from'])
             # TODO add support for multiple "to" components
             to_curve = self._maya_curve_name(stitch['to'])
             stitch_id = qw.qlCreateSeam(from_curve, to_curve)
-            stitch_id = cmds.parent(stitch_id, self.pattern['maya'])  # organization
-            stitch['maya'] = stitch_id[0]
+            stitch_id = cmds.parent(stitch_id, self.MayaObjects['pattern'])  # organization
+            self.MayaObjects['stitches'].append(stitch_id[0])
 
     def _maya_curve_name(self, address):
         """ Shortcut to retrieve the name of curve corresponding to the edge"""
         panel_name = address['panel']
         edge_id = address['edge']
-        return self.pattern['panels'][panel_name]['edges'][edge_id]['maya']
+        return self.MayaObjects['panels'][panel_name]['edges'][edge_id]
 
     def _save_to_path(self, path, filename):
         """Save current state of cloth object to given path with given filename as OBJ"""

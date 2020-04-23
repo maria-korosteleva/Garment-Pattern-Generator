@@ -112,7 +112,7 @@
         }
       ]
     }, 
-    "low_wide" : {
+    "wideness" : {
       "value" : 1,
       "range" : [0.7, 2],
       "type" : "length", 
@@ -137,7 +137,7 @@
         }
       ]
     }, 
-    "low_wide_curve" : {
+    "wideness_curve" : {
       "value" : 1,
       "range" : [-1, 1],
       "type" : "curve", 
@@ -151,6 +151,6 @@
   },
 
   "parameter_order": [
-    "length", "low_wide", "low_wide_curve"
+    "length", "wideness", "wideness"
   ]
 }

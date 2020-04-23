@@ -40,8 +40,13 @@ class BasicPattern(object):
         self.name = os.path.splitext(os.path.basename(self.spec_file))[0]
         if self.name in standard_names:  # use name of directory instead
             self.name = os.path.basename(os.path.normpath(self.path))
+        self.reloadJSON()
 
-        with open(pattern_file, 'r') as f_json:
+    def reloadJSON(self):
+        """(Re)loads pattern info from spec file. 
+        Useful when spec is updated from outside"""
+        
+        with open(self.spec_file, 'r') as f_json:
             self.spec = json.load(f_json)
         self.pattern = self.spec['pattern']
         self.parameters = self.spec['parameters']

@@ -52,11 +52,25 @@ class MayaGarment(core.BasicPattern):
         if self.self_clean:
             self.clean(True)
 
-    def load(self, parent_group=None):
+    def load(self, obstacles=(), shader=None, parent_group=None):
         """
-            Loads current pattern to Maya as curve collection.
-            Groups them by panel and by pattern
+            Loads current pattern to Maya as simulatable garment.
+            If already loaded, cleans previous geometry & reloads
         """
+        self.clean(True)
+        
+        self.load_panels(parent_group)
+        self.stitch_panels()
+        self.loaded_to_maya = True
+
+        self.setMaterialProps(shader)
+        self.add_colliders(obstacles)
+        
+        print('Garment ' + self.name + ' is loaded to Maya')
+
+    def load_panels(self, parent_group=None):
+        """Load panels to Maya as curve collection & geometry objects.
+            Groups them by panel and by pattern"""
         # Load panels as curves
         maya_panel_names = []
         for panel_name in self.pattern['panels']:
@@ -68,13 +82,6 @@ class MayaGarment(core.BasicPattern):
             group_name = cmds.parent(group_name, parent_group)
 
         self.pattern['maya'] = group_name
-        
-        # assemble
-        self._stitch_panels()
-
-        self.loaded_to_maya = True
-
-        print('Garment ' + self.name + ' is loaded to Maya')
 
     def setMaterialProps(self, shader=None):
         """
@@ -353,7 +360,7 @@ class MayaGarment(core.BasicPattern):
 
         return list(map(tuple, points))
 
-    def _stitch_panels(self):
+    def stitch_panels(self):
         """
             Create seams between qualoth panels.
             Assumes that panels are already loadeded (as curves).

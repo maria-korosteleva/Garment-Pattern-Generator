@@ -30,15 +30,15 @@ def single_file_sim(template_path, body_path, props, caching=False):
     """
     try:
         # ----- Init -----
-        _init_sim_props(props, True)
+        init_sim_props(props, True)
         qw.load_plugin()
         scene = mayasetup.Scene(body_path + '/' + props['body'], props['render'])
 
         # Main part
-        _template_simulation(template_path + '/' + props['templates'], 
-                             scene, 
-                             props['sim'], 
-                             caching=caching)
+        template_simulation(template_path + '/' + props['templates'], 
+                            scene, 
+                            props['sim'], 
+                            caching=caching)
 
         # Fin
         print('Finished experiment')
@@ -77,7 +77,7 @@ def batch_sim(template_path, body_path, data_path, dataset_props,
         
     """
     # ----- Init -----
-    resume = _init_sim_props(dataset_props, force_restart)
+    resume = init_sim_props(dataset_props, force_restart)
     qw.load_plugin()
     scene = mayasetup.Scene(body_path + '/' + dataset_props['body'], dataset_props['render'])
     pattern_specs = _get_pattern_files(data_path, dataset_props)
@@ -91,11 +91,11 @@ def batch_sim(template_path, body_path, data_path, dataset_props,
         dataset_props['sim']['stats']['processed'].append(pattern_spec)
         dataset_props.serialize(data_props_file)  # save info of processed files before potential crash
 
-        _template_simulation(pattern_spec, 
-                             scene, 
-                             dataset_props['sim'], 
-                             delete_on_clean=True,  # delete geometry after sim s.t. it doesn't resim with each new example
-                             caching=caching)  
+        template_simulation(pattern_spec, 
+                            scene, 
+                            dataset_props['sim'], 
+                            delete_on_clean=True,  # delete geometry after sim s.t. it doesn't resim with each new example
+                            caching=caching)  
 
     # Fin
     print('Finished ' + os.path.basename(data_path))
@@ -160,9 +160,10 @@ def template_simulation(spec, scene, sim_props, delete_on_clean=False, caching=F
         Simulate given template withing given scene & save log files
     """
     garment = mayasetup.MayaGarment(spec)
-    garment.load()
-    garment.setMaterialProps(scene.cloth_shader)
-    garment.add_colliders(scene.body)  # I don't add floor s.t. garment falls infinitely if falls
+    garment.load(
+        shader=scene.cloth_shader, 
+        obstacles=scene.body  # I don't add floor s.t. garment falls infinitely if falls
+    )
     garment.sim_caching(caching)
 
     qw.run_sim(garment, sim_props)

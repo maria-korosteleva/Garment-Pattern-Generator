@@ -266,7 +266,10 @@ def template_field_callback(view_field, state):
     state.garment = MayaGarmentWithUI(template_file, True)  # previous object will autoclean
     state.garment.drawUI(state.pattern_layout)
     if state.scene is not None:
-        reload_garment_callback(state)
+        state.garment.load(
+            shader=state.scene.cloth_shader, 
+            obstacles=(state.scene.body, state.scene.floor)
+        )
 
 
 def load_body_callback(view_field, state):
@@ -287,7 +290,10 @@ def load_body_callback(view_field, state):
     state.config['body'] = os.path.basename(file)  # update info
     state.scene = mysim.mayasetup.Scene(file, state.config['render'], clean_on_die=True)  # previous scene will autodelete
     if state.garment is not None:
-        reload_garment_callback(state)
+        state.garment.load(
+            shader=state.scene.cloth_shader, 
+            obstacles=(state.scene.body, state.scene.floor)
+        )
             
 
 def reload_garment_callback(state):
@@ -298,10 +304,10 @@ def reload_garment_callback(state):
         cmds.confirmDialog(title='Error', message='Load pattern specification & body info first')
         return
 
-    state.garment.clean(True)
-    state.garment.load()
-    state.garment.setMaterialProps(state.scene.cloth_shader)
-    state.garment.add_colliders(state.scene.body, state.scene.floor)
+    state.garment.load(
+        shader=state.scene.cloth_shader, 
+        obstacles=(state.scene.body, state.scene.floor)
+    )
 
 
 def sim_callback(state):
@@ -311,6 +317,12 @@ def sim_callback(state):
         return
     print('Simulating..')
     mysim.qw.qlCleanSimCache()
+
+    # Reload geometry in case something changed
+    state.garment.load(
+        shader=state.scene.cloth_shader, 
+        obstacles=(state.scene.body, state.scene.floor)
+    )
     mysim.qw.start_maya_sim(state.garment, state.config['sim'])
 
 

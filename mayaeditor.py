@@ -209,7 +209,7 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
                 cmds.textField(text=instance['panel'], editable=False)
                 if type == 'length':
                     cmds.intField(value=edge['id'], editable=False)
-                    self._quick_dropdown(self.edge_dirs_list, edge['direction'])
+                    self._quick_dropdown(self.edge_dirs_list, chosen=edge['direction'])
                 else:
                     cmds.intField(value=edge, editable=False)
                     cmds.text(label='')
@@ -223,7 +223,7 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
         for option in options:
             cmds.menuItem(label=option)
         if chosen:
-            cmds.optionMenu(menu, e=True, value=option)
+            cmds.optionMenu(menu, e=True, value=chosen)
 
         return menu
 

@@ -478,6 +478,13 @@ class Scene(object):
         
         self.stats['render_time'].append(time.time() - start_time)
 
+    def fetch_colors(self):
+        """Get color properties records from Maya shader nodes.
+            Note: it updates global config!"""
+        self.config['body_color'] = self._fetch_color(self.body_shader)
+        self.config['floor_color'] = self._fetch_color(self.floor_shader)
+        self.config['cloth_color'] = self._fetch_color(self.cloth_shader)
+
     def _add_floor(self, target):
         """
             adds a floor under a given object
@@ -508,3 +515,7 @@ class Scene(object):
             cmds.hyperShade(assign=shader)
 
         return shader
+
+    def _fetch_color(self, shader):
+        """Return current color of a given shader node"""
+        return cmds.getAttr(shader + '.color')

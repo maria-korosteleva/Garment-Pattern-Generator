@@ -160,30 +160,33 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
         # Parameters
         for param_name in order:
             cmds.frameLayout(
-                label=param_name,
-                collapsable=True, 
-                collapse=True, 
-                mh=10, mw=10
+                label=param_name, collapsable=True, collapse=True, mh=10, mw=10
             )
             # type 
             cmds.textFieldGrp(label='Type:', text=params[param_name]['type'], editable=False, 
                               cal=[1, 'left'], cw=[1, 30])
 
-            # range # TODO add two-value params support
-            ranges = params[param_name]['range']
-            cmds.rowLayout(numberOfColumns=3)
-            cmds.text(label='Range info:')
-            cmds.floatField(value=ranges[0], editable=False)
-            cmds.floatField(value=ranges[1], editable=False)
-            cmds.setParent('..')
+            # parameters might have multiple values
+            values = params[param_name]['value']
+            param_ranges = params[param_name]['range']
+            if not isinstance(values, list):
+                values = [values]
+                param_ranges = [param_ranges]
+            for idx, (value, param_range) in enumerate(zip(values, param_ranges)):
+                # range 
+                cmds.rowLayout(numberOfColumns=3)
+                cmds.text(label='Range ' + str(idx) + ' info:')
+                cmds.floatField(value=param_range[0], editable=False)
+                cmds.floatField(value=param_range[1], editable=False)
+                cmds.setParent('..')
 
-            # value
-            cmds.floatSliderGrp(
-                label='Value', field=True, 
-                value=params[param_name]['value'], 
-                minValue=ranges[0], maxValue=ranges[1], 
-                cal=[1, 'left'], cw=[1, 30]
-            )
+                # value
+                cmds.floatSliderGrp(
+                    label='Value', field=True, value=value, 
+                    minValue=param_range[0], maxValue=param_range[1], 
+                    cal=[1, 'left'], cw=[1, 30]
+                )
+
             # influence
             self._ui_param_influence(params[param_name]['influence'], params[param_name]['type'])
             # fin
@@ -298,14 +301,13 @@ def reload_garment_callback(state):
     if state.garment is not None:
         state.garment.reloadJSON()
         state.garment.drawUI()  # update UI too 
-        
+
         if state.scene is not None:
             state.garment.load(
                 shader=state.scene.cloth_shader, 
                 obstacles=[state.scene.body, state.scene.floor]
             )
     
-
 
 def sim_callback(state):
     """ Start simulation """
@@ -338,12 +340,13 @@ def saving_folder_callback(view_field, state):
         caption='Choose body obj file'
     )
     if not directory:  # do nothing
-        return 
+        return False
 
     directory = directory[0]
     cmds.textField(view_field, edit=True, text=directory)
 
     state.save_to = directory
+    return True
 
 
 def _new_dir(root_dir, tag='snap'):
@@ -357,29 +360,35 @@ def _new_dir(root_dir, tag='snap'):
 def quick_save_callback(view_field, state):
     """Quick save with pattern spec and sim config"""
     if state.save_to is None:
-        saving_folder_callback(view_field, state)
+        if not saving_folder_callback(view_field, state):
+            return ""
     
     new_dir = _new_dir(state.save_to, state.garment.name)
+
+    # fetch props from maya -- updated global config
+    state.scene.fetch_colors()
     # serialize
-    state.garment.serialize(new_dir, to_subfolder=False)
     state.config.serialize(os.path.join(new_dir, 'sim_props.json'))
+    state.garment.serialize(new_dir, to_subfolder=False)
 
     print('Pattern spec and sim config saved to ' + new_dir)
+
+    return new_dir
 
 
 def full_save_callback(view_field, state):
     """Full save with pattern spec, sim config, garment mesh & rendering"""
-    if state.save_to is None:
-        saving_folder_callback(view_field, state)
+
+    # do the same as for quick save
+    new_dir = quick_save_callback(view_field, state)
+    if not new_dir:
+        return
     
-    new_dir = _new_dir(state.save_to, state.garment.name)
-    # serialize
-    state.garment.serialize(new_dir, to_subfolder=False)
-    state.config.serialize(os.path.join(new_dir, 'sim_props.json'))
+    # save additional objects
     state.garment.save_mesh(new_dir)
     state.scene.render(new_dir)
 
-    print('Pattern spec, sim config, 3D mesh & render saved to ' + new_dir)
+    print('Pattern 3D mesh & render saved to ' + new_dir)
 
 
 # --------- UI Drawing ----------

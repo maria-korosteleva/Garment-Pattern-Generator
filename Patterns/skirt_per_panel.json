@@ -27,7 +27,8 @@
           {
             "endpoints" : [3, 0]
           }
-        ]
+        ], 
+		"translation" : [0, 0, 56.280]
       }, 
       "back": {
         "vertices" : [
@@ -49,7 +50,8 @@
           {
             "endpoints" : [2, 1]
           }
-        ]
+        ], 
+		"translation" : [0, 0, -56.280]
       }
     },
     

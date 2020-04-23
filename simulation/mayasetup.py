@@ -43,6 +43,7 @@ class MayaGarment(core.BasicPattern):
         self.current_verts = None
         self.loaded_to_maya = False
         self.obstacles = []
+        self.shader = None
         self.MayaObjects = {}
     
     def __del__(self):
@@ -100,9 +101,12 @@ class MayaGarment(core.BasicPattern):
         # (friction with body controlled by collider props)
         cmds.setAttr(cloth + '.friction', 0.25)
 
-        if shader is not None:
+        if shader is not None:  # use previous othervise
+            self.shader = shader
+
+        if self.shader is not None:
             cmds.select(self.get_qlcloth_geomentry())
-            cmds.hyperShade(assign=shader)
+            cmds.hyperShade(assign=self.shader)
 
     def add_colliders(self, obstacles=[]):
         """
@@ -111,9 +115,10 @@ class MayaGarment(core.BasicPattern):
         if not self.loaded_to_maya:
             raise RuntimeError(
                 'MayaGarmentError::Pattern is not yet loaded. Cannot load colliders')
+        if obstacles:  # if not given, use previous ones
+            self.obstacles = obstacles
 
-        self.obstacles = obstacles
-        for obj in obstacles:
+        for obj in self.obstacles:
             collider = qw.qlCreateCollider(
                 self.get_qlcloth_geomentry(), 
                 obj

@@ -144,6 +144,7 @@
       // there could be one or more values for a parameter depending on the parameter type 
       // (see example below for curve parameters)
       // For 'length' parameters value is a scalar
+	  // Note! Try to avoid zero values, as the result becomes irreversible (impossible to restore original value)
       "value": 1,
       // The allowed range a parameter could take. Allows to control intensity of change 
       // when parameter is varied
@@ -277,6 +278,9 @@
   //
   // This section described the order in which parameneters are applied when modifuing the template	
   // An ORDERED list of parameter names
+  //
+  // It's recomenneded to only change the order for templates (patterns with parameters in default state). Otherwise,
+  // template restoration might become impossible
   "parameter_order": [
     "length",
     "low_wide",

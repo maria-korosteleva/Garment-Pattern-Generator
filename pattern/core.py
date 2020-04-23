@@ -27,8 +27,6 @@ class BasicPattern(object):
         Not implemented: 
             * Convertion to NN-friendly format
             * Support for patterns with darts
-            * Convertion to Simulatable format
-            * Panel positioning
     """
 
     # ------------ Interface -------------
@@ -41,6 +39,11 @@ class BasicPattern(object):
         if self.name in standard_names:  # use name of directory instead
             self.name = os.path.basename(os.path.normpath(self.path))
         self.reloadJSON()
+
+        self.parameter_processors = {
+            'length': self._extend_edge,
+            'curve': self._curve_edge
+        }
 
     def reloadJSON(self):
         """(Re)loads pattern info from spec file. 
@@ -155,3 +158,121 @@ class BasicPattern(object):
             np.array(panel['vertices'][v_id_end])
         
         return np.linalg.norm(v_end - v_start)
+    
+    # ---------- Parameters operations --------
+
+    def _update_pattern_by_param_values(self):
+        """
+        Recalculates vertex positions and edge curves according to current
+        parameter values
+        (!) Assumes that the current pattern is a template:
+                with all the parameters equal to defaults!
+        """
+        for parameter in self.spec['parameter_order']:
+            value = self.parameters[parameter]['value']
+            param_type = self.parameters[parameter]['type']
+            if param_type not in self.parameter_processors:
+                raise ValueError("Incorrect parameter type. Alowed are "
+                                 + self.parameter_processors.keys())
+
+            for panel_influence in self.parameters[parameter]['influence']:
+                for edge in panel_influence['edge_list']:
+                    self.parameter_processors[param_type](
+                        panel_influence['panel'], edge, value)
+
+                # super()._normalize_panel_translation(panel_influence['panel'])
+        
+        # print(self.name, self.__edge_length('front', 0), self.__edge_length('back', 0))
+
+    def _extend_edge(self, panel_name, edge_influence, scaling_factor):
+        """
+            Shrinks/elongates a given edge of a given panel. Applies equally
+            to straight and curvy edges tnks to relative coordinates of curve controls
+            Expects
+                * each influenced edge to supply the elongatoin direction
+                * scalar scaling_factor
+        """
+        if isinstance(scaling_factor, list):
+            raise ValueError("Multiple scaling factors are not supported")
+
+        panel = self.pattern['panels'][panel_name]
+        v_id_start, v_id_end = tuple(
+            panel['edges'][edge_influence["id"]]['endpoints'])
+        v_start, v_end = np.array(panel['vertices'][v_id_start]), \
+            np.array(panel['vertices'][v_id_end])
+
+        # future edge    
+        new_edge_vector = scaling_factor * (v_end - v_start)
+
+        # apply extention in the appropriate direction
+        if edge_influence["direction"] == 'end':
+            v_end = v_start + new_edge_vector
+        elif edge_influence["direction"] == 'start':
+            v_start = v_end - new_edge_vector
+        else:  # both
+            v_middle = (v_start + v_end) / 2
+            new_half_edge_vector = new_edge_vector / 2
+            v_start, v_end = v_middle - new_half_edge_vector, \
+                v_middle + new_half_edge_vector
+
+        panel['vertices'][v_id_end] = v_end.tolist()
+        panel['vertices'][v_id_start] = v_start.tolist()
+
+    def _curve_edge(self, panel_name, edge, scaling_factor):
+        """
+            Updated the curvature of an edge accoding to scaling_factor.
+            Can only be applied to edges with curvature information
+            scaling_factor can be
+                * scalar -- only the Y of control point is changed
+                * 2-value list -- both coordinated of control are updated
+        """
+        panel = self.pattern['panels'][panel_name]
+        if 'curvature' not in panel['edges'][edge]:
+            raise ValueError('Applying curvature scaling to non-curvy edge '
+                             + str(edge) + ' of ' + panel_name)
+        control = panel['edges'][edge]['curvature']
+        if isinstance(scaling_factor, list):
+            control = [
+                control[0] * scaling_factor[0],
+                control[1] * scaling_factor[1]
+            ]
+        else:
+            control[1] *= scaling_factor
+
+        panel['edges'][edge]['curvature'] = control
+
+    def _restore_template(self):
+        """Restore pattern to it's state with all parameters having default values
+            Recalculate vertex positions, edge curvatures & snap values to 1
+        """
+        # Follow the every order backwards
+        for parameter in reversed(self.spec['parameter_order']):
+            
+            # invert value(s)
+            value = self.parameters[parameter]['value']
+            try:  
+                if isinstance(value, list):
+                    value = map(lambda x: 1 / x, value)
+                else:
+                    value = 1 / value
+            except ZeroDivisionError as e:
+                raise ZeroDivisionError('Zero value encountered while restoring template. Value is skipped')
+            
+            # Apply
+            param_type = self.parameters[parameter]['type']
+            if param_type not in self.parameter_processors:
+                raise ValueError("Incorrect parameter type. Alowed are "
+                                 + self.parameter_processors.keys())
+
+            for panel_influence in reversed(self.parameters[parameter]['influence']):
+                for edge in reversed(panel_influence['edge_list']):
+                    self.parameter_processors[param_type](
+                        panel_influence['panel'], edge, value)
+            
+            # restore defaults
+            if isinstance(value, list):
+                self.parameters[parameter]['value'] = [1 for _ in value]
+            else:
+                self.parameters[parameter]['value'] = 1
+
+

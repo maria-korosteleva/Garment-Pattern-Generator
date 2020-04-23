@@ -41,6 +41,7 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
         if self.ui_top_layout is not None:
             self._clean_layout(self.ui_top_layout)
 
+    # ------- UI Drawing routines --------
     def drawUI(self, top_layout=None):
         """ Draw pattern controls in the given layout"""
         if top_layout is not None:
@@ -155,9 +156,13 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
 
     def _ui_params(self, params, order):
         """draw params UI"""
-        # TODO Parameters order
+        # control
+        cmds.button(
+            label='To template state', backgroundColor=[227 / 256, 255 / 256, 119 / 256],
+            command=lambda *args: self._to_template_callback(), 
+            ann='Snap all parameters to default values')
 
-        # Parameters
+        # Parameters themselves
         for param_name in order:
             cmds.frameLayout(
                 label=param_name, collapsable=True, collapse=True, mh=10, mw=10
@@ -228,6 +233,19 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
             cmds.optionMenu(menu, e=True, value=chosen)
 
         return menu
+
+    # -------- Callbacks -----------
+    def _to_template_callback(self):
+        """Returns current pattern to template state and 
+        updates UI accordingly"""
+        # update
+        print('Pattern returns to origins..')
+        self._restore_template()
+        # update UI in lazy manner
+        self.drawUI()
+        # update geometry in lazy manner
+        if self.loaded_to_maya:
+            self.load()
 
 
 # ----- State -------

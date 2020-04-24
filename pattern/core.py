@@ -258,7 +258,7 @@ class BasicPattern(object):
             
             # Apply
             param_type = self.parameters[parameter]['type']
-            if param_type not in self.parameter_processors:
+            if param_type not in self.parameter_types:
                 raise ValueError("Incorrect parameter type. Alowed are "
                                  + self.parameter_types.keys())
 

@@ -289,6 +289,8 @@ def template_field_callback(view_field, state):
             shader=state.scene.cloth_shader, 
             obstacles=[state.scene.body, state.scene.floor]
         )
+    else:
+        state.garment.load()
 
 
 def load_body_callback(view_field, state):
@@ -364,6 +366,8 @@ def reload_garment_callback(state):
                 shader=state.scene.cloth_shader, 
                 obstacles=[state.scene.body, state.scene.floor]
             )
+        else:
+            state.garment.load()
     
 
 def sim_callback(state):
@@ -416,6 +420,10 @@ def _new_dir(root_dir, tag='snap'):
 
 def quick_save_callback(view_field, state):
     """Quick save with pattern spec and sim config"""
+    if state.garment is None or state.scene is None:
+        cmds.confirmDialog(title='Error', message='Load pattern specification & body info first')
+        return
+        
     if state.save_to is None:
         if not saving_folder_callback(view_field, state):
             return ""

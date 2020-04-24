@@ -137,6 +137,7 @@ class MayaGarment(core.BasicPattern):
         if self.loaded_to_maya:
             cmds.hide(self.MayaObjects['pattern'])
             if delete:
+                print('MayaGarment::Deleting {}'.format(self.MayaObjects['pattern']))
                 cmds.delete(self.MayaObjects['pattern'])
                 self.loaded_to_maya = False
                 self.MayaObjects = {}  # clean 

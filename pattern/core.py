@@ -40,10 +40,10 @@ class BasicPattern(object):
             self.name = os.path.basename(os.path.normpath(self.path))
         self.reloadJSON()
 
-        self.parameter_processors = {
-            'length': self._extend_edge,
-            'curve': self._curve_edge
-        }
+        self.parameter_types = [
+            'length',
+            'curve'
+        ]
 
     def reloadJSON(self):
         """(Re)loads pattern info from spec file. 
@@ -171,18 +171,16 @@ class BasicPattern(object):
         for parameter in self.spec['parameter_order']:
             value = self.parameters[parameter]['value']
             param_type = self.parameters[parameter]['type']
-            if param_type not in self.parameter_processors:
+            if param_type not in self.parameter_types:
                 raise ValueError("Incorrect parameter type. Alowed are "
-                                 + self.parameter_processors.keys())
+                                 + self.parameter_types.keys())
 
             for panel_influence in self.parameters[parameter]['influence']:
                 for edge in panel_influence['edge_list']:
-                    self.parameter_processors[param_type](
-                        panel_influence['panel'], edge, value)
-
-                # super()._normalize_panel_translation(panel_influence['panel'])
-        
-        # print(self.name, self.__edge_length('front', 0), self.__edge_length('back', 0))
+                    if param_type == 'length':
+                        self._extend_edge(panel_influence['panel'], edge, value)
+                    elif param_type == 'curve':
+                        self._curve_edge(panel_influence['panel'], edge, value)
 
     def _extend_edge(self, panel_name, edge_influence, scaling_factor):
         """
@@ -249,12 +247,12 @@ class BasicPattern(object):
         for parameter in reversed(self.spec['parameter_order']):
             
             # invert value(s)
-            value = self.parameters[parameter]['value']
+            inv_value = self.parameters[parameter]['value']
             try:  
-                if isinstance(value, list):
-                    value = map(lambda x: 1 / x, value)
+                if isinstance(inv_value, list):
+                    inv_value = map(lambda x: 1 / x, inv_value)
                 else:
-                    value = 1 / value
+                    inv_value = 1 / inv_value
             except ZeroDivisionError as e:
                 raise ZeroDivisionError('Zero value encountered while restoring template. Value is skipped')
             
@@ -262,16 +260,18 @@ class BasicPattern(object):
             param_type = self.parameters[parameter]['type']
             if param_type not in self.parameter_processors:
                 raise ValueError("Incorrect parameter type. Alowed are "
-                                 + self.parameter_processors.keys())
+                                 + self.parameter_types.keys())
 
             for panel_influence in reversed(self.parameters[parameter]['influence']):
                 for edge in reversed(panel_influence['edge_list']):
-                    self.parameter_processors[param_type](
-                        panel_influence['panel'], edge, value)
+                    if param_type == 'length':
+                        self._extend_edge(panel_influence['panel'], edge, inv_value)
+                    elif param_type == 'curve':
+                        self._curve_edge(panel_influence['panel'], edge, inv_value)
             
             # restore defaults
-            if isinstance(value, list):
-                self.parameters[parameter]['value'] = [1 for _ in value]
+            if isinstance(inv_value, list):
+                self.parameters[parameter]['value'] = [1 for _ in inv_value]
             else:
                 self.parameters[parameter]['value'] = 1
 

@@ -12,6 +12,8 @@ from datetime import datetime
 import os
 import numpy as np
 
+import gc
+
 # Maya
 from maya import cmds
 import maya.mel as mel

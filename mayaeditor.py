@@ -188,10 +188,11 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
                 cmds.setParent('..')
 
                 # value
-                cmds.floatSliderGrp(
+                slider = cmds.floatSliderGrp(
                     label='Value', field=True, value=value, 
                     minValue=param_range[0], maxValue=param_range[1], 
-                    cal=[1, 'left'], cw=[1, 30]
+                    cal=[1, 'left'], cw=[1, 30], 
+                    changeCommand=partial(self._param_value_callback, param_name, idx) 
                 )
 
             # influence
@@ -245,6 +246,27 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
         self._restore_template()
         # update UI in lazy manner
         self.drawUI()
+        # update geometry in lazy manner
+        if self.loaded_to_maya:
+            self.load()
+
+    def _param_value_callback(self, param_name, value_idx, *args):
+        """Update pattern with new value"""
+        # restore template state -- params are interdependent
+        # change cannot be applied independently by but should follow specified param order
+        self._restore_template(params_to_default=False)
+
+        # get value
+        new_value = args[0]
+        # save value. No need to check ranges -- correct by UI
+        if isinstance(self.parameters[param_name]['value'], list):
+            self.parameters[param_name]['value'][value_idx] = new_value
+        else:
+            self.parameters[param_name]['value'] = new_value
+        
+        # reapply all parameters
+        self._update_pattern_by_param_values()
+        
         # update geometry in lazy manner
         if self.loaded_to_maya:
             self.load()
@@ -423,7 +445,7 @@ def quick_save_callback(view_field, state):
     if state.garment is None or state.scene is None:
         cmds.confirmDialog(title='Error', message='Load pattern specification & body info first')
         return
-        
+
     if state.save_to is None:
         if not saving_folder_callback(view_field, state):
             return ""

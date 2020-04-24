@@ -239,7 +239,7 @@ class BasicPattern(object):
 
         panel['edges'][edge]['curvature'] = control
 
-    def _restore_template(self):
+    def _restore_template(self, params_to_default=True):
         """Restore pattern to it's state with all parameters having default values
             Recalculate vertex positions, edge curvatures & snap values to 1
         """
@@ -270,9 +270,10 @@ class BasicPattern(object):
                         self._curve_edge(panel_influence['panel'], edge, inv_value)
             
             # restore defaults
-            if isinstance(inv_value, list):
-                self.parameters[parameter]['value'] = [1 for _ in inv_value]
-            else:
-                self.parameters[parameter]['value'] = 1
+            if params_to_default:
+                if isinstance(inv_value, list):
+                    self.parameters[parameter]['value'] = [1 for _ in inv_value]
+                else:
+                    self.parameters[parameter]['value'] = 1
 
 

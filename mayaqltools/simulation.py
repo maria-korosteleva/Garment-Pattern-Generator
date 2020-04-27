@@ -107,8 +107,12 @@ def init_sim_props(props, batch_run=False, force_restart=False):
             'sim', 
             max_sim_steps=500, 
             zero_gravity_steps=5,  # time to assembly 
-            static_threshold=0.05  # 0.01  # depends on the units used
+            static_threshold=0.05,  # 0.01  # depends on the units used, 
+            material={}
         )
+    
+    if 'material' not in props['sim']['config']:
+        props['sim']['config']['material'] = {}
 
     if 'render' not in props:
         # init with defaults

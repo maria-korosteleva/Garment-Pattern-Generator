@@ -70,7 +70,7 @@ class Properties():
 
     def serialize(self, filename):
         with open(filename, 'w') as f_json:
-            json.dump(self.properties, f_json, indent=2)
+            json.dump(self.properties, f_json, indent=2, sort_keys=True)
 
     def _from_file(self, filename):
         """ Load properties from previously created file """

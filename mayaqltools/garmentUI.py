@@ -94,6 +94,24 @@ class State(object):
         self.body_file = None
         self.config = customconfig.Properties()
         mymaya.simulation.init_sim_props(self.config)  # use default setup for simulation -- for now
+    
+    def fetch(self):
+        """Update info in deendent object from Maya"""
+        self.scene.fetch_colors()
+        self.config.set_section_config(
+            'sim', 
+            material=self.garment.fetchMaterialSimProps()
+        )
+    
+    def serialize(self, directory):
+        """Serialize text-like objects"""
+        self.config.serialize(os.path.join(directory, 'sim_props.json'))
+        self.garment.serialize(directory, to_subfolder=False)
+
+    def save_scene(self, directory):
+        """Save scene objects"""
+        self.garment.save_mesh(directory)
+        self.scene.render(directory)
 
 
 # ------- Errors --------
@@ -235,6 +253,10 @@ def load_props_callback(view_field, state):
                 shader=state.scene.cloth_shader, 
                 obstacles=[state.scene.body, state.scene.floor]
             )
+    
+    # Load material props
+    if state.garment is not None:
+        state.garment.setMaterialSimProps(state.config['sim']['config']['material'])
 
 
 def reload_garment_callback(state):
@@ -345,15 +367,10 @@ def quick_save_callback(view_field, state):
     except SceneSavingError: 
         return 
 
-    # fetch props from maya -- updated global config
-    state.scene.fetch_colors()
-    # serialize
-    state.config.serialize(os.path.join(new_dir, 'sim_props.json'))
-    state.garment.serialize(new_dir, to_subfolder=False)
+    state.fetch()
+    state.serialize(new_dir)
 
     print('Pattern spec and sim config saved to ' + new_dir)
-
-    return new_dir
 
 
 def full_save_callback(view_field, state):
@@ -365,15 +382,11 @@ def full_save_callback(view_field, state):
     except SceneSavingError: 
         return 
 
-    # fetch props from maya -- updated global config
-    state.scene.fetch_colors()
+    # save scene objects
+    state.save_scene(new_dir)
 
-    # save additional objects
-    state.garment.save_mesh(new_dir)
-    state.scene.render(new_dir)
+    # save text properties
+    state.fetch()
+    state.serialize(new_dir)
 
-    # serialize specs
-    state.config.serialize(os.path.join(new_dir, 'sim_props.json'))
-    state.garment.serialize(new_dir, to_subfolder=False)
-
-    print('Pattern 3D mesh & render saved to ' + new_dir)
+    print('Pattern spec, props, 3D mesh & render saved to ' + new_dir)

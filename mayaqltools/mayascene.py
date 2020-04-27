@@ -47,25 +47,29 @@ class MayaGarment(core.BasicPattern):
         self.obstacles = []
         self.shader = None
         self.MayaObjects = {}
+        self.sim_material = {}
     
     def __del__(self):
         """Remove Maya objects when dying"""
         if self.self_clean:
             self.clean(True)
 
-    def load(self, obstacles=[], shader=None, parent_group=None):
+    def load(self, obstacles=[], shader=None, material={}, parent_group=None):
         """
             Loads current pattern to Maya as simulatable garment.
             If already loaded, cleans previous geometry & reloads
         """
+        if self.loaded_to_maya:
+            self.sim_material = self.fetchMaterialSimProps()  # save the latest material
         self.clean(True)
         
         self.load_panels(parent_group)
         self.stitch_panels()
         self.loaded_to_maya = True
 
-        self.setMaterialProps(shader)
+        self.setShader(shader)
         self.add_colliders(obstacles)
+        self.setMaterialSimProps(material)
 
         print('Garment ' + self.name + ' is loaded to Maya')
 
@@ -85,7 +89,7 @@ class MayaGarment(core.BasicPattern):
 
         self.MayaObjects['pattern'] = group_name
 
-    def setMaterialProps(self, shader=None):
+    def setShader(self, shader=None):
         """
             Sets material properties for the cloth object created from current panel
         """
@@ -145,6 +149,21 @@ class MayaGarment(core.BasicPattern):
                 self.MayaObjects = {}  # clean 
 
         # do nothing if not loaded -- already clean =)
+
+    def fetchMaterialSimProps(self):
+        """Return simulation properties"""
+        return qw.fetchMaterialProps(self.get_qlcloth_props_obj())
+
+    def setMaterialSimProps(self, props={}):
+        """Pass material properties for cloth to Qualoth"""
+        print('Properties reset')
+
+        if props:
+            self.sim_material = props
+        qw.setMaterialProps(
+            self.get_qlcloth_props_obj(), 
+            self.sim_material
+        )
 
     def get_qlcloth_geomentry(self):
         """

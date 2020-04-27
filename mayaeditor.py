@@ -118,6 +118,24 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
             cal=[1, 'left'], cw=[1, 50]
         )
 
+    def _ui_param_value(self, param_name, param_range, value, idx=None, tag=''):
+        """Create UI elements to display range and control the param value"""
+        # range 
+        cmds.rowLayout(numberOfColumns=3)
+        cmds.text(label='Range ' + tag + ':')
+        cmds.floatField(value=param_range[0], editable=False)
+        cmds.floatField(value=param_range[1], editable=False)
+        cmds.setParent('..')
+
+        # value
+        cmds.floatSliderGrp(
+            label='Value ' + tag + ':', 
+            field=True, value=value, 
+            minValue=param_range[0], maxValue=param_range[1], 
+            cal=[1, 'left'], cw=[1, 45], 
+            changeCommand=partial(self._param_value_callback, param_name, idx) 
+        )
+
     def _ui_params(self, params, order):
         """draw params UI"""
         # control
@@ -138,24 +156,12 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
             # parameters might have multiple values
             values = params[param_name]['value']
             param_ranges = params[param_name]['range']
-            if not isinstance(values, list):
-                values = [values]
-                param_ranges = [param_ranges]
-            for idx, (value, param_range) in enumerate(zip(values, param_ranges)):
-                # range 
-                cmds.rowLayout(numberOfColumns=3)
-                cmds.text(label='Range ' + str(idx) + ' info:')
-                cmds.floatField(value=param_range[0], editable=False)
-                cmds.floatField(value=param_range[1], editable=False)
-                cmds.setParent('..')
-
-                # value
-                cmds.floatSliderGrp(
-                    label='Value', field=True, value=value, 
-                    minValue=param_range[0], maxValue=param_range[1], 
-                    cal=[1, 'left'], cw=[1, 30], 
-                    changeCommand=partial(self._param_value_callback, param_name, idx) 
-                )
+            if isinstance(values, list):
+                ui_tags = ['X', 'Y', 'Z', 'W']
+                for idx, (value, param_range) in enumerate(zip(values, param_ranges)):
+                    self._ui_param_value(param_name, param_range, value, idx, ui_tags[idx])
+            else:
+                self._ui_param_value(param_name, param_ranges, values)
 
             # fin
             cmds.setParent('..')

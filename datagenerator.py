@@ -49,7 +49,7 @@ def generate(path, templates_path, props):
 
     # TODO modify to support multiple templates
     if isinstance(props['templates'], list):
-        raise NotImplemented('Generation from multiple templates is not supported')
+        raise NotImplementedError('Generation from multiple templates is not supported')
     template_file_path = Path(templates_path) / props['templates']
 
     # create data folder

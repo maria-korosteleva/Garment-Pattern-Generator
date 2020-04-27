@@ -1,14 +1,4 @@
-"""
-    Package for to simulate garments from patterns in Maya with Qualoth
-    Note that Maya uses Python 2.7 (incl Maya 2020) hence this module is adapted to Python 2.7
-
-    Main dependencies:
-        * Maya 2018+
-        * Arnold Renderer
-        * Qualoth (compatible with your Maya version)
-    
-    To run the package in Maya don't foget to add it to PYTHONPATH!
-"""
+"""Routines to run cloth simulation in Maya + Qualoth"""
 
 # Basic
 from __future__ import print_function
@@ -16,10 +6,8 @@ import time
 import os
 
 # My modules
-from simulation import mayasetup
-from simulation import qualothwrapper as qw
-reload(mayasetup)
-reload(qw)
+import mayaqltools as mymaya
+from mayaqltools import qualothwrapper as qw
 
 
 # ----------- High-level requests --------------
@@ -32,7 +20,7 @@ def single_file_sim(template_path, body_path, props, caching=False):
         # ----- Init -----
         init_sim_props(props, True)
         qw.load_plugin()
-        scene = mayasetup.Scene(body_path + '/' + props['body'], props['render'])
+        scene = mymaya.Scene(body_path + '/' + props['body'], props['render'])
 
         # Main part
         template_simulation(template_path + '/' + props['templates'], 
@@ -79,7 +67,7 @@ def batch_sim(template_path, body_path, data_path, dataset_props,
     # ----- Init -----
     resume = init_sim_props(dataset_props, batch_run=True, force_restart=force_restart)
     qw.load_plugin()
-    scene = mayasetup.Scene(body_path + '/' + dataset_props['body'], dataset_props['render'])
+    scene = mymaya.Scene(body_path + '/' + dataset_props['body'], dataset_props['render'])
     pattern_specs = _get_pattern_files(data_path, dataset_props)
     data_props_file = os.path.join(data_path, 'dataset_properties.json')
 
@@ -162,10 +150,11 @@ def template_simulation(spec, scene, sim_props, delete_on_clean=False, caching=F
     """
         Simulate given template withing given scene & save log files
     """
-    garment = mayasetup.MayaGarment(spec)
+    print('Garment load')
+    garment = mymaya.MayaGarment(spec)
     garment.load(
         shader=scene.cloth_shader, 
-        obstacles=scene.body  # I don't add floor s.t. garment falls infinitely if falls
+        obstacles=[scene.body]  # I don't add floor s.t. garment falls infinitely if falls
     )
     garment.sim_caching(caching)
 

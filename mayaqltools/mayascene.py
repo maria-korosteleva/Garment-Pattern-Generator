@@ -4,10 +4,12 @@
 """
 # Basic
 from __future__ import print_function
-import json
-import os
+from __future__ import division
+from functools import partial
 import errno
+import json
 import numpy as np
+import os
 import time
 
 # Maya
@@ -21,7 +23,7 @@ import mtoa.core as mtoa
 
 # My modules
 import pattern.core as core
-import simulation.qualothwrapper as qw
+from mayaqltools import qualothwrapper as qw
 reload(core)
 reload(qw)
 
@@ -401,6 +403,192 @@ class MayaGarment(core.BasicPattern):
             op='groups=0;ptgroups=0;materials=0;smoothing=0;normals=1',  # very simple obj
             f=1  # force override if file exists
         )
+
+
+class MayaGarmentWithUI(MayaGarment):
+    """Extension of MayaGarment that can generate GUI for controlling the pattern"""
+    def __init__(self, pattern_file, clean_on_die=False):
+        super(MayaGarmentWithUI, self).__init__(pattern_file, clean_on_die)
+        self.ui_top_layout = None
+        self.ui_controls = {}
+        # TODO - move to Parametrized class
+        self.edge_dirs_list = [
+            'start', 
+            'end', 
+            'both'
+        ]
+    
+    def __del__(self):
+        super(MayaGarmentWithUI, self).__del__()
+        if self.ui_top_layout is not None:
+            self._clean_layout(self.ui_top_layout)
+
+    # ------- UI Drawing routines --------
+    def drawUI(self, top_layout=None):
+        """ Draw pattern controls in the given layout"""
+        if top_layout is not None:
+            self.ui_top_layout = top_layout
+        if self.ui_top_layout is None:
+            raise ValueError('GarmentDrawUI::top level layout not found')
+
+        self._clean_layout(self.ui_top_layout)
+
+        cmds.setParent(self.ui_top_layout)
+
+        # Pattern name
+        cmds.textFieldGrp(label='Pattern:', text=self.name, editable=False, 
+                          cal=[1, 'left'], cw=[1, 50])
+
+        # load panels info
+        cmds.frameLayout(
+            label='Panel Placement',
+            collapsable=False, 
+            borderVisible=True,
+            mh=10, 
+            mw=10
+        )
+        for panel in self.pattern['panels']:
+            panel_layout = cmds.frameLayout(
+                label=panel,
+                collapsable=True, 
+                collapse=True,
+                borderVisible=True,
+                mh=10, 
+                mw=10
+            )
+            self._ui_3d_placement(self.pattern['panels'][panel]['translation'], [0, 0, 0])
+            cmds.setParent('..')
+        cmds.setParent('..')
+
+        # Parameters
+        cmds.frameLayout(
+            label='Parameters',
+            collapsable=False, borderVisible=True,
+            mh=10, mw=10
+        )
+        self._ui_params(self.parameters, self.spec['parameter_order'])
+        cmds.setParent('..')
+
+        # fin
+        cmds.setParent('..')
+        
+    def _clean_layout(self, layout):
+        """Removes all of the childer from layout"""
+        # TODO make static or move outside? 
+        children = cmds.layout(layout, query=True, childArray=True)
+        cmds.deleteUI(children)
+
+    def _ui_3d_placement(self, transation, rotation):
+        """Panel 3D position"""
+        values = [0, 0, 0, 0]
+        values[:len(transation)] = transation
+        cmds.floatFieldGrp(
+            label='Translation', 
+            numberOfFields=len(transation), 
+            value=values, 
+            cal=[1, 'left'], cw=[1, 50]
+        )
+
+        values = [0, 0, 0, 0]
+        values[:len(rotation)] = rotation
+        cmds.floatFieldGrp(
+            label='Rotation', 
+            numberOfFields=len(rotation), 
+            value=values, 
+            cal=[1, 'left'], cw=[1, 50]
+        )
+
+    def _ui_param_value(self, param_name, param_range, value, idx=None, tag=''):
+        """Create UI elements to display range and control the param value"""
+        # range 
+        cmds.rowLayout(numberOfColumns=3)
+        cmds.text(label='Range ' + tag + ':')
+        cmds.floatField(value=param_range[0], editable=False)
+        cmds.floatField(value=param_range[1], editable=False)
+        cmds.setParent('..')
+
+        # value
+        cmds.floatSliderGrp(
+            label='Value ' + tag + ':', 
+            field=True, value=value, 
+            minValue=param_range[0], maxValue=param_range[1], 
+            cal=[1, 'left'], cw=[1, 45], 
+            changeCommand=partial(self._param_value_callback, param_name, idx) 
+        )
+
+    def _ui_params(self, params, order):
+        """draw params UI"""
+        # control
+        cmds.button(
+            label='To template state', backgroundColor=[227 / 256, 255 / 256, 119 / 256],
+            command=lambda *args: self._to_template_callback(), 
+            ann='Snap all parameters to default values')
+
+        # Parameters themselves
+        for param_name in order:
+            cmds.frameLayout(
+                label=param_name, collapsable=True, collapse=True, mh=10, mw=10
+            )
+            # type 
+            cmds.textFieldGrp(label='Type:', text=params[param_name]['type'], editable=False, 
+                              cal=[1, 'left'], cw=[1, 30])
+
+            # parameters might have multiple values
+            values = params[param_name]['value']
+            param_ranges = params[param_name]['range']
+            if isinstance(values, list):
+                ui_tags = ['X', 'Y', 'Z', 'W']
+                for idx, (value, param_range) in enumerate(zip(values, param_ranges)):
+                    self._ui_param_value(param_name, param_range, value, idx, ui_tags[idx])
+            else:
+                self._ui_param_value(param_name, param_ranges, values)
+
+            # fin
+            cmds.setParent('..')
+
+    def _quick_dropdown(self, options, chosen='', label=''):
+        """Add a dropdown with given options"""
+        menu = cmds.optionMenu(label=label)
+        for option in options:
+            cmds.menuItem(label=option)
+        if chosen:
+            cmds.optionMenu(menu, e=True, value=chosen)
+
+        return menu
+
+    # -------- Callbacks -----------
+    def _to_template_callback(self):
+        """Returns current pattern to template state and 
+        updates UI accordingly"""
+        # update
+        print('Pattern returns to origins..')
+        self._restore_template()
+        # update UI in lazy manner
+        self.drawUI()
+        # update geometry in lazy manner
+        if self.loaded_to_maya:
+            self.load()
+
+    def _param_value_callback(self, param_name, value_idx, *args):
+        """Update pattern with new value"""
+        # restore template state -- params are interdependent
+        # change cannot be applied independently by but should follow specified param order
+        self._restore_template(params_to_default=False)
+
+        # get value
+        new_value = args[0]
+        # save value. No need to check ranges -- correct by UI
+        if isinstance(self.parameters[param_name]['value'], list):
+            self.parameters[param_name]['value'][value_idx] = new_value
+        else:
+            self.parameters[param_name]['value'] = new_value
+        
+        # reapply all parameters
+        self._update_pattern_by_param_values()
+        
+        # update geometry in lazy manner
+        if self.loaded_to_maya:
+            self.load()
 
 
 class Scene(object):

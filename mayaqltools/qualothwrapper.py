@@ -75,7 +75,7 @@ def qlCleanSimCache():
     """Clean simulation cache before re-starting simulation"""
     solver = findSolver()
     cmds.select(solver)
-    results = mel.eval('qlReinitializeSolver()')
+    mel.eval('qlReinitializeSolver()')
 
 
 # ------- Higher-level functions --------
@@ -120,8 +120,8 @@ def run_sim(garment, props):
     for frame in range(1, config['zero_gravity_steps']):
         cmds.currentTime(frame)  # step
         garment.cache_if_enabled(frame)
+
     # resume normally
-    print('Turn on Gravity')
     _set_gravity(solver, -980)
     for frame in range(config['zero_gravity_steps'], config['max_sim_steps']):
         cmds.currentTime(frame)  # step

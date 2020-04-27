@@ -6,9 +6,9 @@ from __future__ import print_function
 import os
 
 # My modules
-import simulation as mysim
+import mayaqltools as mymaya
 import customconfig
-reload(mysim)
+reload(mymaya)
 reload(customconfig)
 
 
@@ -26,16 +26,16 @@ if __name__ == "__main__":
     #     data_folder=dataset  # in case data properties are from other dataset/folder, update info
     # )  
 
-    # mysim.batch_sim(path, path, datapath, props, caching=False)
+    # mymaya.simulation.batch_sim(path, path, datapath, props, caching=False)
     # props.serialize(dataset_file)
 
     # ------ Example for single template generation ------
-    path_example = 'F:/GK-Pattern-Data-Gen/zero_grav_skirt_maya_coords_200420-14-15'
+    path_example = os.path.join(system_config['output'], 'zero_grav_skirt_maya_coords_200420-14-15')
     props = customconfig.Properties(path_example + '/dataset_properties.json', True)  
     props.set_basic(
         body='f_smpl_templatex300.obj',
         templates='skirt_maya_coords_AJN7LX7IVE_specification.json'
     )
     # TODO Give path to template directly
-    mysim.single_file_sim(path_example, path, props, caching=False)
+    mymaya.simulation.single_file_sim(path_example, path, props, caching=False)
     print(props)

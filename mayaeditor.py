@@ -130,8 +130,7 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
 
     def _ui_stitches(self, stitches):
         """draw stitches UI"""
-        cmds.gridLayout(numberOfColumns=6, enableKeyboardFocus=True, 
-                        cellWidth=50)
+        cmds.gridLayout(numberOfColumns=6, cellWidth=50)
         # header
         cmds.text(label='')
         cmds.text(label='Panel')
@@ -188,7 +187,7 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
                 cmds.setParent('..')
 
                 # value
-                slider = cmds.floatSliderGrp(
+                cmds.floatSliderGrp(
                     label='Value', field=True, value=value, 
                     minValue=param_range[0], maxValue=param_range[1], 
                     cal=[1, 'left'], cw=[1, 30], 
@@ -206,9 +205,7 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
             label='Influence list',
             collapsable=False
         )
-        cmds.gridLayout(numberOfColumns=3, enableKeyboardFocus=True, 
-                        cellWidth=100, 
-                        )
+        cmds.gridLayout(numberOfColumns=3, cellWidth=100)
         # header
         cmds.text(label='Panel')
         cmds.text(label='Edge')
@@ -278,10 +275,28 @@ class State(object):
         self.garment = None
         self.scene = None
         self.save_to = None
+        self.saving_prefix = None
         self.body_file = None
         self.config = customconfig.Properties()
         mysim.init_sim_props(self.config)  # use default setup for simulation -- for now
 
+# ------- Errors --------
+class CustomError(Exception):
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = None
+
+    def __str__(self):
+        if self.message:
+            return(self.__class__.__name__ + ', {0} '.format(self.message))
+        else:
+            return(self.__class__.__name__)
+
+class SceneSavingError(CustomError):
+    def __init__(self, *args):
+        super(SceneSavingError, self).__init__(*args)
 
 # ----- Callbacks -----
 def sample_callback(text):
@@ -423,12 +438,28 @@ def saving_folder_callback(view_field, state):
         caption='Choose body obj file'
     )
     if not directory:  # do nothing
-        return False
+        return 
 
     directory = directory[0]
     cmds.textField(view_field, edit=True, text=directory)
 
     state.save_to = directory
+
+    # request saving prefix
+    tag_result = cmds.promptDialog(
+        t='Enter a saving prefix', 
+        m='Enter a saving prefix:', 
+        button=['OK', 'Cancel'],
+		defaultButton='OK',
+        cancelButton='Cancel',
+		dismissString='Cancel'
+    )
+    if tag_result == 'OK':
+        tag = cmds.promptDialog(query=True, text=True)
+        state.saving_prefix = tag
+    else:
+        state.saving_prefix = None
+
     return True
 
 
@@ -440,17 +471,32 @@ def _new_dir(root_dir, tag='snap'):
     return path
 
 
-def quick_save_callback(view_field, state):
-    """Quick save with pattern spec and sim config"""
+def _create_saving_dir(view_field, state):
+    """Try if saving is possible and create directory if yes"""
     if state.garment is None or state.scene is None:
         cmds.confirmDialog(title='Error', message='Load pattern specification & body info first')
-        return
+        raise SceneSavingError('Scene is not ready')
 
     if state.save_to is None:
         if not saving_folder_callback(view_field, state):
-            return ""
+            raise SceneSavingError('Saving folder not supplied')
     
-    new_dir = _new_dir(state.save_to, state.garment.name)
+    if state.saving_prefix is not None:
+        tag = state.saving_prefix
+    else: 
+        tag = state.garment.name
+
+    new_dir = _new_dir(state.save_to, tag)
+
+    return new_dir
+
+
+def quick_save_callback(view_field, state):
+    """Quick save with pattern spec and sim config"""
+    try: 
+        new_dir = _create_saving_dir(view_field, state)
+    except SceneSavingError: 
+        return 
 
     # fetch props from maya -- updated global config
     state.scene.fetch_colors()
@@ -467,13 +513,21 @@ def full_save_callback(view_field, state):
     """Full save with pattern spec, sim config, garment mesh & rendering"""
 
     # do the same as for quick save
-    new_dir = quick_save_callback(view_field, state)
-    if not new_dir:
-        return
-    
+    try: 
+        new_dir = _create_saving_dir(view_field, state)
+    except SceneSavingError: 
+        return 
+
+    # fetch props from maya -- updated global config
+    state.scene.fetch_colors()
+
     # save additional objects
     state.garment.save_mesh(new_dir)
     state.scene.render(new_dir)
+
+    # serialize specs
+    state.config.serialize(os.path.join(new_dir, 'sim_props.json'))
+    state.garment.serialize(new_dir, to_subfolder=False)
 
     print('Pattern 3D mesh & render saved to ' + new_dir)
 
@@ -481,7 +535,6 @@ def full_save_callback(view_field, state):
 # --------- UI Drawing ----------
 def equal_rowlayout(num_columns, win_width, offset):
     """Create new layout with given number of columns + extra columns for spacing"""
-    total_cols = num_columns * 2 - 1
     col_width = []
     for col in range(1, num_columns + 1):
         col_width.append((col, win_width / num_columns - offset))
@@ -517,7 +570,7 @@ def init_UI(state):
         title="Template editing", width=window_width, 
         closeCommand=win_closed_callback
     )
-    top_layout = cmds.columnLayout(columnAttach=('both', main_offset), rowSpacing=10, adj=1)
+    cmds.columnLayout(columnAttach=('both', main_offset), rowSpacing=10, adj=1)
 
     # ------ Draw GUI -------
     # Pattern load
@@ -532,7 +585,7 @@ def init_UI(state):
     # Pattern description 
     state.pattern_layout = cmds.columnLayout(
         columnAttach=('both', 0), rowSpacing=main_offset, adj=1)
-    filename_field = cmds.text(label='<pattern_here>', al='left')
+    cmds.text(label='<pattern_here>', al='left')
     cmds.setParent('..')
     # separate
     cmds.separator()

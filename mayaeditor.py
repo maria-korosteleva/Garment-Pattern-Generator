@@ -80,16 +80,6 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
             cmds.setParent('..')
         cmds.setParent('..')
 
-        # Stitch info
-        cmds.frameLayout(
-            label='Stitches',
-            collapsable=True, collapse=True,
-            borderVisible=True,
-            mh=10, mw=10
-        )
-        self._ui_stitches(self.pattern['stitches'])
-        cmds.setParent('..')
-
         # Parameters
         cmds.frameLayout(
             label='Parameters',
@@ -127,33 +117,6 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
             value=values, 
             cal=[1, 'left'], cw=[1, 50]
         )
-
-    def _ui_stitches(self, stitches):
-        """draw stitches UI"""
-        cmds.gridLayout(numberOfColumns=6, cellWidth=50)
-        # header
-        cmds.text(label='')
-        cmds.text(label='Panel')
-        cmds.text(label='Edge')
-        cmds.text(label='')
-        cmds.text(label='Panel')
-        cmds.text(label='Edge')
-
-        for idx, stitch in enumerate(stitches): 
-            cmds.text(label='Stitch ' + str(idx))
-            cmds.textField(text=stitch['from']['panel'], editable=False)
-            cmds.intField(value=stitch['from']['edge'], editable=False)
-            # ---
-            cmds.text(label='To')
-            cmds.textField(text=stitch['to']['panel'], editable=False)
-            cmds.intField(value=stitch['to']['edge'], editable=False)
-            # ----
-            # TODO Add support for T-stitches
-            # TODO Curve names instead of stitches? 
-        
-        # TODO add new stitch
-
-        cmds.setParent('..')
 
     def _ui_params(self, params, order):
         """draw params UI"""
@@ -194,35 +157,8 @@ class MayaGarmentWithUI(mysim.mayasetup.MayaGarment):
                     changeCommand=partial(self._param_value_callback, param_name, idx) 
                 )
 
-            # influence
-            self._ui_param_influence(params[param_name]['influence'], params[param_name]['type'])
             # fin
             cmds.setParent('..')
-
-    def _ui_param_influence(self, influence_list, type):
-        """Draw UI for parameter influence"""
-        cmds.frameLayout(
-            label='Influence list',
-            collapsable=False
-        )
-        cmds.gridLayout(numberOfColumns=3, cellWidth=100)
-        # header
-        cmds.text(label='Panel')
-        cmds.text(label='Edge')
-        cmds.text(label='Direction')
-
-        for instance in influence_list:
-            for edge in instance['edge_list']:
-                cmds.textField(text=instance['panel'], editable=False)
-                if type == 'length':
-                    cmds.intField(value=edge['id'], editable=False)
-                    self._quick_dropdown(self.edge_dirs_list, chosen=edge['direction'])
-                else:
-                    cmds.intField(value=edge, editable=False)
-                    cmds.text(label='')
-
-        cmds.setParent('..')
-        cmds.setParent('..')
 
     def _quick_dropdown(self, options, chosen='', label=''):
         """Add a dropdown with given options"""

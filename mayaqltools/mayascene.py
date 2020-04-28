@@ -156,8 +156,6 @@ class MayaGarment(core.BasicPattern):
 
     def setMaterialSimProps(self, props={}):
         """Pass material properties for cloth to Qualoth"""
-        print('Properties reset')
-
         if props:
             self.sim_material = props
         qw.setMaterialProps(
@@ -403,6 +401,11 @@ class MayaGarment(core.BasicPattern):
             stitch_id = qw.qlCreateSeam(from_curve, to_curve)
             stitch_id = cmds.parent(stitch_id, self.MayaObjects['pattern'])  # organization
             self.MayaObjects['stitches'].append(stitch_id[0])
+
+        # after stitching, only one cloth\cloth shape object per pattern is left -- move up the hierarechy
+        children = cmds.listRelatives(self.MayaObjects['pattern'], ad=True)
+        cloths = [obj for obj in children if 'qlCloth' in obj]
+        cmds.parent(cloths, self.MayaObjects['pattern'])
 
     def _maya_curve_name(self, address):
         """ Shortcut to retrieve the name of curve corresponding to the edge"""

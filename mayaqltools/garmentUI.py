@@ -87,6 +87,7 @@ def start_GUI():
 # ----- State -------
 class State(object):
     def __init__(self):
+        self.pattern_layout = None  # to de set on UI init
         self.garment = None
         self.scene = None
         self.save_to = None
@@ -94,7 +95,24 @@ class State(object):
         self.body_file = None
         self.config = customconfig.Properties()
         mymaya.simulation.init_sim_props(self.config)  # use default setup for simulation -- for now
-    
+
+    def reload_garment(self):
+        """Reloads garment Geometry & UI with current scene. 
+            JSON is NOT loaded from disk as it's on-demand operation"""
+        if self.garment is None:
+            return 
+        
+        if self.scene is not None:
+            self.garment.load(
+                shader=self.scene.cloth_shader, 
+                obstacles=[self.scene.body, self.scene.floor]
+            )
+        else:
+            self.garment.load()
+
+        # calling UI after loading for correct connection of attributes
+        self.garment.drawUI(self.pattern_layout)
+
     def fetch(self):
         """Update info in deendent object from Maya"""
         self.scene.fetch_colors()
@@ -185,14 +203,7 @@ def template_field_callback(view_field, state):
 
     # create new grament
     state.garment = mymaya.MayaGarmentWithUI(template_file, True)  # previous object will autoclean
-    state.garment.drawUI(state.pattern_layout)
-    if state.scene is not None:
-        state.garment.load(
-            shader=state.scene.cloth_shader, 
-            obstacles=[state.scene.body, state.scene.floor]
-        )
-    else:
-        state.garment.load()
+    state.reload_garment()
 
 
 def load_body_callback(view_field, state):
@@ -213,11 +224,7 @@ def load_body_callback(view_field, state):
     state.config['body'] = os.path.basename(file)  # update info
     state.body_file = file
     state.scene = mymaya.Scene(file, state.config['render'], clean_on_die=True)  # previous scene will autodelete
-    if state.garment is not None:
-        state.garment.load(
-            shader=state.scene.cloth_shader, 
-            obstacles=[state.scene.body, state.scene.floor]
-        )
+    state.reload_garment()
             
 
 def load_props_callback(view_field, state):
@@ -247,12 +254,7 @@ def load_props_callback(view_field, state):
     if state.scene is not None:
         state.scene = mymaya.Scene(
             state.body_file, state.config['render'], clean_on_die=True)  
-        
-        if state.garment is not None:
-            state.garment.load(
-                shader=state.scene.cloth_shader, 
-                obstacles=[state.scene.body, state.scene.floor]
-            )
+        state.reload_garment()
     
     # Load material props
     if state.garment is not None:
@@ -265,15 +267,7 @@ def reload_garment_callback(state):
     """
     if state.garment is not None:
         state.garment.reloadJSON()
-        state.garment.drawUI()  # update UI too 
-
-        if state.scene is not None:
-            state.garment.load(
-                shader=state.scene.cloth_shader, 
-                obstacles=[state.scene.body, state.scene.floor]
-            )
-        else:
-            state.garment.load()
+        state.reload_garment()
     
 
 def sim_callback(state):
@@ -285,10 +279,8 @@ def sim_callback(state):
     mymaya.qualothwrapper.qlCleanSimCache()
 
     # Reload geometry in case something changed
-    state.garment.load(
-        shader=state.scene.cloth_shader, 
-        obstacles=[state.scene.body, state.scene.floor]
-    )
+    state.reload_garment()
+
     mymaya.qualothwrapper.start_maya_sim(state.garment, state.config['sim'])
 
 

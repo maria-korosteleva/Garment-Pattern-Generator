@@ -444,7 +444,9 @@ class MayaGarmentWithUI(MayaGarment):
 
     # ------- UI Drawing routines --------
     def drawUI(self, top_layout=None):
-        """ Draw pattern controls in the given layout"""
+        """ Draw pattern controls in the given layout
+            For correct connection with Maya attributes, it's recommended to call for drawing AFTER garment.load()
+        """
         if top_layout is not None:
             self.ui_top_layout = top_layout
         if self.ui_top_layout is None:
@@ -461,10 +463,8 @@ class MayaGarmentWithUI(MayaGarment):
         # load panels info
         cmds.frameLayout(
             label='Panel Placement',
-            collapsable=False, 
-            borderVisible=True,
-            mh=10, 
-            mw=10
+            collapsable=False, borderVisible=True,
+            mh=10, mw=10
         )
         for panel in self.pattern['panels']:
             panel_layout = cmds.frameLayout(
@@ -475,7 +475,7 @@ class MayaGarmentWithUI(MayaGarment):
                 mh=10, 
                 mw=10
             )
-            self._ui_3d_placement(self.pattern['panels'][panel]['translation'], [0, 0, 0])
+            self._ui_3d_placement(panel)
             cmds.setParent('..')
         cmds.setParent('..')
 
@@ -497,24 +497,21 @@ class MayaGarmentWithUI(MayaGarment):
         children = cmds.layout(layout, query=True, childArray=True)
         cmds.deleteUI(children)
 
-    def _ui_3d_placement(self, transation, rotation):
-        """Panel 3D position"""
-        values = [0, 0, 0, 0]
-        values[:len(transation)] = transation
-        cmds.floatFieldGrp(
-            label='Translation', 
-            numberOfFields=len(transation), 
-            value=values, 
-            cal=[1, 'left'], cw=[1, 50]
+    def _ui_3d_placement(self, panel_name):
+        """Panel 3D placement"""
+        if not self.loaded_to_maya:
+            cmds.text(label='<To be displayed after geometry load>')
+
+        # Position
+        cmds.attrControlGrp(
+            attribute=self.MayaObjects['panels'][panel_name]['group'] + '.translate', 
+            changeCommand=partial(self._panel_placement_callback, panel_name, 'translation', 'translate')
         )
 
-        values = [0, 0, 0, 0]
-        values[:len(rotation)] = rotation
-        cmds.floatFieldGrp(
-            label='Rotation', 
-            numberOfFields=len(rotation), 
-            value=values, 
-            cal=[1, 'left'], cw=[1, 50]
+        # Rotation
+        cmds.attrControlGrp(
+            attribute=self.MayaObjects['panels'][panel_name]['group'] + '.rotate', 
+            changeCommand=partial(self._panel_placement_callback, panel_name, 'euler_rotation', 'rotate')
         )
 
     def _ui_param_value(self, param_name, param_range, value, idx=None, tag=''):
@@ -608,6 +605,16 @@ class MayaGarmentWithUI(MayaGarment):
         # update geometry in lazy manner
         if self.loaded_to_maya:
             self.load()
+
+    def _panel_placement_callback(self, panel_name, attribute, maya_attr):
+        """Update pattern spec with tranlation/rotation info from Maya"""
+        # get values
+        values = cmds.getAttr(self.MayaObjects['panels'][panel_name]['group'] + '.' + maya_attr)
+        values = values[0]  # only one attribute requested
+
+        # set values
+        self.pattern['panels'][panel_name][attribute] = list(values)
+        print(panel_name, attribute, self.pattern['panels'][panel_name][attribute])
 
 
 class Scene(object):

@@ -31,10 +31,11 @@ if __name__ == "__main__":
 
     # ------ Example for single template generation ------
     path_example = os.path.join(system_config['output'], 'zero_grav_skirt_maya_coords_200420-14-15')
-    props = customconfig.Properties(path_example + '/dataset_properties.json', True)  
+    # props = customconfig.Properties(path_example + '/dataset_properties.json', True)  
+    props = customconfig.Properties('D:/GK-Pattern-Data-Gen/from_editor/materials_200427-16-19-46/sim_props.json', True)  
     props.set_basic(
         body='f_smpl_templatex300.obj',
-        templates='skirt_maya_coords_AJN7LX7IVE_specification.json'
+        templates='template_skirt_maya_coords.json'
     )
     # TODO Give path to template directly
     mymaya.simulation.single_file_sim(path_example, path, props, caching=False)

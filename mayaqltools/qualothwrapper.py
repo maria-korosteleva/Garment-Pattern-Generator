@@ -110,7 +110,7 @@ def run_sim(garment, props):
                 because solver is shared!!
     """
     config = props['config']
-    solver = _init_sim(config, garment)
+    solver = _init_sim(config)
     garment.setMaterialSimProps(config['material'])  # ensure running sim with suplied material props
     
     start_time = time.time()

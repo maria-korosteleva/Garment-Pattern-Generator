@@ -81,8 +81,8 @@ class BasicPattern(object):
             * Converts curvature coordinates to realitive ones (in edge frame) -- for easy length scaling
             * snaps each panel to start at (0, 0)
         """
-        for panel in self.pattern['panels']:
-            if self.properties['curvature_coords'] == 'absolute':
+        if self.properties['curvature_coords'] == 'absolute':
+            for panel in self.pattern['panels']:
                 # convert curvature 
                 vertices = self.pattern['panels'][panel]['vertices']
                 edges = self.pattern['panels'][panel]['edges']
@@ -93,25 +93,32 @@ class BasicPattern(object):
                             vertices[edge['endpoints'][1]], 
                             edge['curvature']
                         )
-            # normalize tranlsation after curvature is converted!
-            # UPD Do not normalize tranlsation on loading
-            # TODO finalize after proper 3D placement
-            # self._normalize_panel_translation(panel)
-        # now we have new property
-        self.properties['curvature_coords'] = 'relative'
+            # now we have new property
+            self.properties['curvature_coords'] = 'relative'
+        
+        # normalize translation info -- after curvature is converted!!
+        for panel in self.pattern['panels']:
+            offset = self._normalize_panel_translation(panel)
+            # udpate translation vector
+            original = self.pattern['panels'][panel]['translation'] 
+            self.pattern['panels'][panel]['translation'] = [
+                original[0] + offset[0], 
+                original[1] + offset[1], 
+                original[2], 
+            ]
 
     def _normalize_panel_translation(self, panel_name):
-        """
-        DEPRECATED TODO update or remove after finalizinf 3D positioning
-        Shifts all panel vertices s.t. panel bounding box starts at zero
-        for uniformity across panels & positive coordinates
+        """ Convert panel vertices to local coordinates: 
+            Shifts all panel vertices s.t. origin is at the center of the panel
         """
         panel = self.pattern['panels'][panel_name]
         vertices = np.asarray(panel['vertices'])
-        offset = np.min(vertices, axis=0)
+        offset = np.mean(vertices, axis=0)
         vertices = vertices - offset
 
         panel['vertices'] = vertices.tolist()
+
+        return offset
     
     def _control_to_abs_coord(self, start, end, control_scale):
         """

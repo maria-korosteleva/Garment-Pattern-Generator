@@ -35,7 +35,7 @@
         // * Edges are directed, 
         // * the list IS ordered. 
         // * Connected together as specified, edges form a directed closed loop that represents panel border.
-		// * Counterclockwise tracing of vertices with edges defines the front of a panel (outside of the body)
+		    // * Counterclockwise tracing of vertices with edges defines the front of a panel (outside of the body)
         // Edge id is its position in this list, starting from 0
         "edges": [
           // each edge is represented as a simple structure
@@ -45,7 +45,7 @@
             "endpoints" : [1, 0],
             // edge can be a Quadratic Bezier curve. 'curvature' gives coordinated of the curve control vertex
             // Coordinates are given in local frame following "relative" convention stated in "properties" section
-			// but could also be given as absolute coordinates
+			      // but could also be given as absolute coordinates
             "curvature": [
               0.5,
               0.2
@@ -69,9 +69,11 @@
             ]
           }
         ],
-		// 3D translation vector for 3D placement of the panel
-		// For now, only Z translation is supported 
-		"translation" : [0, 0, 56.280]
+        // 3D translation vector for 3D placement of the panel
+        "translation" : [0, 0, 56.280],
+        // 3D rotation vector for 3D placement of the panel
+        // Given in XYZ Euler angles (as in Maya!)
+        "rotation" : [0, 0, 0]
       },
       // Second panel of this template "skirt". Same principles
       "back": {
@@ -96,7 +98,8 @@
             "endpoints" : [3, 0]
           }
         ],
-        "translation" : [0, 0, -46.530]
+        "translation" : [0, 0, -46.530],
+        "rotation" : [0, 0, 0]
       }
     },
     // Sewing information of which edges should be stitched together to form a garment

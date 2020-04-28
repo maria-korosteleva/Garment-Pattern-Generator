@@ -76,19 +76,17 @@ class MayaGarment(core.BasicPattern):
     def load_panels(self, parent_group=None):
         """Load panels to Maya as curve collection & geometry objects.
             Groups them by panel and by pattern"""
-        # Load panels as curves
-        maya_panel_names = []
-        self.MayaObjects['panels'] = {}
-        for panel_name in self.pattern['panels']:
-            panel_maya = self._load_panel(panel_name)
-            maya_panel_names.append(panel_maya)
-        
-        group_name = cmds.group(maya_panel_names, n=self.name)
+        # top group
+        group_name = cmds.group(em=True, n=self.name)  # emrty at first
         if parent_group is not None:
             group_name = cmds.parent(group_name, parent_group)
-
         self.MayaObjects['pattern'] = group_name
-
+        
+        # Load panels as curves
+        self.MayaObjects['panels'] = {}
+        for panel_name in self.pattern['panels']:
+            panel_maya = self._load_panel(panel_name, group_name)
+    
     def setShader(self, shader=None):
         """
             Sets material properties for the cloth object created from current panel
@@ -325,7 +323,7 @@ class MayaGarment(core.BasicPattern):
         if hasattr(self, 'cache_path') and self.cache_path:
             self._save_to_path(self.cache_path, self.name + '_{:04d}'.format(frame))
 
-    def _load_panel(self, panel_name):
+    def _load_panel(self, panel_name, pattern_group=None):
         """
             Loads curves contituting given panel to Maya. 
             Goups them per panel
@@ -335,35 +333,36 @@ class MayaGarment(core.BasicPattern):
         self.MayaObjects['panels'][panel_name] = {}
         self.MayaObjects['panels'][panel_name]['edges'] = []
 
-        # now draw edges
+        # top panel group
+        panel_group = cmds.group(n=panel_name, em=True)
+        if pattern_group is not None:
+            panel_group = cmds.parent(panel_group, pattern_group)[0]
+        self.MayaObjects['panels'][panel_name]['group'] = panel_group
+
+        # draw edges
         curve_names = []
         for edge in panel['edges']:
-            curve_points = self._edge_as_3d_tuple_list(
-                edge, vertices, panel['translation']
-            )
+            curve_points = self._edge_as_3d_tuple_list(edge, vertices)
             curve = cmds.curve(p=curve_points, d=(len(curve_points) - 1))
             curve_names.append(curve)
             self.MayaObjects['panels'][panel_name]['edges'].append(curve)
-
-        # Group edges        
-        curve_group = cmds.group(curve_names, n='curves')
+        # Group  
+        curve_group = cmds.group(curve_names, n=panel_name + '_curves')
+        curve_group = cmds.parent(curve_group, panel_group)[0]
         self.MayaObjects['panels'][panel_name]['curve_group'] = curve_group
+        # 3D placemement
+        self._apply_panel_3d_placement(panel_name)
 
         # Create geometry
         panel_geom = qw.qlCreatePattern(curve_group)
-
         # take out the solver node -- created only once per scene, no need to store
         solvers = [obj for obj in panel_geom if 'Solver' in obj]
-        if solvers:
-            panel_geom = list(set(panel_geom) - set(solvers))
-
-        # group all objects belonging to a panel
-        panel_group = cmds.group(panel_geom + [curve_group], n=panel_name)
-        self.MayaObjects['panels'][panel_name]['group'] = panel_group
+        panel_geom = list(set(panel_geom) - set(solvers))
+        cmds.parent(panel_geom, panel_group)  # organize
 
         return panel_group
 
-    def _edge_as_3d_tuple_list(self, edge, vertices, translation_3d):
+    def _edge_as_3d_tuple_list(self, edge, vertices):
         """
             Represents given edge object as list of control points
             suitable for draing in Maya
@@ -380,10 +379,26 @@ class MayaGarment(core.BasicPattern):
         # to 3D
         points = np.c_[points, np.zeros(len(points))]
 
-        # 3D placement
-        points += translation_3d
-
         return list(map(tuple, points))
+
+    def _set_panel_3D_attr(self, panel_dict, panel_group, attribute, maya_attr):
+        """Set recuested attribute to value from the spec"""
+        if attribute in panel_dict:
+            values = panel_dict[attribute]
+        else:
+            values = [0, 0, 0]
+        cmds.setAttr(
+            panel_group + '.' + maya_attr, 
+            values[0], values[1], values[2],
+            type='double3')
+
+    def _apply_panel_3d_placement(self, panel_name):
+        """Apply transform from spec to given panel"""
+        panel = self.pattern['panels'][panel_name]
+        panel_group = self.MayaObjects['panels'][panel_name]['curve_group']
+
+        self._set_panel_3D_attr(panel, panel_group, 'translation', 'translate')
+        self._set_panel_3D_attr(panel, panel_group, 'rotation', 'rotate')
 
     def stitch_panels(self):
         """
@@ -442,8 +457,11 @@ class MayaGarmentWithUI(MayaGarment):
     
     def __del__(self):
         super(MayaGarmentWithUI, self).__del__()
-        if self.ui_top_layout is not None:
-            self._clean_layout(self.ui_top_layout)
+        # looks like UI now contains links to garment instance (callbacks, most probably)
+        # If destructor is called, the UI is already clean
+         
+        # if self.ui_top_layout is not None:
+        #     self._clean_layout(self.ui_top_layout)
 
     # ------- UI Drawing routines --------
     def drawUI(self, top_layout=None):
@@ -475,8 +493,8 @@ class MayaGarmentWithUI(MayaGarment):
             for panel in self.pattern['panels']:
                 panel_layout = cmds.frameLayout(
                     label=panel, collapsable=True, collapse=True, borderVisible=True, mh=10, mw=10,
-                    expandCommand=partial(cmds.select, self.MayaObjects['panels'][panel]['group']),
-                    collapseCommand=partial(cmds.select, self.MayaObjects['panels'][panel]['group'])
+                    expandCommand=partial(cmds.select, self.MayaObjects['panels'][panel]['curve_group']),
+                    collapseCommand=partial(cmds.select, self.MayaObjects['panels'][panel]['curve_group'])
                 )
                 self._ui_3d_placement(panel)
                 cmds.setParent('..')
@@ -498,7 +516,8 @@ class MayaGarmentWithUI(MayaGarment):
         """Removes all of the childer from layout"""
         # TODO make static or move outside? 
         children = cmds.layout(layout, query=True, childArray=True)
-        cmds.deleteUI(children)
+        if children:
+            cmds.deleteUI(children)
 
     def _ui_3d_placement(self, panel_name):
         """Panel 3D placement"""
@@ -507,14 +526,14 @@ class MayaGarmentWithUI(MayaGarment):
 
         # Position
         cmds.attrControlGrp(
-            attribute=self.MayaObjects['panels'][panel_name]['group'] + '.translate', 
+            attribute=self.MayaObjects['panels'][panel_name]['curve_group'] + '.translate', 
             changeCommand=partial(self._panel_placement_callback, panel_name, 'translation', 'translate')
         )
 
         # Rotation
         cmds.attrControlGrp(
-            attribute=self.MayaObjects['panels'][panel_name]['group'] + '.rotate', 
-            changeCommand=partial(self._panel_placement_callback, panel_name, 'euler_rotation', 'rotate')
+            attribute=self.MayaObjects['panels'][panel_name]['curve_group'] + '.rotate', 
+            changeCommand=partial(self._panel_placement_callback, panel_name, 'rotation', 'rotate')
         )
 
     def _ui_param_value(self, param_name, param_range, value, idx=None, tag=''):
@@ -612,12 +631,11 @@ class MayaGarmentWithUI(MayaGarment):
     def _panel_placement_callback(self, panel_name, attribute, maya_attr):
         """Update pattern spec with tranlation/rotation info from Maya"""
         # get values
-        values = cmds.getAttr(self.MayaObjects['panels'][panel_name]['group'] + '.' + maya_attr)
+        values = cmds.getAttr(self.MayaObjects['panels'][panel_name]['curve_group'] + '.' + maya_attr)
         values = values[0]  # only one attribute requested
 
         # set values
         self.pattern['panels'][panel_name][attribute] = list(values)
-        print(panel_name, attribute, self.pattern['panels'][panel_name][attribute])
 
 
 class Scene(object):

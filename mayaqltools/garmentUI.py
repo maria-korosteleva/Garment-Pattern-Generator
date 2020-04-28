@@ -101,7 +101,7 @@ class State(object):
             JSON is NOT loaded from disk as it's on-demand operation"""
         if self.garment is None:
             return 
-        
+
         if self.scene is not None:
             self.garment.load(
                 shader=self.scene.cloth_shader, 

@@ -466,17 +466,17 @@ class MayaGarmentWithUI(MayaGarment):
             collapsable=False, borderVisible=True,
             mh=10, mw=10
         )
-        for panel in self.pattern['panels']:
-            panel_layout = cmds.frameLayout(
-                label=panel,
-                collapsable=True, 
-                collapse=True,
-                borderVisible=True,
-                mh=10, 
-                mw=10
-            )
-            self._ui_3d_placement(panel)
-            cmds.setParent('..')
+        if not self.loaded_to_maya:
+            cmds.text(label='<To be displayed after geometry load>')
+        else:
+            for panel in self.pattern['panels']:
+                panel_layout = cmds.frameLayout(
+                    label=panel, collapsable=True, collapse=True, borderVisible=True, mh=10, mw=10,
+                    expandCommand=partial(cmds.select, self.MayaObjects['panels'][panel]['group']),
+                    collapseCommand=partial(cmds.select, self.MayaObjects['panels'][panel]['group'])
+                )
+                self._ui_3d_placement(panel)
+                cmds.setParent('..')
         cmds.setParent('..')
 
         # Parameters

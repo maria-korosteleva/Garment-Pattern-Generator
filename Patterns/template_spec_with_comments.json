@@ -20,9 +20,11 @@
         // Full list of vertices (corners) of a panel.
         "vertices": [
           // 2D vertex coordinates (as panel is 2D structure). They are
-          // * [TMP] Global -- define the position of a panel in XY slice of 3D space -- this info is needed for positioning when simulating
           // * given in xOy with Y facing up. 
           // * Use the same units as used by the body it'll be simulated on -- realistic measurements and meters as units
+          // * Coordinates are allowed to encode xOy panel translation: 
+              // On load, positions are normalized to have origin (0, 0) at the panel center, 
+              // the discovered vertices offset is added to 3D translation vertor (below)
           // Vertex id is its position in this list, starting from 0
           // Order, in which vertices are specified, does NOT matter
           [-54.470, -15.004], 

@@ -283,4 +283,3 @@ class BasicPattern(object):
                 else:
                     self.parameters[parameter]['value'] = 1
 
-

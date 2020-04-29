@@ -30,12 +30,12 @@ if __name__ == "__main__":
     # props.serialize(dataset_file)
 
     # ------ Example for single template generation ------
-    path_example = os.path.join(system_config['output'], 'zero_grav_skirt_maya_coords_200420-14-15')
+    path_example = os.path.join(system_config['output'], 'from_editor', 'place_200428-16-26-01')
     # props = customconfig.Properties(path_example + '/dataset_properties.json', True)  
-    props = customconfig.Properties('D:/GK-Pattern-Data-Gen/from_editor/materials_200427-16-19-46/sim_props.json', True)  
+    props = customconfig.Properties(os.path.join(path_example, 'sim_props.json'), True)  
     props.set_basic(
         body='f_smpl_templatex300.obj',
-        templates='template_skirt_maya_coords.json'
+        templates='skirt_maya_coords_specification.json'
     )
     # TODO Give path to template directly
     mymaya.simulation.single_file_sim(path_example, path, props, caching=False)

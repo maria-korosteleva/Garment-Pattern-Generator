@@ -8,6 +8,7 @@
 # Basic
 from __future__ import print_function
 from __future__ import division
+from functools import partial
 from datetime import datetime
 import os
 import numpy as np
@@ -57,9 +58,11 @@ def start_GUI():
     # Operations
     equal_rowlayout(2, win_width=window_width, offset=main_offset)
     cmds.button(label='Reload from JSON', backgroundColor=[255 / 256, 169 / 256, 119 / 256], 
-                command=lambda *args: reload_garment_callback(state))
-    cmds.button(label='Start Sim', backgroundColor=[227 / 256, 255 / 256, 119 / 256],
-                command=lambda *args: sim_callback(state))
+                command=partial(reload_garment_callback, state))
+    sim_button = cmds.button(label='Start Sim', backgroundColor=[227 / 256, 255 / 256, 119 / 256])
+    cmds.button(sim_button, edit=True, 
+                command=partial(start_sim_callback, sim_button, state))
+                             
     cmds.setParent('..')
     # separate
     cmds.separator()
@@ -70,10 +73,10 @@ def start_GUI():
     # saving requests
     equal_rowlayout(2, win_width=window_width, offset=main_offset)
     cmds.button(label='Save snapshot', backgroundColor=[227 / 256, 255 / 256, 119 / 256],
-                command=lambda *args: quick_save_callback(saving_to_field, state), 
+                command=partial(quick_save_callback, saving_to_field, state), 
                 ann='Quick save with pattern spec and sim config')
     cmds.button(label='Save with 3D', backgroundColor=[255 / 256, 140 / 256, 73 / 256], 
-                command=lambda *args: full_save_callback(saving_to_field, state), 
+                command=partial(full_save_callback, saving_to_field, state), 
                 ann='Full save with pattern spec, sim config, garment mesh & rendering')
     cmds.setParent('..')
 
@@ -176,17 +179,17 @@ def text_button_group(callback, state, label='', button_label='Click'):
     cmds.button(
         label=button_label, 
         bgc=[0.99, 0.66, 0.46],  # backgroundColor=[255 / 256, 169 / 256, 119 / 256], 
-        command=lambda *args: callback(text_field, state))
+        command=partial(callback, text_field, state))
     cmds.setParent('..')
     return text_field
 
 
 # ----- Callbacks -----
-def sample_callback(text):
+def sample_callback(text, *args):
     print('Called ' + text)
     
 
-def template_field_callback(view_field, state):
+def template_field_callback(view_field, state, *args):
     """Get the file with pattern"""
     multipleFilters = "JSON (*.json);;All Files (*.*)"
     template_file = cmds.fileDialog2(
@@ -206,7 +209,7 @@ def template_field_callback(view_field, state):
     state.reload_garment()
 
 
-def load_body_callback(view_field, state):
+def load_body_callback(view_field, state, *args):
     """Get body file & (re)init scene"""
     multipleFilters = "OBJ (*.obj);;All Files (*.*)"
     file = cmds.fileDialog2(
@@ -227,7 +230,7 @@ def load_body_callback(view_field, state):
     state.reload_garment()
             
 
-def load_props_callback(view_field, state):
+def load_props_callback(view_field, state, *args):
     """Load sim & renderign properties from file rather then use defaults"""
     multipleFilters = "JSON (*.json);;All Files (*.*)"
     file = cmds.fileDialog2(
@@ -261,7 +264,7 @@ def load_props_callback(view_field, state):
         state.garment.setMaterialSimProps(state.config['sim']['config']['material'])
 
 
-def reload_garment_callback(state):
+def reload_garment_callback(state, *args):
     """
         (re)loads current garment object to Maya if it exists
     """
@@ -270,7 +273,7 @@ def reload_garment_callback(state):
         state.reload_garment()
     
 
-def sim_callback(state):
+def start_sim_callback(button, state, *args):
     """ Start simulation """
     if state.garment is None or state.scene is None:
         cmds.confirmDialog(title='Error', message='Load pattern specification & body info first')
@@ -283,15 +286,31 @@ def sim_callback(state):
 
     mymaya.qualothwrapper.start_maya_sim(state.garment, state.config['sim'])
 
+    # Update button 
+    cmds.button(button, edit=True, 
+                label='Stop Sim', backgroundColor=[245 / 256, 96 / 256, 66 / 256],
+                command=partial(stop_sim_callback, button, state))
 
-def win_closed_callback():
+
+def stop_sim_callback(button, state, *args):
+    """Stop simulation execution"""
+    # toggle playback
+    cmds.play(state=False)
+    print('Simulation::Stoped')
+    # uppdate button state
+    cmds.button(button, edit=True, 
+                label='Start Sim', backgroundColor=[227 / 256, 255 / 256, 119 / 256],
+                command=partial(start_sim_callback, button, state))
+
+
+def win_closed_callback(*args):
     """Clean-up"""
     # Remove solver objects from the scene
     cmds.delete(cmds.ls('qlSolver*'))
     # Other created objects will be automatically deleted through destructors
 
 
-def saving_folder_callback(view_field, state):
+def saving_folder_callback(view_field, state, *args):
     """Choose folder to save files to"""
     directory = cmds.fileDialog2(
         dialogStyle=2, 
@@ -352,7 +371,7 @@ def _create_saving_dir(view_field, state):
     return new_dir
 
 
-def quick_save_callback(view_field, state):
+def quick_save_callback(view_field, state, *args):
     """Quick save with pattern spec and sim config"""
     try: 
         new_dir = _create_saving_dir(view_field, state)
@@ -365,7 +384,7 @@ def quick_save_callback(view_field, state):
     print('Pattern spec and sim config saved to ' + new_dir)
 
 
-def full_save_callback(view_field, state):
+def full_save_callback(view_field, state, *args):
     """Full save with pattern spec, sim config, garment mesh & rendering"""
 
     # do the same as for quick save

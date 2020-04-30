@@ -139,12 +139,15 @@ class MayaGarment(core.BasicPattern):
             if delete flag is True
         """
         if self.loaded_to_maya:
-            cmds.hide(self.MayaObjects['pattern'])
             if delete:
                 print('MayaGarment::Deleting {}'.format(self.MayaObjects['pattern']))
                 cmds.delete(self.MayaObjects['pattern'])
                 self.loaded_to_maya = False
                 self.MayaObjects = {}  # clean 
+            else:
+                cmds.hide(self.MayaObjects['pattern'])
+                # Remove from simulation
+                cmds.setAttr(self.get_qlcloth_props_obj() + '.active', 0)
 
         # do nothing if not loaded -- already clean =)
 

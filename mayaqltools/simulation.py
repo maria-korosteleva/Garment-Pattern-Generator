@@ -5,6 +5,9 @@ from __future__ import print_function
 import time
 import os
 
+# Maya
+from maya import cmds
+
 # My modules
 import mayaqltools as mymaya
 from mayaqltools import qualothwrapper as qw
@@ -82,7 +85,7 @@ def batch_sim(template_path, body_path, data_path, dataset_props,
         template_simulation(pattern_spec, 
                             scene, 
                             dataset_props['sim'], 
-                            delete_on_clean=True,  # delete geometry after sim s.t. it doesn't resim with each new example
+                            delete_on_clean=False,  # delete geometry after sim s.t. it doesn't resim with each new example
                             caching=caching)  
 
     # Fin
@@ -92,8 +95,12 @@ def batch_sim(template_path, body_path, data_path, dataset_props,
         del dataset_props['sim']['stats']['processed']
     except KeyError:
         pass
-
+    # Logs
     dataset_props.serialize(data_props_file)
+    # save Maya scene
+    # NOTE when using Maya for students, this requires action from user
+    cmds.file(rename=os.path.join(data_path, 'scene'))
+    cmds.file(save=True, type='mayaBinary', force=True, defaultExtensions=True)
 
 
 # ------- Utils -------

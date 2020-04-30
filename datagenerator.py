@@ -24,7 +24,7 @@ def _create_data_folder(path, props):
         data_folder = props['name'] + '_' + Path(props['templates']).stem
 
     # make unique
-    data_folder += '_' + datetime.now().strftime('%y%m%d-%H-%M')
+    data_folder += '_' + datetime.now().strftime('%y%m%d-%H-%M-%S')
     props['data_folder'] = data_folder
     path_with_dataset = path / data_folder
     os.makedirs(path_with_dataset)
@@ -88,8 +88,8 @@ if __name__ == "__main__":
         props = Properties()
         props.set_basic(
             templates='basic_skirt/skirt_maya_coords.json',
-            name='test',
-            size=1,
+            name='deactive',
+            size=2,
             to_subfolders=False)
         props.set_section_config('generator')
     else:

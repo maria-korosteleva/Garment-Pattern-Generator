@@ -11,17 +11,7 @@ import os
 import numpy as np
 
 
-# my -- the construction is needed to run this module with __main__
-# See https://stackoverflow.com/questions/8299270/ultimate-answer-to-relative-python-imports
-# if __name__ == '__main__':
-#     import os
-#     import sys
-#     # get an absolute path to the directory that contains mypackage
-#     curr_dir = os.path.dirname(os.path.join(os.getcwd(), __file__))
-#     sys.path.append(os.path.normpath(os.path.join(curr_dir, '..', '..')))
-    
-# else:
-#     from . import core
+# my
 import customconfig
 from pattern import core
 
@@ -137,21 +127,26 @@ class VisPattern(core.BasicPattern):
 
         # name the panel
         panel_center = np.mean(vertices, axis=0)
-        drawing.add(drawing.text(panel_name, insert=panel_center, fill='blue'))
+        drawing.add(drawing.text(panel_name, insert=panel_center + np.array([-25, 3]), 
+                    fill='rgb(9,33,173)', font_size='25'))
         # name vertices 
         for idx in range(vertices.shape[0]):
+            shift = vertices[idx] - panel_center
+            # last element moves pivot to digit center
+            shift = 5 * shift / np.linalg.norm(shift) + np.array([-5, 5])
             drawing.add(
-                drawing.text(str(idx), insert=vertices[idx] + np.array([5, -5]), fill='rgb(245,96,66)'))
+                drawing.text(str(idx), insert=vertices[idx] + shift, 
+                             fill='rgb(245,96,66)', font_size='25'))
         # name edges
         for idx, edge in enumerate(panel['edges']):
-            start = vertices[edge['endpoints'][0]]
-            end = vertices[edge['endpoints'][1]]
+            middle = np.mean(
+                vertices[[edge['endpoints'][0], edge['endpoints'][1]]], axis=0)
+            shift = middle - panel_center
+            shift = 5 * shift / np.linalg.norm(shift) + np.array([-5, 5])
             # name
             drawing.add(
-                drawing.text(
-                    idx, insert=np.array([7, -3]) + (start + end) / 2, 
-                    fill='rgb(50,179,101)'))
-                    # style='font: bold 30px sans-serif'))
+                drawing.text(idx, insert=middle + shift, 
+                             fill='rgb(50,179,101)', font_size='20'))
 
         return np.max(vertices[:, 0]), np.max(vertices[:, 1])
 
@@ -252,7 +247,7 @@ if __name__ == "__main__":
     newpattern = RandomPattern(os.path.join(system_config['templates_path'], 'basic_skirt', 'skirt_maya_coords.json'))
 
     # log to file
-    log_folder = 'view_ids_' + datetime.now().strftime('%y%m%d-%H-%M')
+    log_folder = 'view_ids_' + datetime.now().strftime('%y%m%d-%H-%M-%S')
     log_folder = os.path.join(base_path, log_folder)
     os.makedirs(log_folder)
 

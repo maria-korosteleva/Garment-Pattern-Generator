@@ -33,13 +33,14 @@ class VisPattern(core.BasicPattern):
 
     # ------------ Interface -------------
 
-    def __init__(self, pattern_file):
+    def __init__(self, pattern_file, view_ids=True):
         super().__init__(pattern_file)
 
         # tnx to this all patterns produced from the same template will have the same 
         # visualization scale
         # and that's why I need a class object fot 
         self.scaling_for_drawing = self._verts_to_px_scaling_factor()
+        self.view_ids = view_ids  # whatever to render vertices & endes indices
 
     def serialize(self, path, to_subfolder=True):
 
@@ -129,29 +130,33 @@ class VisPattern(core.BasicPattern):
         panel_center = np.mean(vertices, axis=0)
         drawing.add(drawing.text(panel_name, insert=panel_center + np.array([-25, 3]), 
                     fill='rgb(9,33,173)', font_size='25'))
-        # name vertices 
-        for idx in range(vertices.shape[0]):
-            shift = vertices[idx] - panel_center
-            # last element moves pivot to digit center
-            shift = 5 * shift / np.linalg.norm(shift) + np.array([-5, 5])
-            drawing.add(
-                drawing.text(str(idx), insert=vertices[idx] + shift, 
-                             fill='rgb(245,96,66)', font_size='25'))
-        # name edges
-        for idx, edge in enumerate(panel['edges']):
-            middle = np.mean(
-                vertices[[edge['endpoints'][0], edge['endpoints'][1]]], axis=0)
-            shift = middle - panel_center
-            shift = 5 * shift / np.linalg.norm(shift) + np.array([-5, 5])
-            # name
-            drawing.add(
-                drawing.text(idx, insert=middle + shift, 
-                             fill='rgb(50,179,101)', font_size='20'))
+
+        if self.view_ids:
+            # name vertices 
+            for idx in range(vertices.shape[0]):
+                shift = vertices[idx] - panel_center
+                # last element moves pivot to digit center
+                shift = 5 * shift / np.linalg.norm(shift) + np.array([-5, 5])
+                drawing.add(
+                    drawing.text(str(idx), insert=vertices[idx] + shift, 
+                                fill='rgb(245,96,66)', font_size='25'))
+            # name edges
+            for idx, edge in enumerate(panel['edges']):
+                middle = np.mean(
+                    vertices[[edge['endpoints'][0], edge['endpoints'][1]]], axis=0)
+                shift = middle - panel_center
+                shift = 5 * shift / np.linalg.norm(shift) + np.array([-5, 5])
+                # name
+                drawing.add(
+                    drawing.text(idx, insert=middle + shift, 
+                                fill='rgb(50,179,101)', font_size='20'))
 
         return np.max(vertices[:, 0]), np.max(vertices[:, 1])
 
     def _save_as_image(self, svg_filename, png_filename):
-        """Saves current pattern in svg and png format for visualization"""
+        """
+            Saves current pattern in svg and png format for visualization
+        """
 
         dwg = svgwrite.Drawing(svg_filename, profile='tiny')
         base_offset = [40, 40]
@@ -192,7 +197,7 @@ class RandomPattern(VisPattern):
 
     # ------------ Interface -------------
     def __init__(self, template_file):
-        super().__init__(template_file)
+        super().__init__(template_file, view_ids=False)  # don't show ids for datasets
 
         # update name for a random pattern
         self.name = self.name + '_' + self._id_generator()
@@ -247,7 +252,7 @@ if __name__ == "__main__":
     newpattern = RandomPattern(os.path.join(system_config['templates_path'], 'basic_skirt', 'skirt_maya_coords.json'))
 
     # log to file
-    log_folder = 'view_ids_' + datetime.now().strftime('%y%m%d-%H-%M-%S')
+    log_folder = 'no_ids_on_rand_' + datetime.now().strftime('%y%m%d-%H-%M-%S')
     log_folder = os.path.join(base_path, log_folder)
     os.makedirs(log_folder)
 

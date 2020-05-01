@@ -142,7 +142,8 @@
     ]
   }, 
   "properties": {
-    "curvature_coords": "relative"
+    "curvature_coords": "relative", 
+    "normalize_panel_translation": false
   }, 
   "parameters": {
     "wideness": {

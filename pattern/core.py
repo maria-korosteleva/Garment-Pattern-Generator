@@ -16,8 +16,7 @@ standard_names = [
 
 
 class BasicPattern(object):
-    """
-        Loading & serializing of a pattern specification in custom JSON format.
+    """Loading & serializing of a pattern specification in custom JSON format.
         Input:
             * Pattern template in custom JSON format
         Output representations: 
@@ -96,16 +95,22 @@ class BasicPattern(object):
             # now we have new property
             self.properties['curvature_coords'] = 'relative'
         
-        # normalize translation info -- after curvature is converted!!
-        for panel in self.pattern['panels']:
-            offset = self._normalize_panel_translation(panel)
-            # udpate translation vector
-            original = self.pattern['panels'][panel]['translation'] 
-            self.pattern['panels'][panel]['translation'] = [
-                original[0] + offset[0], 
-                original[1] + offset[1], 
-                original[2], 
-            ]
+        # after curvature is converted!!
+        # Only if requested
+        if ('normalize_panel_translation' in self.properties 
+                and self.properties['normalize_panel_translation']):
+            print('Normalizing translation!')
+            self.properties['normalize_panel_translation'] = False  # one-time use property. Preverts rotation issues on future reads
+            for panel in self.pattern['panels']:
+                # put origin in the middle of the panel-- 
+                offset = self._normalize_panel_translation(panel)
+                # udpate translation vector
+                original = self.pattern['panels'][panel]['translation'] 
+                self.pattern['panels'][panel]['translation'] = [
+                    original[0] + offset[0], 
+                    original[1] + offset[1], 
+                    original[2], 
+                ]
 
     def _normalize_panel_translation(self, panel_name):
         """ Convert panel vertices to local coordinates: 
@@ -282,4 +287,3 @@ class BasicPattern(object):
                     self.parameters[parameter]['value'] = [1 for _ in inv_value]
                 else:
                     self.parameters[parameter]['value'] = 1
-

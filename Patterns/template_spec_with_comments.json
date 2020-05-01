@@ -8,7 +8,13 @@
     // * "relative" -- Coordinates are given in local edge frame theating an edge as vector (1, 0)
     // * "absolute" -- Coordinated are given in world frame, the same coordinate space as panel vertices.  
     // The chosen convention has to be used for all edge curvature specifications in the pattern!
-    "curvature_coords": "relative"
+    "curvature_coords": "relative", 
+    // indicates if each panel translation should be normalized to put local origin in the middle
+    // of the panel.
+    // The world translation vector is adjusted s.t. world position of vertices do not change when rotation is zero
+    // BUT if rotation is present, normalization might affect it
+    // It's only recommended to use this option for the benefits of easy editing
+    "normalize_panel_translation": false
   },
   // Section that fully describes the pattern. This section is enough to render a pattern in whatever form needed.  
   "pattern": {

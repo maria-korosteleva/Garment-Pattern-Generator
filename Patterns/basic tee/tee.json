@@ -627,9 +627,45 @@
         }
       ], 
       "value": 1
+    },
+    "length": {
+      "type": "length", 
+      "range": [
+        0.3, 
+        2.7
+      ], 
+      "influence": [
+        {
+          "panel": "front", 
+          "edge_list": [
+            {
+              "direction": "start", 
+              "id": 3
+            },
+            {
+              "direction": "end", 
+              "id": 5
+            }
+          ]
+        }, 
+        {
+          "panel": "back", 
+          "edge_list": [
+            {
+              "direction": "start", 
+              "id": 3
+            },
+            {
+              "direction": "end", 
+              "id": 5
+            }
+          ]
+        }
+      ], 
+      "value": 1
     }
   }, 
   "parameter_order": [
-    "wideness"
+    "wideness", "length"
   ]
 }

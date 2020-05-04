@@ -279,7 +279,6 @@ def start_sim_callback(button, state, *args):
         cmds.confirmDialog(title='Error', message='Load pattern specification & body info first')
         return
     print('Simulating..')
-    mymaya.qualothwrapper.qlCleanSimCache()
 
     # Reload geometry in case something changed
     state.reload_garment()

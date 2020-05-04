@@ -258,6 +258,8 @@ def _init_sim(config):
         Basic simulation settings before starting simulation
     """
     solver = findSolver()
+    qlCleanSimCache()
+
     cmds.setAttr(solver + '.selfCollision', 1)
     cmds.setAttr(solver + '.startTime', 1)
     cmds.setAttr(solver + '.solverStatistics', 0)  # for easy reading of console output

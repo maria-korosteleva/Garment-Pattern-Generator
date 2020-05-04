@@ -197,7 +197,11 @@
             },
             // one more edge within same panel influenced by the parameter
             {
-              "id": 3,
+              // this is a 'meta-edge': a section of the panel border as a list of consecutive edges 
+              // meta-edge will be treated as an edge from start of the first edge to end of the last edge
+              // all the inner edges will be naturally stretched along the meta-edge direction
+              "id": [2, 3],
+              // In this case, towards the start vertex of meta-edge
               "direction": "start"
             }
           ]

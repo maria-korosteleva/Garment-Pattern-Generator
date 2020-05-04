@@ -1,0 +1,357 @@
+{
+  "pattern": {
+    "panels": {
+      "front": {
+        "translation": [
+          0.5300000000000011, 
+          -6.656949410860193, 
+          56.28
+        ], 
+        "edges": [
+          {
+            "endpoints": [
+              0, 
+              1
+            ]
+          }, 
+          {
+            "endpoints": [
+              1, 
+              2
+            ]
+          }, 
+          {
+            "endpoints": [
+              2, 
+              3
+            ], 
+            "curvature": [
+              0.7, 
+              0.4
+            ]
+          }, 
+          {
+            "endpoints": [
+              3, 
+              4
+            ]
+          }, 
+          {
+            "endpoints": [
+              4, 
+              5
+            ]
+          }, 
+          {
+            "endpoints": [
+              5, 
+              6
+            ]
+          }, 
+          {
+            "endpoints": [
+              6, 
+              7
+            ], 
+            "curvature": [
+              0.3, 
+              0.4
+            ]
+          }, 
+          {
+            "endpoints": [
+              7, 
+              8
+            ]
+          }, 
+          {
+            "endpoints": [
+              8, 
+              0
+            ]
+          }
+        ], 
+        "rotation": [
+          0.0, 
+          0.0, 
+          0.0
+        ], 
+        "vertices": [
+          [
+            0, 
+            60
+          ], 
+          [
+            -25, 
+            95
+          ], 
+          [
+            -55, 
+            95
+          ], 
+          [
+            -65, 
+            45.0
+          ], 
+          [
+            -65, 
+            -90.0
+          ], 
+          [
+            65, 
+            -90.0
+          ], 
+          [
+            65, 
+            45.0
+          ], 
+          [
+            55, 
+            95
+          ], 
+          [
+            25, 
+            95
+          ]
+        ]
+      }, 
+      "back": {
+        "translation": [
+          0.5300000000000011, 
+          -6.7, 
+          -46.53
+        ], 
+        "edges": [
+          {
+            "endpoints": [
+              0, 
+              7
+            ], 
+            "curvature": [
+              0.5, 
+              -0.3
+            ]
+          }, 
+          {
+            "endpoints": [
+              7, 
+              6
+            ]
+          }, 
+          {
+            "endpoints": [
+              6, 
+              5
+            ], 
+            "curvature": [
+              0.7, 
+              -0.4
+            ]
+          }, 
+          {
+            "endpoints": [
+              5, 
+              4
+            ]
+          }, 
+          {
+            "endpoints": [
+              4, 
+              3
+            ]
+          }, 
+          {
+            "endpoints": [
+              3, 
+              2
+            ]
+          }, 
+          {
+            "endpoints": [
+              2, 
+              1
+            ], 
+            "curvature": [
+              0.3, 
+              -0.4
+            ]
+          }, 
+          {
+            "endpoints": [
+              1, 
+              0
+            ]
+          }
+        ], 
+        "rotation": [
+          0.0, 
+          0.0, 
+          0.0
+        ], 
+        "vertices": [
+          [
+            -25, 
+            95
+          ], 
+          [
+            -55, 
+            95
+          ], 
+          [
+            -65, 
+            45.0
+          ], 
+          [
+            -65, 
+            -90.0
+          ], 
+          [
+            65, 
+            -90.0
+          ], 
+          [
+            65, 
+            45.0
+          ], 
+          [
+            55, 
+            95
+          ], 
+          [
+            25, 
+            95
+          ]
+        ]
+      }
+    }, 
+    "stitches": [
+      {
+        "to": {
+          "edge": 7, 
+          "panel": "back"
+        }, 
+        "from": {
+          "edge": 1, 
+          "panel": "front"
+        }
+      }, 
+      {
+        "to": {
+          "edge": 5, 
+          "panel": "back"
+        }, 
+        "from": {
+          "edge": 3, 
+          "panel": "front"
+        }
+      }, 
+      {
+        "to": {
+          "edge": 3, 
+          "panel": "back"
+        }, 
+        "from": {
+          "edge": 5, 
+          "panel": "front"
+        }
+      }, 
+      {
+        "to": {
+          "edge": 1, 
+          "panel": "back"
+        }, 
+        "from": {
+          "edge": 7, 
+          "panel": "front"
+        }
+      }
+    ]
+  }, 
+  "properties": {
+    "curvature_coords": "relative", 
+    "normalize_panel_translation": false
+  }, 
+  "parameters": {
+    "wideness": {
+      "type": "length", 
+      "range": [
+        0.7, 
+        2
+      ], 
+      "influence": [
+        {
+          "panel": "front", 
+          "edge_list": [
+            {
+              "direction": "both", 
+              "id": 2
+            }
+          ]
+        }, 
+        {
+          "panel": "back", 
+          "edge_list": [
+            {
+              "direction": "both", 
+              "id": 2
+            }
+          ]
+        }
+      ], 
+      "value": 1
+    }, 
+    "length": {
+      "type": "length", 
+      "range": [
+        0.3, 
+        2
+      ], 
+      "influence": [
+        {
+          "panel": "front", 
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 1
+            }, 
+            {
+              "direction": "start", 
+              "id": 3
+            }
+          ]
+        }, 
+        {
+          "panel": "back", 
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 1
+            }, 
+            {
+              "direction": "start", 
+              "id": 3
+            }
+          ]
+        }
+      ], 
+      "value": 1
+    }, 
+    "wideness_curve": {
+      "type": "curve", 
+      "range": [
+        -1, 
+        1
+      ], 
+      "influence": [
+        {
+          "panel": "front", 
+          "edge_list": [
+            2
+          ]
+        }
+      ], 
+      "value": 1
+    }
+  }, 
+  "parameter_order": []
+}

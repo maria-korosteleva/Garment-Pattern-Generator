@@ -129,10 +129,10 @@ class BasicPattern(object):
         """
         Derives absolute coordinates of Bezier control point given as an offset
         """
-        control_start = control_scale[0] * (start + end)
-
         edge = end - start
         edge_perp = np.array([-edge[1], edge[0]])
+
+        control_start = start + control_scale[0] * edge
         control_point = control_start + control_scale[1] * edge_perp
 
         return control_point 

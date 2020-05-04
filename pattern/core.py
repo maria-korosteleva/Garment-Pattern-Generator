@@ -196,7 +196,7 @@ class BasicPattern(object):
 
     def _extend_edge(self, panel_name, edge_influence, scaling_factor):
         """
-            Shrinks/elongates a given edge of a given panel. Applies equally
+            Shrinks/elongates a given edge\edge collection of a given panel. Applies equally
             to straight and curvy edges tnks to relative coordinates of curve controls
             Expects
                 * each influenced edge to supply the elongatoin direction
@@ -206,27 +206,59 @@ class BasicPattern(object):
             raise ValueError("Multiple scaling factors are not supported")
 
         panel = self.pattern['panels'][panel_name]
-        v_id_start, v_id_end = tuple(
-            panel['edges'][edge_influence["id"]]['endpoints'])
-        v_start, v_end = np.array(panel['vertices'][v_id_start]), \
-            np.array(panel['vertices'][v_id_end])
 
-        # future edge    
-        new_edge_vector = scaling_factor * (v_end - v_start)
+        if isinstance(edge_influence["id"], list):
+            # meta-edge
 
-        # apply extention in the appropriate direction
-        if edge_influence["direction"] == 'end':
-            v_end = v_start + new_edge_vector
-        elif edge_influence["direction"] == 'start':
-            v_start = v_end - new_edge_vector
-        else:  # both
-            v_middle = (v_start + v_end) / 2
-            new_half_edge_vector = new_edge_vector / 2
-            v_start, v_end = v_middle - new_half_edge_vector, \
-                v_middle + new_half_edge_vector
+            # get all vertices in order
+            verts_ids = [panel['edges'][edge_influence['id'][0]]['endpoints'][0]]  # start
+            for edge_id in edge_influence['id']:
+                print(panel_name, edge_id)
+                verts_ids.append(panel['edges'][edge_id]['endpoints'][1])  # end vertices
+            verts_coords = []
+            for idx in verts_ids:
+                verts_coords.append(panel['vertices'][idx])
+            verts_coords = np.array(verts_coords)
 
-        panel['vertices'][v_id_end] = v_end.tolist()
-        panel['vertices'][v_id_start] = v_start.tolist()
+            # calc extention pivot
+            v_start, v_end = verts_ids[0], verts_ids[-1]
+
+            if edge_influence['direction'] == 'end':
+                fixed = verts_coords[-1, :]
+            elif edge_influence['direction'] == 'start':
+                fixed = verts_coords[0, :]
+            else:  # both
+                fixed = (verts_coords[0, :] + verts_coords[-1, :]) / 2
+
+            # update all verts from extention pivot
+            new_verts = verts_coords + scaling_factor * (verts_coords - fixed)
+
+            # update in the initial structure
+            for ni, idx in enumerate(verts_ids):
+                panel['vertices'][idx] = new_verts[ni].tolist()
+
+        else:
+            v_id_start, v_id_end = tuple(
+                panel['edges'][edge_influence['id']]['endpoints'])
+            v_start, v_end = np.array(panel['vertices'][v_id_start]), \
+                np.array(panel['vertices'][v_id_end])
+
+            # future edge    
+            new_edge_vector = scaling_factor * (v_end - v_start)
+
+            # apply extention in the appropriate direction
+            if edge_influence["direction"] == 'end':
+                v_end = v_start + new_edge_vector
+            elif edge_influence["direction"] == 'start':
+                v_start = v_end - new_edge_vector
+            else:  # both
+                v_middle = (v_start + v_end) / 2
+                new_half_edge_vector = new_edge_vector / 2
+                v_start, v_end = v_middle - new_half_edge_vector, \
+                    v_middle + new_half_edge_vector
+
+            panel['vertices'][v_id_end] = v_end.tolist()
+            panel['vertices'][v_id_start] = v_start.tolist()
 
     def _curve_edge(self, panel_name, edge, scaling_factor):
         """

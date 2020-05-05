@@ -143,6 +143,11 @@ def findSolver():
     return solver[0]
 
 
+def deleteSolver():
+    """deletes all solver objects from the scene"""
+    cmds.delete(cmds.ls('*qlSolver*'))
+
+
 def setColliderFriction(collider_objects, friction_value):
     """Sets the level of friction of the given collider to friction_value"""
 

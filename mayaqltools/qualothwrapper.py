@@ -71,13 +71,6 @@ def qlCreateCollider(cloth, target):
     return list(set(objects_after) - set(objects_before))
 
 
-def qlCleanSimCache():
-    """Clean simulation cache before re-starting simulation"""
-    solver = findSolver()
-    cmds.select(solver)
-    mel.eval('qlReinitializeSolver()')
-
-
 # ------- Higher-level functions --------
 
 def start_maya_sim(garment, props):
@@ -148,6 +141,11 @@ def findSolver():
     """
     solver = cmds.ls('*qlSolver*Shape*')
     return solver[0]
+
+
+def deleteSolver():
+    """deletes all solver objects from the scene"""
+    cmds.delete(cmds.ls('*qlSolver*'))
 
 
 def setColliderFriction(collider_objects, friction_value):

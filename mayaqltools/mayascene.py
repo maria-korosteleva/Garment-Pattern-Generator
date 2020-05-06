@@ -402,6 +402,10 @@ class MayaGarment(core.BasicPattern):
         panel = self.pattern['panels'][panel_name]
         panel_group = self.MayaObjects['panels'][panel_name]['curve_group']
 
+        # set pivot to origin relative to currently loaded curves
+        cmds.xform(panel_group, pivots=[0, 0, 0], worldSpace=True)
+
+        # now place correctly
         self._set_panel_3D_attr(panel, panel_group, 'translation', 'translate')
         self._set_panel_3D_attr(panel, panel_group, 'rotation', 'rotate')
 

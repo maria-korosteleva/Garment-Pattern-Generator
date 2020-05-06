@@ -703,11 +703,11 @@
           "panel": "lbsleeve", 
           "edge_list": [
             {
-              "direction": "start", 
+              "direction": "end", 
               "id": 3
             },
             {
-              "direction": "end", 
+              "direction": "start", 
               "id": 1
             }
           ]
@@ -716,11 +716,11 @@
           "panel": "lfsleeve", 
           "edge_list": [
             {
-              "direction": "start", 
+              "direction": "end", 
               "id": 3
             },
             {
-              "direction": "end", 
+              "direction": "start", 
               "id": 1
             }
           ]

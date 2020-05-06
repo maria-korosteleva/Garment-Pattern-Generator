@@ -640,11 +640,11 @@
           "edge_list": [
             {
               "direction": "start", 
-              "id": 3
+              "id": 5
             },
             {
               "direction": "end", 
-              "id": 5
+              "id": 3
             }
           ]
         }, 
@@ -653,11 +653,147 @@
           "edge_list": [
             {
               "direction": "start", 
+              "id": 5
+            },
+            {
+              "direction": "end", 
+              "id": 3
+            }
+          ]
+        }
+      ], 
+      "value": 1
+    },
+    "low_wide": {
+      "type": "length", 
+      "range": [
+        0.5, 
+        3
+      ], 
+      "influence": [
+        {
+          "panel": "back", 
+          "edge_list": [
+            {
+              "direction": "both", 
+              "id": 4
+            }
+          ]
+        }, 
+        {
+          "panel": "front", 
+          "edge_list": [
+            {
+              "direction": "both", 
+              "id": 4
+            }
+          ]
+        }
+      ], 
+      "value": 1
+    },
+    "sllength": {
+      "type": "length", 
+      "range": [
+        0.1, 
+        7
+      ], 
+      "influence": [
+        {
+          "panel": "lbsleeve", 
+          "edge_list": [
+            {
+              "direction": "start", 
               "id": 3
             },
             {
               "direction": "end", 
-              "id": 5
+              "id": 1
+            }
+          ]
+        }, 
+        {
+          "panel": "lfsleeve", 
+          "edge_list": [
+            {
+              "direction": "start", 
+              "id": 3
+            },
+            {
+              "direction": "end", 
+              "id": 1
+            }
+          ]
+        },
+        {
+          "panel": "rfsleeve", 
+          "edge_list": [
+            {
+              "direction": "start", 
+              "id": 1
+            },
+            {
+              "direction": "end", 
+              "id": 3
+            }
+          ]
+        },
+        {
+          "panel": "rbsleeve", 
+          "edge_list": [
+            {
+              "direction": "start", 
+              "id": 1
+            },
+            {
+              "direction": "end", 
+              "id": 3
+            }
+          ]
+        }
+      ], 
+      "value": 1
+    },
+    "send_wide": {
+      "type": "length", 
+      "range": [
+        1, 
+        7
+      ], 
+      "influence": [
+        {
+          "panel": "lbsleeve", 
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 0
+            }
+          ]
+        }, 
+        {
+          "panel": "lfsleeve", 
+          "edge_list": [
+            {
+              "direction": "start", 
+              "id": 0
+            }
+          ]
+        },
+        {
+          "panel": "rfsleeve", 
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 0
+            }
+          ]
+        },
+        {
+          "panel": "rbsleeve", 
+          "edge_list": [
+            {
+              "direction": "start", 
+              "id": 0
             }
           ]
         }
@@ -666,6 +802,6 @@
     }
   }, 
   "parameter_order": [
-    "wideness", "length"
+    "wideness", "length", "low_wide", "sllength", "send_wide"
   ]
 }

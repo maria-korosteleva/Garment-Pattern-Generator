@@ -224,9 +224,9 @@ class BasicPattern(object):
 
         # calc extention pivot
         if edge_influence['direction'] == 'end':
-            fixed = verts_coords[-1]
+            fixed = verts_coords[0]  # start is fixed
         elif edge_influence['direction'] == 'start':
-            fixed = verts_coords[0]
+            fixed = verts_coords[-1]  # end is fixed
         else:  # both
             fixed = (verts_coords[0] + verts_coords[-1]) / 2
 

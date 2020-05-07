@@ -560,20 +560,21 @@ class MayaGarmentWithUI(MayaGarment):
             field=True, value=value, 
             minValue=param_range[0], maxValue=param_range[1], 
             cal=[1, 'left'], cw=[1, 45], 
-            changeCommand=partial(self._param_value_callback, param_name, idx) 
+            changeCommand=partial(self._param_value_callback, param_name, idx),
+            step=0.01
         )
 
     def _ui_params(self, params, order):
         """draw params UI"""
         # control
-        cmds.button(
-            label='To template state', backgroundColor=[227 / 256, 255 / 256, 119 / 256],
-            command=self._to_template_callback, 
-            ann='Snap all parameters to default values')
-        cmds.button(
-            label='Randomize', backgroundColor=[227 / 256, 186 / 256, 119 / 256],
-            command=self._param_randomization_callback, 
-            ann='Randomize all parameter values')
+        cmds.button(label='To template state', 
+                    backgroundColor=[227 / 256, 255 / 256, 119 / 256],
+                    command=self._to_template_callback, 
+                    ann='Snap all parameters to default values')
+        cmds.button(label='Randomize', 
+                    backgroundColor=[227 / 256, 186 / 256, 119 / 256],
+                    command=self._param_randomization_callback, 
+                    ann='Randomize all parameter values')
 
         # Parameters themselves
         for param_name in order:

@@ -327,7 +327,11 @@ class ParametrizedPattern(BasicPattern):
     # ---------- Randomization -
     def _new_value(self, param_range):
         """Random value within range given as an iteratable"""
-        return random.uniform(param_range[0], param_range[1])
+        value = random.uniform(param_range[0], param_range[1])
+        # prevent non-reversible zero values
+        if abs(value) < 1e-2:
+            value = 1e-2 * (-1 if value < 0 else 1)
+        return value
 
     def _randomize_parameters(self):
         """

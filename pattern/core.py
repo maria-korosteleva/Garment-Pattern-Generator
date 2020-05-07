@@ -190,13 +190,14 @@ class BasicPattern(object):
             for panel_influence in self.parameters[parameter]['influence']:
                 for edge in panel_influence['edge_list']:
                     if param_type == 'length':
-                        self._extend_edge(panel_influence['panel'], edge, value)
+                        self._extend_edge(
+                            panel_influence['panel'], edge, value, self.parameters[parameter])
                     elif param_type == 'curve':
                         self._curve_edge(panel_influence['panel'], edge, value)
 
-    def _extend_edge(self, panel_name, edge_influence, scaling_factor):
+    def _extend_edge(self, panel_name, edge_influence, scaling_factor, parameter_props):
         """
-            Shrinks/elongates a given edge\edge collection of a given panel. Applies equally
+            Shrinks/elongates a given edge or edge collection of a given panel. Applies equally
             to straight and curvy edges tnks to relative coordinates of curve controls
             Expects
                 * each influenced edge to supply the elongatoin direction
@@ -231,7 +232,10 @@ class BasicPattern(object):
             fixed = (verts_coords[0] + verts_coords[-1]) / 2
 
         # calc extention line
-        target_line = verts_coords[-1] - verts_coords[0]  # could as well be given from outside
+        if 'along' in parameter_props:
+            target_line = parameter_props['along']
+        else:
+            target_line = verts_coords[-1] - verts_coords[0] 
         target_line /= np.linalg.norm(target_line)
 
         # move verts 
@@ -259,6 +263,7 @@ class BasicPattern(object):
             raise ValueError('Applying curvature scaling to non-curvy edge '
                              + str(edge) + ' of ' + panel_name)
         control = panel['edges'][edge]['curvature']
+
         if isinstance(scaling_factor, list):
             control = [
                 control[0] * scaling_factor[0],
@@ -295,7 +300,7 @@ class BasicPattern(object):
             for panel_influence in reversed(self.parameters[parameter]['influence']):
                 for edge in reversed(panel_influence['edge_list']):
                     if param_type == 'length':
-                        self._extend_edge(panel_influence['panel'], edge, inv_value)
+                        self._extend_edge(panel_influence['panel'], edge, inv_value, self.parameters[parameter])
                     elif param_type == 'curve':
                         self._curve_edge(panel_influence['panel'], edge, inv_value)
             

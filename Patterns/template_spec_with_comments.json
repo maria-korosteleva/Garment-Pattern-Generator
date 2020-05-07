@@ -169,6 +169,10 @@
       // * "length" -- influece the length of edges it applies to
       // * "curve" -- see below -- controls edge curvature
       "type": "length",
+      // A vector along which to perform extention\srink of the edge
+      // if not given, extention happens along the edge itself
+      // positive\neg direction don't matter ([0, 1] and [0, -1] will give the same outcome)
+      "along": [0, 1],
       // List of panels and edges the parameter applies to
       // the order does NOT matter
       // Note that such properties as Symmetric application of a parameter or - Applying parameter to both sides of the stitch

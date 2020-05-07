@@ -610,11 +610,11 @@ class MayaGarmentWithUI(MayaGarment):
         # update
         print('Pattern returns to origins..')
         self._restore_template()
-        # update UI in lazy manner
-        self.drawUI()
         # update geometry in lazy manner
         if self.loaded_to_maya:
             self.load()
+        # update UI in lazy manner
+        self.drawUI()
 
     def _param_value_callback(self, param_name, value_idx, *args):
         """Update pattern with new value"""

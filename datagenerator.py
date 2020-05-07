@@ -87,10 +87,10 @@ if __name__ == "__main__":
     if new:
         props = Properties()
         props.set_basic(
-            templates='basic_skirt/skirt_maya_coords.json',
-            name='deactive',
+            templates='basic tee/tee.json',
+            name='t-data',
             size=2,
-            to_subfolders=False)
+            to_subfolders=True)
         props.set_section_config('generator')
     else:
         props = Properties(

@@ -4,6 +4,7 @@
 """
 from __future__ import print_function
 import os
+import errno
 
 
 # My modules
@@ -13,12 +14,29 @@ reload(mymaya)
 reload(customconfig)
 
 
+def gather_renderings(datapath):
+    """gather all rendered scenes to common subfolder"""
+    renderings_path = os.path.join(datapath, 'renders')
+    try: 
+        os.makedirs(renderings_path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+
+    for root, dirs, files in os.walk(datapath):
+        for file in files:
+            print(root, file)
+            if 'scene' in file:
+                print('making copy ', os.path.join(root, file), os.path.join(renderings_path, file))
+                os.system('copy ' + os.path.join(root, file) + ' ' + os.path.join(renderings_path, file))
+
+
 if __name__ == "__main__":
     system_config = customconfig.Properties('./system.json')  # Make sure it's in \Autodesk\MayaNNNN\
     path = system_config['templates_path']
 
     # ------ Dataset Example ------
-    dataset = 'deactive_skirt_maya_coords_200430-15-58-24'
+    dataset = 't-data_tee_200507-14-56-58'
     datapath = os.path.join(system_config['output'], dataset)
     dataset_file = os.path.join(datapath, 'dataset_properties.json')
     props = customconfig.Properties(dataset_file)
@@ -29,6 +47,7 @@ if __name__ == "__main__":
 
     mymaya.simulation.batch_sim(path, path, datapath, props, caching=False)
     props.serialize(dataset_file)
+    gather_renderings(datapath)
 
     # ------ Example for single template generation ------
     # path_example = os.path.join(system_config['output'], 'from_editor', 'deactive_200430-15-42-02')

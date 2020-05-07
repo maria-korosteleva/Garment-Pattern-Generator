@@ -187,6 +187,8 @@ def _get_pattern_files(data_path, dataset_props):
         # https://stackoverflow.com/questions/800197/how-to-get-all-of-the-immediate-subdirectories-in-python
         # cannot use os.scandir in python 2.7
         for directory in dirs:
+            if 'renders' in directory:  # special directory -- ignore
+                continue
             pattern_specs.append(os.path.join(root, directory, 'specification.json'))  # cereful for file name changes ^^
     else:
         for file in files:

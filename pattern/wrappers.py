@@ -139,7 +139,7 @@ class VisPattern(core.BasicPattern):
                 shift = 5 * shift / np.linalg.norm(shift) + np.array([-5, 5])
                 drawing.add(
                     drawing.text(str(idx), insert=vertices[idx] + shift, 
-                                fill='rgb(245,96,66)', font_size='25'))
+                                 fill='rgb(245,96,66)', font_size='25'))
             # name edges
             for idx, edge in enumerate(panel['edges']):
                 middle = np.mean(
@@ -149,7 +149,7 @@ class VisPattern(core.BasicPattern):
                 # name
                 drawing.add(
                     drawing.text(idx, insert=middle + shift, 
-                                fill='rgb(50,179,101)', font_size='20'))
+                                 fill='rgb(50,179,101)', font_size='20'))
 
         return np.max(vertices[:, 0]), np.max(vertices[:, 1])
 
@@ -159,17 +159,19 @@ class VisPattern(core.BasicPattern):
         """
 
         dwg = svgwrite.Drawing(svg_filename, profile='tiny')
-        base_offset = [40, 40]
-        panel_offset = [0, 0]
+        base_offset = [60, 60]
+        panel_offset_x = 0
+        heights = []
         for panel in self.pattern['panels']:
-            panel_offset = self._draw_a_panel(
+            panel_offset_x, height = self._draw_a_panel(
                 dwg, panel,
-                offset=[panel_offset[0] + base_offset[0], base_offset[1]]
+                offset=[panel_offset_x + base_offset[0], base_offset[1]]
             )
+            heights.append(height)
 
         # final sizing & save
-        dwg['width'] = str(panel_offset[0] + base_offset[0]) + 'px'
-        dwg['height'] = str(panel_offset[1] + base_offset[1]) + 'px'
+        dwg['width'] = str(panel_offset_x + base_offset[0]) + 'px'  # using latest offset -- the most right
+        dwg['height'] = str(max(heights) + base_offset[1]) + 'px'
         dwg.save(pretty=True)
 
         # to png

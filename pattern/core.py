@@ -7,6 +7,7 @@ from __future__ import print_function
 import json
 import numpy as np
 import os
+import random
 
 standard_names = [
     'specification',  # e.g. used by dataset generation
@@ -39,11 +40,6 @@ class BasicPattern(object):
             self.name = os.path.basename(os.path.normpath(self.path))
         self.reloadJSON()
 
-        self.parameter_types = [
-            'length',
-            'curve'
-        ]
-
     def reloadJSON(self):
         """(Re)loads pattern info from spec file. 
         Useful when spec is updated from outside"""
@@ -51,7 +47,6 @@ class BasicPattern(object):
         with open(self.spec_file, 'r') as f_json:
             self.spec = json.load(f_json)
         self.pattern = self.spec['pattern']
-        self.parameters = self.spec['parameters']
         self.properties = self.spec['properties']  # mandatory part
 
         # template normalization - panel translations and curvature to relative coords
@@ -170,7 +165,26 @@ class BasicPattern(object):
             np.array(panel['vertices'][v_id_end])
         
         return np.linalg.norm(v_end - v_start)
-    
+        
+
+class ParametrizedPattern(BasicPattern):
+    """
+        Extention to BasicPattern that can work with parametrized patterns
+        Update pattern with new parameter values & randomize those parameters
+    """
+    def __init__(self, pattern_file):
+        super(ParametrizedPattern, self).__init__(pattern_file)
+        self.parameter_types = [
+            'length',
+            'curve'
+        ]
+
+    def reloadJSON(self):
+        """(Re)loads pattern info from spec file. 
+        Useful when spec is updated from outside"""
+        super(ParametrizedPattern, self).reloadJSON()
+        self.parameters = self.spec['parameters']
+
     # ---------- Parameters operations --------
 
     def _update_pattern_by_param_values(self):
@@ -193,6 +207,43 @@ class BasicPattern(object):
                         self._extend_edge(panel_influence['panel'], edge, value)
                     elif param_type == 'curve':
                         self._curve_edge(panel_influence['panel'], edge, value)
+
+    def _restore_template(self, params_to_default=True):
+        """Restore pattern to it's state with all parameters having default values
+            Recalculate vertex positions, edge curvatures & snap values to 1
+        """
+        # Follow the every order backwards
+        for parameter in reversed(self.spec['parameter_order']):
+            
+            # invert value(s)
+            inv_value = self.parameters[parameter]['value']
+            try:  
+                if isinstance(inv_value, list):
+                    inv_value = map(lambda x: 1 / x, inv_value)
+                else:
+                    inv_value = 1 / inv_value
+            except ZeroDivisionError as e:
+                raise ZeroDivisionError('Zero value encountered while restoring template. Value is skipped')
+            
+            # Apply
+            param_type = self.parameters[parameter]['type']
+            if param_type not in self.parameter_types:
+                raise ValueError("Incorrect parameter type. Alowed are "
+                                 + self.parameter_types.keys())
+
+            for panel_influence in reversed(self.parameters[parameter]['influence']):
+                for edge in reversed(panel_influence['edge_list']):
+                    if param_type == 'length':
+                        self._extend_edge(panel_influence['panel'], edge, inv_value)
+                    elif param_type == 'curve':
+                        self._curve_edge(panel_influence['panel'], edge, inv_value)
+            
+            # restore defaults
+            if params_to_default:
+                if isinstance(inv_value, list):
+                    self.parameters[parameter]['value'] = [1 for _ in inv_value]
+                else:
+                    self.parameters[parameter]['value'] = 1
 
     def _extend_edge(self, panel_name, edge_influence, scaling_factor):
         """
@@ -273,39 +324,24 @@ class BasicPattern(object):
 
         panel['edges'][edge]['curvature'] = control
 
-    def _restore_template(self, params_to_default=True):
-        """Restore pattern to it's state with all parameters having default values
-            Recalculate vertex positions, edge curvatures & snap values to 1
-        """
-        # Follow the every order backwards
-        for parameter in reversed(self.spec['parameter_order']):
-            
-            # invert value(s)
-            inv_value = self.parameters[parameter]['value']
-            try:  
-                if isinstance(inv_value, list):
-                    inv_value = map(lambda x: 1 / x, inv_value)
-                else:
-                    inv_value = 1 / inv_value
-            except ZeroDivisionError as e:
-                raise ZeroDivisionError('Zero value encountered while restoring template. Value is skipped')
-            
-            # Apply
-            param_type = self.parameters[parameter]['type']
-            if param_type not in self.parameter_types:
-                raise ValueError("Incorrect parameter type. Alowed are "
-                                 + self.parameter_types.keys())
+    # ---------- Randomization -
+    def _new_value(self, param_range):
+        """Random value within range given as an iteratable"""
+        return random.uniform(param_range[0], param_range[1])
 
-            for panel_influence in reversed(self.parameters[parameter]['influence']):
-                for edge in reversed(panel_influence['edge_list']):
-                    if param_type == 'length':
-                        self._extend_edge(panel_influence['panel'], edge, inv_value)
-                    elif param_type == 'curve':
-                        self._curve_edge(panel_influence['panel'], edge, inv_value)
-            
-            # restore defaults
-            if params_to_default:
-                if isinstance(inv_value, list):
-                    self.parameters[parameter]['value'] = [1 for _ in inv_value]
-                else:
-                    self.parameters[parameter]['value'] = 1
+    def _randomize_parameters(self):
+        """
+        Sets new random values for the pattern parameters
+        Parameter type agnostic
+        """
+        for parameter in self.parameters:
+            param_ranges = self.parameters[parameter]['range']
+
+            # check if parameter has multiple values (=> multiple ranges) like for curves
+            if isinstance(self.parameters[parameter]['value'], list): 
+                values = []
+                for param_range in param_ranges:
+                    values.append(self._new_value(param_range))
+                self.parameters[parameter]['value'] = values
+            else:  # simple 1-value parameter
+                self.parameters[parameter]['value'] = self._new_value(param_ranges)

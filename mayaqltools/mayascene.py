@@ -28,7 +28,7 @@ reload(core)
 reload(qw)
 
 
-class MayaGarment(core.BasicPattern):
+class MayaGarment(core.ParametrizedPattern):
     """
     Extends a pattern specification in custom JSON format to work with Maya
         Input:
@@ -568,8 +568,12 @@ class MayaGarmentWithUI(MayaGarment):
         # control
         cmds.button(
             label='To template state', backgroundColor=[227 / 256, 255 / 256, 119 / 256],
-            command=lambda *args: self._to_template_callback(), 
+            command=self._to_template_callback, 
             ann='Snap all parameters to default values')
+        cmds.button(
+            label='Randomize', backgroundColor=[227 / 256, 186 / 256, 119 / 256],
+            command=self._param_randomization_callback, 
+            ann='Randomize all parameter values')
 
         # Parameters themselves
         for param_name in order:
@@ -604,7 +608,7 @@ class MayaGarmentWithUI(MayaGarment):
         return menu
 
     # -------- Callbacks -----------
-    def _to_template_callback(self):
+    def _to_template_callback(self, *args):
         """Returns current pattern to template state and 
         updates UI accordingly"""
         # update
@@ -615,6 +619,21 @@ class MayaGarmentWithUI(MayaGarment):
             self.load()
         # update UI in lazy manner
         self.drawUI()
+
+    def _param_randomization_callback(self, *args):
+        """Randomize parameter values & update everything"""
+        # restore template state before making any changes to parameters
+        self._restore_template(params_to_default=False)
+
+        # get values
+        self._randomize_parameters()
+        
+        # reapply all parameters
+        self._update_pattern_by_param_values()
+        
+        # update geometry in lazy manner
+        if self.loaded_to_maya:
+            self.load()
 
     def _param_value_callback(self, param_name, value_idx, *args):
         """Update pattern with new value"""
@@ -636,6 +655,9 @@ class MayaGarmentWithUI(MayaGarment):
         # update geometry in lazy manner
         if self.loaded_to_maya:
             self.load()
+
+        # update values in UI too (lazy)
+        self.drawUI()
 
     def _panel_placement_callback(self, panel_name, attribute, maya_attr):
         """Update pattern spec with tranlation/rotation info from Maya"""

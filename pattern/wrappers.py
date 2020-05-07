@@ -16,7 +16,7 @@ import customconfig
 from pattern import core
 
 
-class VisPattern(core.BasicPattern):
+class VisPattern(core.ParametrizedPattern):
     """
         "Visualizible" pattern wrapper of pattern specification in custom JSON format.
         Input:
@@ -207,29 +207,6 @@ class RandomPattern(VisPattern):
         # randomization setup
         self._randomize_parameters()
         self._update_pattern_by_param_values()
-
-    # --------- Updating pattern by new values  ----------
-
-    def _new_value(self, param_range):
-        """Random value within range given as an iteratable"""
-        return random.uniform(param_range[0], param_range[1])
-
-    def _randomize_parameters(self):
-        """
-        Sets new random values for the pattern parameters
-        Parameter type agnostic
-        """
-        for parameter in self.parameters:
-            param_ranges = self.parameters[parameter]['range']
-
-            # check if parameter has multiple values (=> multiple ranges) like for curves
-            if isinstance(self.parameters[parameter]['value'], list): 
-                values = []
-                for param_range in param_ranges:
-                    values.append(self._new_value(param_range))
-                self.parameters[parameter]['value'] = values
-            else:  # simple 1-value parameter
-                self.parameters[parameter]['value'] = self._new_value(param_ranges)
 
     # -------- Other Utils ---------
 

@@ -32,8 +32,9 @@ def start_GUI():
     window_width = 400
     main_offset = 10
     win = cmds.window(
-        title="Template editing", width=window_width, 
-        closeCommand=win_closed_callback
+        title="Template editing", width=window_width,
+        closeCommand=win_closed_callback, 
+        topEdge=15
     )
     cmds.columnLayout(columnAttach=('both', main_offset), rowSpacing=10, adj=1)
 
@@ -118,7 +119,7 @@ class State(object):
 
     def fetch(self):
         """Update info in deendent object from Maya"""
-        self.scene.fetch_colors()
+        self.scene.fetch_props_from_Maya()
         self.config.set_section_config(
             'sim', 
             material=self.garment.fetchMaterialSimProps()

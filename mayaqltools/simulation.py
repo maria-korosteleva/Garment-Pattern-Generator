@@ -128,7 +128,8 @@ def init_sim_props(props, batch_run=False, force_restart=False):
             body_color=[0.5, 0.5, 0.7], 
             cloth_color=[0.8, 0.2, 0.2],
             floor_color=[0.8, 0.8, 0.8],
-            resolution=[800, 800]
+            resolution=[800, 800],
+            camera_rotation=[0, 0, 0]
         )
     
     if batch_run and 'processed' in props['sim']['stats'] and not force_restart:

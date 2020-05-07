@@ -696,12 +696,10 @@ class Scene(object):
         self.body = cmds.rename(self.body, 'body#')
 
         # Add 'floor'
-        self.floor = self._add_floor(self.body)[0]
+        self.floor, self.floor_shader = self._add_floor(self.body, self.config['floor_color'])
 
-        # Put camera. NOTE Assumes body is facing +z direction
-        aspect_ratio = self.config['resolution'][0] / self.config['resolution'][1]
-        self.camera = cmds.camera(ar=aspect_ratio)[0]
-        cmds.viewFit(self.camera, self.body, f=0.85)
+        # Put camera. 
+        self._add_camera()
 
         # Add light (Arnold)
         self.light = mutils.createLocator('aiSkyDomeLight', asLight=True)
@@ -709,7 +707,6 @@ class Scene(object):
 
         # create materials
         self.body_shader = self._new_lambert(self.config['body_color'], self.body)
-        self.floor_shader = self._new_lambert(self.config['floor_color'], self.floor)
         self.cloth_shader = self._new_lambert(self.config['cloth_color'])
 
     def __del__(self):
@@ -753,14 +750,16 @@ class Scene(object):
         
         self.stats['render_time'].append(time.time() - start_time)
 
-    def fetch_colors(self):
-        """Get color properties records from Maya shader nodes.
+    def fetch_props_from_Maya(self):
+        """Get properties records from Maya
             Note: it updates global config!"""
         self.config['body_color'] = self._fetch_color(self.body_shader)
-        self.config['floor_color'] = self._fetch_color(self.floor_shader)
         self.config['cloth_color'] = self._fetch_color(self.cloth_shader)
+        self.config['floor_color'] = cmds.getAttr(self.floor_shader + '.fillColor')[0]  # special case
 
-    def _add_floor(self, target):
+        self.config['camera_rotation'] = cmds.getAttr(self.camera + '.rotate')[0]
+
+    def _add_floor(self, target, color):
         """
             adds a floor under a given object
         """
@@ -776,7 +775,36 @@ class Scene(object):
                   (target_bb[5] + target_bb[2]) / 2,  # bbox center
                   floor, a=1)
 
-        return floor
+        # special wireframe shader
+        floor_shader = cmds.shadingNode('aiWireframe', asShader=True)
+        cmds.setAttr((floor_shader + '.fillColor'), 
+                     color[0], color[1], color[2],
+                     type='double3')
+        # render as quads
+        cmds.setAttr(floor_shader + '.edgeType', 1)
+
+        # assign to floor
+        cmds.select(floor)
+        cmds.hyperShade(assign=floor_shader)
+
+        return floor[0], floor_shader
+
+    def _add_camera(self):
+        """Puts camera in the scene
+        NOTE Assumes body is facing +z direction"""
+
+        aspect_ratio = self.config['resolution'][0] / self.config['resolution'][1]
+        self.camera = cmds.camera(ar=aspect_ratio)
+        self.camera = self.camera[0]
+
+        cmds.setAttr(
+            self.camera + '.rotate', 
+            self.config['camera_rotation'][0], 
+            self.config['camera_rotation'][1], 
+            self.config['camera_rotation'][2], 
+            type='double3')
+
+        cmds.viewFit(self.camera, self.body, f=1)
 
     def _new_lambert(self, color, target=None):
         """created a new shader node with given color"""

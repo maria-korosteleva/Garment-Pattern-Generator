@@ -165,7 +165,7 @@ def template_simulation(spec, scene, sim_props, delete_on_clean=False, caching=F
     print('Garment load')
     garment = mymaya.MayaGarment(spec)
     garment.load(
-        shader=scene.cloth_shader, 
+        shader=scene.cloth_shader(), 
         obstacles=[scene.body]  # I don't add floor s.t. garment falls infinitely if falls
     )
     garment.sim_caching(caching)

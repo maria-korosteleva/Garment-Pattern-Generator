@@ -695,30 +695,27 @@ class Scene(object):
         self.body = cmds.file(body_obj, i=True, rnn=True)[0]
         self.body = cmds.rename(self.body, 'body#')
 
-        # Add 'floor'
-        self.floor, self.floor_shader = self._add_floor(self.body, self.config['floor_color'])
-
         # Put camera. 
         self._add_camera()
 
-        # Add light (Arnold)
-        self.light = mutils.createLocator('aiSkyDomeLight', asLight=True)
-        self._init_arnold()
+        self.simple = False
 
-        # create materials
-        self.body_shader = self._new_lambert(self.config['body_color'], self.body)
-        self.cloth_shader = self._new_lambert(self.config['cloth_color'])
+        # scene
+        self._init_arnold()
+        self.scene = {}
+        if self.simple:
+            self._simple_scene_setup()
+        else:
+            self._load_maya_scene('D:/MyDocs/GigaKorea/Garment Pattern Estimation/data_generation/Patterns/studio.mb')
 
     def __del__(self):
         """Remove all objects related to current scene if requested on creation"""
         if self.self_clean:
             cmds.delete(self.body)
-            cmds.delete(self.floor)
             cmds.delete(self.camera)
-            cmds.delete(self.light)
-            cmds.delete(self.body_shader)
-            cmds.delete(self.floor_shader)
-            cmds.delete(self.cloth_shader)  # garment color migh become invalid
+            for key in self.scene:
+                cmds.delete(self.scene[key])
+                # garment color migh become invalid
 
     def _init_arnold(self):
         """Endure Arnold objects are launched in Maya"""
@@ -728,6 +725,12 @@ class Scene(object):
             # https://arnoldsupport.com/2015/12/09/mtoa-creating-the-defaultarnold-nodes-in-scripting/
             print('Initialized Arnold')
             mtoa.createOptions()
+
+    def floor(self):
+        return self.scene['floor']
+    
+    def cloth_shader(self):
+        return self.scene['cloth_shader']
 
     def render(self, save_to, name='scene'):
         """
@@ -753,11 +756,48 @@ class Scene(object):
     def fetch_props_from_Maya(self):
         """Get properties records from Maya
             Note: it updates global config!"""
-        self.config['body_color'] = self._fetch_color(self.body_shader)
-        self.config['cloth_color'] = self._fetch_color(self.cloth_shader)
-        self.config['floor_color'] = cmds.getAttr(self.floor_shader + '.fillColor')[0]  # special case
+        self.config['body_color'] = self._fetch_color(self.scene['body_shader'])
+        self.config['cloth_color'] = self._fetch_color(self.scene['cloth_shader'])
+        if self.simple:
+            self.config['floor_color'] = cmds.getAttr(self.floor_shader + '.fillColor')[0]  # special case
+        else:
+            self.config['floor_color'] = self._fetch_color(self.scene['floor_shader'])
 
         self.config['camera_rotation'] = cmds.getAttr(self.camera + '.rotate')[0]
+
+    def _fetch_color(self, shader):
+        """Return current color of a given shader node"""
+        return cmds.getAttr(shader + '.color')[0]
+
+    def _add_camera(self):
+        """Puts camera in the scene
+        NOTE Assumes body is facing +z direction"""
+
+        aspect_ratio = self.config['resolution'][0] / self.config['resolution'][1]
+        self.camera = cmds.camera(ar=aspect_ratio)
+        self.camera = self.camera[0]
+
+        cmds.setAttr(
+            self.camera + '.rotate', 
+            self.config['camera_rotation'][0], 
+            self.config['camera_rotation'][1], 
+            self.config['camera_rotation'][2], 
+            type='double3')
+
+        cmds.viewFit(self.camera, self.body, f=1)
+
+    def _simple_scene_setup(self):
+        """setup very simple scene & materials using info from props"""
+        # Add 'floor'
+        self.scene = {
+            # materials
+            'body_shader': self._new_lambert(self.config['body_color'], self.body),
+            'cloth_shader': self._new_lambert(self.config['cloth_color']),
+            # light
+            'light': mutils.createLocator('aiSkyDomeLight', asLight=True)
+        }
+        self.scene['floor'], self.scene['floor_shader'] = self._add_floor(self.body, self.config['floor_color'])
+        self.simple = True
 
     def _add_floor(self, target, color):
         """
@@ -789,23 +829,6 @@ class Scene(object):
 
         return floor[0], floor_shader
 
-    def _add_camera(self):
-        """Puts camera in the scene
-        NOTE Assumes body is facing +z direction"""
-
-        aspect_ratio = self.config['resolution'][0] / self.config['resolution'][1]
-        self.camera = cmds.camera(ar=aspect_ratio)
-        self.camera = self.camera[0]
-
-        cmds.setAttr(
-            self.camera + '.rotate', 
-            self.config['camera_rotation'][0], 
-            self.config['camera_rotation'][1], 
-            self.config['camera_rotation'][2], 
-            type='double3')
-
-        cmds.viewFit(self.camera, self.body, f=1)
-
     def _new_lambert(self, color, target=None):
         """created a new shader node with given color"""
         shader = cmds.shadingNode('lambert', asShader=True)
@@ -819,6 +842,41 @@ class Scene(object):
 
         return shader
 
-    def _fetch_color(self, shader):
-        """Return current color of a given shader node"""
-        return cmds.getAttr(shader + '.color')[0]
+    def _load_maya_scene(self, scenefile):
+        """Load scene from external file. 
+            NOTE Assumes certain naming of nodes in the scene!"""
+
+        cmds.file(scenefile, i=True)
+        self.scene = {
+            'scene_group': cmds.ls('*scene*', transforms=True)[0],
+            'floor': cmds.ls('*backdrop*', geometry=True)[0],
+            'floor_shader': cmds.ls('*backdrop*', materials=True)[0],
+            'body_shader': cmds.ls('*body*', materials=True)[0],
+            'cloth_shader': cmds.ls('*garment*', materials=True)[0],
+            'side_shader': cmds.ls('*wall*', materials=True)[0]
+        }
+        # apply coloring to body object
+        if self.body:
+            cmds.select(self.body)
+            cmds.hyperShade(assign=self.scene['body_shader'])
+
+        # adjust scene position s.t. body is standing in the middle
+        body_low_center = self._get_object_lower_center(self.body)
+        floor_low_center = self._get_object_lower_center(self.scene['floor'])
+        old_translation = cmds.getAttr(self.scene['scene_group'] + '.translate')[0]
+        
+        cmds.setAttr(
+            self.scene['scene_group'] + '.translate',
+            old_translation[0] + body_low_center[0] - floor_low_center[0],
+            old_translation[1] + body_low_center[1] - floor_low_center[1], 
+            old_translation[2] + body_low_center[2] - floor_low_center[2],
+            type='double3')  # apply to whole group s.t. lights positions were adjusted too
+
+    def _get_object_lower_center(self, object):
+        """return 3D position of the center of the lower side of bounding box"""
+        bb = cmds.exactWorldBoundingBox(object)
+        return [
+            (bb[3] + bb[0]) / 2,
+            bb[1],
+            (bb[5] + bb[2]) / 2
+        ]

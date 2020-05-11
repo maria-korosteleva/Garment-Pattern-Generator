@@ -754,10 +754,7 @@ class Scene(object):
     def fetch_props_from_Maya(self):
         """Get properties records from Maya
             Note: it updates global config!"""
-        self.config['body_color'] = self._fetch_color(self.scene['body_shader'])
-        self.config['cloth_color'] = self._fetch_color(self.scene['cloth_shader'])
-        self.config['floor_color'] = self._fetch_color(self.scene['floor_shader'])
-
+            
         self.config['camera_rotation'] = cmds.getAttr(self.camera + '.rotate')[0]
 
     def _fetch_color(self, shader):
@@ -783,14 +780,20 @@ class Scene(object):
 
     def _simple_scene_setup(self):
         """setup very simple scene & materials using info from props"""
+        colors = {
+            "body_color": [0.5, 0.5, 0.7], 
+            "cloth_color": [0.8, 0.2, 0.2], 
+            "floor_color": [0.8, 0.8, 0.8]
+        }
+
         self.scene = {
             'floor': self._add_floor(self.body)
         }
         self.scene.update({
             # materials
-            'body_shader': self._new_lambert(self.config['body_color'], self.body),
-            'cloth_shader': self._new_lambert(self.config['cloth_color']),
-            'floor_shader': self._new_lambert(self.config['floor_color'], self.scene['floor']),
+            'body_shader': self._new_lambert(colors['body_color'], self.body),
+            'cloth_shader': self._new_lambert(colors['cloth_color']),
+            'floor_shader': self._new_lambert(colors['floor_color'], self.scene['floor']),
             # light
             'light': mutils.createLocator('aiSkyDomeLight', asLight=True)
         })

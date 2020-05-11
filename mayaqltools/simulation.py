@@ -130,9 +130,6 @@ def init_sim_props(props, batch_run=False, force_restart=False):
         # init with defaults
         props.set_section_config(
             'render',
-            body_color=[0.5, 0.5, 0.7], 
-            cloth_color=[0.8, 0.2, 0.2],
-            floor_color=[0.8, 0.8, 0.8],
             resolution=[800, 800],
             camera_rotation=[0, 0, 0]
         )

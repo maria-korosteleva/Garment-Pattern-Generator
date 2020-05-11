@@ -734,8 +734,6 @@ class Scene(object):
         """
             Makes a rendering of a current scene, and saves it to a given path
         """
-
-        # TODO saving for datasets in subfolders & not
         # Set saving to file
         filename = os.path.join(save_to, name)
         
@@ -754,8 +752,7 @@ class Scene(object):
     def fetch_props_from_Maya(self):
         """Get properties records from Maya
             Note: it updates global config!"""
-            
-        self.config['camera_rotation'] = cmds.getAttr(self.camera + '.rotate')[0]
+        pass
 
     def _fetch_color(self, shader):
         """Return current color of a given shader node"""
@@ -764,19 +761,19 @@ class Scene(object):
     def _add_camera(self):
         """Puts camera in the scene
         NOTE Assumes body is facing +z direction"""
-
-        aspect_ratio = self.config['resolution'][0] / self.config['resolution'][1]
-        self.camera = cmds.camera(ar=aspect_ratio)
+        
+        self.camera = cmds.camera()
         self.camera = self.camera[0]
 
+        default_rotation = [-23.2, 16, 0]
         cmds.setAttr(
             self.camera + '.rotate', 
-            self.config['camera_rotation'][0], 
-            self.config['camera_rotation'][1], 
-            self.config['camera_rotation'][2], 
+            default_rotation[0], 
+            default_rotation[1], 
+            default_rotation[2], 
             type='double3')
 
-        cmds.viewFit(self.camera, self.body, f=1)
+        cmds.viewFit(self.camera, self.body, f=0.85, )
 
     def _simple_scene_setup(self):
         """setup very simple scene & materials using info from props"""

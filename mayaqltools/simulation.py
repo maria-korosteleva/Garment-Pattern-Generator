@@ -130,8 +130,7 @@ def init_sim_props(props, batch_run=False, force_restart=False):
         # init with defaults
         props.set_section_config(
             'render',
-            resolution=[800, 800],
-            camera_rotation=[0, 0, 0]
+            resolution=[800, 800]
         )
     
     if batch_run and 'processed' in props['sim']['stats'] and not force_restart:

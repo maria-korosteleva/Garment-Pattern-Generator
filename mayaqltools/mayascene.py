@@ -761,7 +761,7 @@ class Scene(object):
     def _add_camera(self):
         """Puts camera in the scene
         NOTE Assumes body is facing +z direction"""
-        
+
         self.camera = cmds.camera()
         self.camera = self.camera[0]
 
@@ -773,7 +773,8 @@ class Scene(object):
             default_rotation[2], 
             type='double3')
 
-        cmds.viewFit(self.camera, self.body, f=0.85, )
+        fitFactor = self.config['resolution'][1] / self.config['resolution'][0]
+        cmds.viewFit(self.camera, self.body, f=fitFactor)
 
     def _simple_scene_setup(self):
         """setup very simple scene & materials using info from props"""

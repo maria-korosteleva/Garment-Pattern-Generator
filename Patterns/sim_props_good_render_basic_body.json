@@ -3,11 +3,6 @@
   "render": {
     "config": {
       "scene": "studio.mb",
-      "camera_rotation": [
-        -23.20000000000003, 
-        16.00000000000005, 
-        1.2407734653200533e-15
-      ], 
       "resolution": [
         800, 
         800

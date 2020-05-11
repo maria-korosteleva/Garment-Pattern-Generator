@@ -19,7 +19,7 @@ if __name__ == "__main__":
     path = system_config['templates_path']
 
     # ------ Dataset Example ------
-    dataset = 't-data_tee_200507-14-56-58'
+    dataset = 'renders_tee_200511-14-57-32'
     datapath = os.path.join(system_config['output'], dataset)
     dataset_file = os.path.join(datapath, 'dataset_properties.json')
     props = customconfig.Properties(dataset_file)
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         data_folder=dataset  # in case data properties are from other dataset/folder, update info
     )  
 
-    mymaya.simulation.batch_sim(path, path, datapath, props, caching=False)
+    mymaya.simulation.batch_sim(system_config, datapath, props, caching=False)
     props.serialize(dataset_file)
 
     # ------ Example for single template generation ------
@@ -40,5 +40,5 @@ if __name__ == "__main__":
     #     templates='skirt_maya_coords_specification.json'
     # )
     # # TODO Give path to template directly
-    # mymaya.simulation.single_file_sim(path_example, path, props, caching=False)
+    # mymaya.simulation.single_file_sim(system_config, props, caching=False)
     # print(props)

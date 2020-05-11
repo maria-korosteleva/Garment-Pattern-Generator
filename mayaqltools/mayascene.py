@@ -681,7 +681,7 @@ class Scene(object):
         Assumes 
             * body the scene revolved aroung faces z+ direction
     """
-    def __init__(self, body_obj, props, clean_on_die=False):
+    def __init__(self, body_obj, props, scenes_path='', clean_on_die=False):
         """
             Set up scene for rendering using loaded body as a reference
         """
@@ -698,15 +698,15 @@ class Scene(object):
         # Put camera. 
         self._add_camera()
 
-        self.simple = False
-
         # scene
         self._init_arnold()
         self.scene = {}
-        if self.simple:
-            self._simple_scene_setup()
+        if 'scene' in self.config:
+            self._load_maya_scene(os.path.join(scenes_path, self.config['scene']))
+            self.simple = False
         else:
-            self._load_maya_scene('D:/MyDocs/GigaKorea/Garment Pattern Estimation/data_generation/Patterns/studio.mb')
+            self._simple_scene_setup()
+            self.simple = True
 
     def __del__(self):
         """Remove all objects related to current scene if requested on creation"""
@@ -797,7 +797,6 @@ class Scene(object):
             'light': mutils.createLocator('aiSkyDomeLight', asLight=True)
         }
         self.scene['floor'], self.scene['floor_shader'] = self._add_floor(self.body, self.config['floor_color'])
-        self.simple = True
 
     def _add_floor(self, target, color):
         """

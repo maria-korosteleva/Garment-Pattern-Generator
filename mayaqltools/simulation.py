@@ -14,7 +14,7 @@ from mayaqltools import qualothwrapper as qw
 
 
 # ----------- High-level requests --------------
-def single_file_sim(template_path, body_path, props, caching=False):
+def single_file_sim(resources, props, caching=False):
     """
         Simulates the given template and puts the results in original template folder, 
         including config and statistics
@@ -23,13 +23,14 @@ def single_file_sim(template_path, body_path, props, caching=False):
         # ----- Init -----
         init_sim_props(props, True)
         qw.load_plugin()
-        scene = mymaya.Scene(body_path + '/' + props['body'], props['render'])
+        scene = mymaya.Scene(
+            os.path.join(resources['bodies_path'], dataset_props['body']),
+            dataset_props['render'], 
+            scenes_path=resources['scenes_path'])
 
         # Main part
-        template_simulation(template_path + '/' + props['templates'], 
-                            scene, 
-                            props['sim'], 
-                            caching=caching)
+        template_simulation(os.path.join(resources['templates_path'], props['templates']), 
+                            scene, props['sim'], caching=caching)
 
         # Fin
         print('Finished experiment')
@@ -38,12 +39,12 @@ def single_file_sim(template_path, body_path, props, caching=False):
             del props['sim']['stats']['processed']
         except KeyError:
             pass
-        props.serialize(os.path.dirname(template_path + '/' + props['templates']) + '/props.json')
+        props.serialize(os.path.join(resources['templates_path'], 'props.json'))
     except Exception as e:
         print(e)
 
 
-def batch_sim(template_path, body_path, data_path, dataset_props, 
+def batch_sim(resources, data_path, dataset_props, 
               caching=False, force_restart=False):
     """
         Performs pattern simulation for each example in the dataset 
@@ -70,7 +71,11 @@ def batch_sim(template_path, body_path, data_path, dataset_props,
     # ----- Init -----
     resume = init_sim_props(dataset_props, batch_run=True, force_restart=force_restart)
     qw.load_plugin()
-    scene = mymaya.Scene(body_path + '/' + dataset_props['body'], dataset_props['render'])
+    scene = mymaya.Scene(
+        os.path.join(resources['bodies_path'], dataset_props['body']),
+        dataset_props['render'], 
+        scenes_path=resources['scenes_path'])
+    
     pattern_specs = _get_pattern_files(data_path, dataset_props)
     data_props_file = os.path.join(data_path, 'dataset_properties.json')
 

@@ -12,6 +12,8 @@ This is work-in-progress, and licensing terms are not finalized. If you want to 
 Create system.json file in the root of this directory with your machine's file paths including
 * path to pattern templated folder ('templates_path') 
 * path for creating logs & putting new datasets to ('output')
+* path to folder containing body files ('bodies_path')
+* path to folder containing rendering setup (scenes) ('scenes_path')
 Use system.template.json as a template. 
 
 ## Components of the generation system

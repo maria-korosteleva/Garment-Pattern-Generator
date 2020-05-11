@@ -22,6 +22,7 @@ import mayaqltools as mymaya
 import customconfig
 
 
+# -------- Main call -------------
 def start_GUI():
     """Initialize interface"""
 
@@ -45,6 +46,8 @@ def start_GUI():
     text_button_group(load_body_callback, state, label='Body file: ', button_label='Load')
     # props load
     text_button_group(load_props_callback, state, label='Properties: ', button_label='Load')
+    # scene setup load
+    text_button_group(load_scene_callback, state, label='Scene: ', button_label='Load')
     # separate
     cmds.separator()
 
@@ -98,6 +101,7 @@ class State(object):
         self.saving_prefix = None
         self.body_file = None
         self.config = customconfig.Properties()
+        self.scenes_path = ''
         mymaya.simulation.init_sim_props(self.config)  # use default setup for simulation -- for now
 
     def reload_garment(self):
@@ -227,7 +231,7 @@ def load_body_callback(view_field, state, *args):
 
     state.config['body'] = os.path.basename(file)  # update info
     state.body_file = file
-    state.scene = mymaya.Scene(file, state.config['render'], clean_on_die=True)  # previous scene will autodelete
+    state.scene = mymaya.Scene(file, state.config['render'], scenes_path=state.scenes_path, clean_on_die=True)  # previous scene will autodelete
     state.reload_garment()
             
 
@@ -257,12 +261,41 @@ def load_props_callback(view_field, state, *args):
     # Update scene with new config
     if state.scene is not None:
         state.scene = mymaya.Scene(
-            state.body_file, state.config['render'], clean_on_die=True)  
+            state.body_file, state.config['render'], 
+            scenes_path=state.scenes_path, clean_on_die=True)  
         state.reload_garment()
     
     # Load material props
     if state.garment is not None:
         state.garment.setMaterialSimProps(state.config['sim']['config']['material'])
+
+
+def load_scene_callback(view_field, state, *args):
+    """Load sim & renderign properties from file rather then use defaults"""
+    multipleFilters = "MayaBinary (*.mb);;All Files (*.*)"
+    file = cmds.fileDialog2(
+        fileFilter=multipleFilters, 
+        dialogStyle=2, 
+        fileMode=1, 
+        caption='Choose scene setup Maya file'
+    )
+    if not file:  # do nothing
+        return
+
+    file = file[0]
+    cmds.textField(view_field, edit=True, text=file)
+
+    # Use current scene info instead of one from config
+    state.config['render']['config']['scene'] = os.path.basename(file)
+    state.scenes_path = os.path.dirname(file)
+
+    # Update scene with new config
+    if state.scene is not None:
+        state.scene = mymaya.Scene(
+            state.body_file, state.config['render'], 
+            scenes_path=state.scenes_path,
+            clean_on_die=True)  
+        state.reload_garment()
 
 
 def reload_garment_callback(state, *args):

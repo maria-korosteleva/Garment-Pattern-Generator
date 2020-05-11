@@ -703,10 +703,8 @@ class Scene(object):
         self.scene = {}
         if 'scene' in self.config:
             self._load_maya_scene(os.path.join(scenes_path, self.config['scene']))
-            self.simple = False
         else:
             self._simple_scene_setup()
-            self.simple = True
 
     def __del__(self):
         """Remove all objects related to current scene if requested on creation"""
@@ -758,10 +756,7 @@ class Scene(object):
             Note: it updates global config!"""
         self.config['body_color'] = self._fetch_color(self.scene['body_shader'])
         self.config['cloth_color'] = self._fetch_color(self.scene['cloth_shader'])
-        if self.simple:
-            self.config['floor_color'] = cmds.getAttr(self.floor_shader + '.fillColor')[0]  # special case
-        else:
-            self.config['floor_color'] = self._fetch_color(self.scene['floor_shader'])
+        self.config['floor_color'] = self._fetch_color(self.scene['floor_shader'])
 
         self.config['camera_rotation'] = cmds.getAttr(self.camera + '.rotate')[0]
 
@@ -788,58 +783,17 @@ class Scene(object):
 
     def _simple_scene_setup(self):
         """setup very simple scene & materials using info from props"""
-        # Add 'floor'
         self.scene = {
+            'floor': self._add_floor(self.body)
+        }
+        self.scene.update({
             # materials
             'body_shader': self._new_lambert(self.config['body_color'], self.body),
             'cloth_shader': self._new_lambert(self.config['cloth_color']),
+            'floor_shader': self._new_lambert(self.config['floor_color'], self.scene['floor']),
             # light
             'light': mutils.createLocator('aiSkyDomeLight', asLight=True)
-        }
-        self.scene['floor'], self.scene['floor_shader'] = self._add_floor(self.body, self.config['floor_color'])
-
-    def _add_floor(self, target, color):
-        """
-            adds a floor under a given object
-        """
-        target_bb = cmds.exactWorldBoundingBox(target)
-
-        size = 10 * (target_bb[4] - target_bb[1])
-        floor = cmds.polyPlane(n='floor', w=size, h=size)
-
-        # place under the body
-        floor_level = target_bb[1]
-        cmds.move((target_bb[3] + target_bb[0]) / 2,  # bbox center
-                  floor_level, 
-                  (target_bb[5] + target_bb[2]) / 2,  # bbox center
-                  floor, a=1)
-
-        # special wireframe shader
-        floor_shader = cmds.shadingNode('aiWireframe', asShader=True)
-        cmds.setAttr((floor_shader + '.fillColor'), 
-                     color[0], color[1], color[2],
-                     type='double3')
-        # render as quads
-        cmds.setAttr(floor_shader + '.edgeType', 1)
-
-        # assign to floor
-        cmds.select(floor)
-        cmds.hyperShade(assign=floor_shader)
-
-        return floor[0], floor_shader
-
-    def _new_lambert(self, color, target=None):
-        """created a new shader node with given color"""
-        shader = cmds.shadingNode('lambert', asShader=True)
-        cmds.setAttr((shader + '.color'), 
-                     color[0], color[1], color[2],
-                     type='double3')
-
-        if target is not None:
-            cmds.select(target)
-            cmds.hyperShade(assign=shader)
-
-        return shader
+        })
 
     def _load_maya_scene(self, scenefile):
         """Load scene from external file. 
@@ -879,3 +833,34 @@ class Scene(object):
             bb[1],
             (bb[5] + bb[2]) / 2
         ]
+    
+    def _add_floor(self, target):
+        """
+            adds a floor under a given object
+        """
+        target_bb = cmds.exactWorldBoundingBox(target)
+
+        size = 10 * (target_bb[4] - target_bb[1])
+        floor = cmds.polyPlane(n='floor', w=size, h=size)
+
+        # place under the body
+        floor_level = target_bb[1]
+        cmds.move((target_bb[3] + target_bb[0]) / 2,  # bbox center
+                  floor_level, 
+                  (target_bb[5] + target_bb[2]) / 2,  # bbox center
+                  floor, a=1)
+
+        return floor[0]
+
+    def _new_lambert(self, color, target=None):
+        """created a new shader node with given color"""
+        shader = cmds.shadingNode('lambert', asShader=True)
+        cmds.setAttr((shader + '.color'), 
+                     color[0], color[1], color[2],
+                     type='double3')
+
+        if target is not None:
+            cmds.select(target)
+            cmds.hyperShade(assign=shader)
+
+        return shader

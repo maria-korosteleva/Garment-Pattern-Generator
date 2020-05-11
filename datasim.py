@@ -40,6 +40,5 @@ if __name__ == "__main__":
     #     body='f_smpl_templatex300.obj',
     #     templates='skirt_maya_coords_specification.json'
     # )
-    # # TODO Give path to template directly
     # mymaya.simulation.single_file_sim(system_config, props, caching=False)
     # print(props)

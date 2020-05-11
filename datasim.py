@@ -19,14 +19,15 @@ if __name__ == "__main__":
     path = system_config['templates_path']
 
     # ------ Dataset Example ------
-    dataset = 'renders_tee_200511-14-57-32'
+    dataset = 'sim_config_tee_200511-15-30-12'
     datapath = os.path.join(system_config['output'], dataset)
     dataset_file = os.path.join(datapath, 'dataset_properties.json')
+
+    # defining sim props
     props = customconfig.Properties(dataset_file)
-    props.set_basic(
-        body='f_smpl_templatex300.obj', 
-        data_folder=dataset  # in case data properties are from other dataset/folder, update info
-    )  
+    props.set_basic(data_folder=dataset)   # in case data properties are from other dataset/folder, update info
+    props.merge(os.path.join(system_config["sim_configs_path"], 
+                             'sim_props_good_render_basic_body.json'))
 
     mymaya.simulation.batch_sim(system_config, datapath, props, caching=False)
     props.serialize(dataset_file)

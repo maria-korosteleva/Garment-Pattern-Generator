@@ -19,11 +19,22 @@ class Properties():
         if filename:
             self.properties = self._from_file(filename)
             if clean_stats:  # only makes sense when initialized from file =) 
-                self.clean_stats()
+                self.clean_stats(self.properties)
 
     def has(self, key):
         """Used to quety if a top-level property/section is already defined"""
         return key in self.properties
+
+    def merge(self, filename="", clean_stats=False):
+        """Merge current set of properties with the one from file
+            As with Python dicts, values from new props overrite 
+            the one from old one if keys are the same
+        """
+        new_props = self._from_file(filename)
+        if clean_stats:
+            self.clean_stats(new_props)
+        # merge
+        self.properties.update(new_props)
 
     def set_section_config(self, section, **kwconfig):
         """adds or modifies a (top level) section and updates its configuration info
@@ -61,9 +72,9 @@ class Properties():
         for key, value in kwconfig.items():
             self.properties[key] = value
 
-    def clean_stats(self):
+    def clean_stats(self, properties):
         """ Remove info from all Stats sub sections """
-        for key, value in self.properties.items():
+        for key, value in properties.items():
             # detect section
             if isinstance(value, dict) and 'stats' in value:
                 value['stats'] = {}

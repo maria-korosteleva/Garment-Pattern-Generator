@@ -14,6 +14,7 @@ Create system.json file in the root of this directory with your machine's file p
 * path for creating logs & putting new datasets to ('output')
 * path to folder containing body files ('bodies_path')
 * path to folder containing rendering setup (scenes) ('scenes_path')
+* path to folder with simulation\rendering configurations ('sim_configs_path')
 Use system.template.json as a template. 
 
 ## Components of the generation system

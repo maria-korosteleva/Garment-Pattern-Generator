@@ -1,0 +1,77 @@
+{
+  "body": "f_smpl_templatex300.obj", 
+  "render": {
+    "config": {
+      "scene": "studio.mb",
+      "body_color": [
+        0.6746987700462341, 
+        0.6746987700462341, 
+        0.6746987700462341
+      ], 
+      "camera_rotation": [
+        -23.20000000000003, 
+        16.00000000000005, 
+        1.2407734653200533e-15
+      ], 
+      "cloth_color": [
+        0.746999979019165, 
+        0.23605380952358246, 
+        0.04780800640583038
+      ], 
+      "floor_color": [
+        0.6144000291824341, 
+        0.41589999198913574, 
+        0.3303000032901764
+      ], 
+      "resolution": [
+        800, 
+        800
+      ]
+    }, 
+    "stats": {
+      "render_time": [
+        2.88100004196167, 
+        2.1010000705718994, 
+        2.2179999351501465, 
+        40.61899995803833, 
+        39.652000188827515
+      ]
+    }
+  }, 
+  "sim": {
+    "config": {
+      "material": {
+        "air_drag": 0.01, 
+        "bend_angle_dropoff": 0.0, 
+        "bend_damp": 0.001, 
+        "bend_damp_dropoff": 0.0, 
+        "bend_plasticity": 0.0, 
+        "bend_resistance": 0.1, 
+        "bend_yield": 0.0, 
+        "compression_resistance": 100.0, 
+        "density": 0.01, 
+        "friction": 0.25, 
+        "length_scale": 1.0, 
+        "pressure": 0.0, 
+        "rubber": 1.0, 
+        "shear_resistance": 0.1, 
+        "stretch_damp": 0.01, 
+        "stretch_resistance": 100.0, 
+        "viscous_damp": 0.0, 
+        "warp_resistance_scale": 1.0, 
+        "warp_rubber_scale": 1.0, 
+        "weft_resistance_scale": 1.0, 
+        "weft_rubber_scale": 1.0
+      }, 
+      "max_sim_steps": 500, 
+      "static_threshold": 0.05, 
+      "zero_gravity_steps": 5
+    }, 
+    "stats": {
+      "fin_frame": [], 
+      "sim_fails": [], 
+      "sim_time": [], 
+      "spf": []
+    }
+  }
+}

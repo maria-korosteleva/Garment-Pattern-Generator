@@ -174,10 +174,11 @@ class ParametrizedPattern(BasicPattern):
     """
     def __init__(self, pattern_file):
         super(ParametrizedPattern, self).__init__(pattern_file)
-        self.parameter_types = [
-            'length',
-            'curve'
-        ]
+        self.parameter_defaults = {
+            'length': 1,
+            'additive_length': 0,
+            'curve': 1
+        }
 
     def reloadJSON(self):
         """(Re)loads pattern info from spec file. 
@@ -197,14 +198,17 @@ class ParametrizedPattern(BasicPattern):
         for parameter in self.spec['parameter_order']:
             value = self.parameters[parameter]['value']
             param_type = self.parameters[parameter]['type']
-            if param_type not in self.parameter_types:
+            if param_type not in self.parameter_defaults:
                 raise ValueError("Incorrect parameter type. Alowed are "
-                                 + self.parameter_types.keys())
+                                 + self.parameter_defaults.keys())
 
             for panel_influence in self.parameters[parameter]['influence']:
                 for edge in panel_influence['edge_list']:
                     if param_type == 'length':
                         self._extend_edge(panel_influence['panel'], edge, value)
+                    elif param_type == 'additive_length':
+                        pass
+                        # self._extend_edge(panel_influence['panel'], edge, value, multiplicative=False)
                     elif param_type == 'curve':
                         self._curve_edge(panel_influence['panel'], edge, value)
 
@@ -214,46 +218,43 @@ class ParametrizedPattern(BasicPattern):
         """
         # Follow the every order backwards
         for parameter in reversed(self.spec['parameter_order']):
-            
-            # invert value(s)
-            inv_value = self.parameters[parameter]['value']
-            try:  
-                if isinstance(inv_value, list):
-                    inv_value = map(lambda x: 1 / x, inv_value)
-                else:
-                    inv_value = 1 / inv_value
-            except ZeroDivisionError as e:
-                raise ZeroDivisionError('Zero value encountered while restoring template. Value is skipped')
-            
-            # Apply
+            value = self.parameters[parameter]['value']
             param_type = self.parameters[parameter]['type']
-            if param_type not in self.parameter_types:
+            if param_type not in self.parameter_defaults:
                 raise ValueError("Incorrect parameter type. Alowed are "
-                                 + self.parameter_types.keys())
+                                 + self.parameter_defaults.keys())
 
             for panel_influence in reversed(self.parameters[parameter]['influence']):
                 for edge in reversed(panel_influence['edge_list']):
                     if param_type == 'length':
-                        self._extend_edge(panel_influence['panel'], edge, inv_value)
+                        self._extend_edge(panel_influence['panel'], edge, self._invert_value(value))
+                    elif param_type == 'additive_length':
+                        print('Additive inverse', self._invert_value(-10, multiplicative=False))
+                        # self._extend_edge(panel_influence['panel'], edge, 
+                        #                   self._invert_value(value, multiplicative=False), 
+                        #                   multiplicative=False)
                     elif param_type == 'curve':
-                        self._curve_edge(panel_influence['panel'], edge, inv_value)
+                        self._curve_edge(panel_influence['panel'], edge, self._invert_value(value))
             
             # restore defaults
             if params_to_default:
                 if isinstance(inv_value, list):
-                    self.parameters[parameter]['value'] = [1 for _ in inv_value]
+                    self.parameters[parameter]['value'] = [self.parameter_defaults[param_type] for _ in inv_value]
                 else:
-                    self.parameters[parameter]['value'] = 1
+                    self.parameters[parameter]['value'] = self.parameter_defaults[param_type]
 
-    def _extend_edge(self, panel_name, edge_influence, scaling_factor):
+    def _extend_edge(self, panel_name, edge_influence, value, multiplicative=True):
         """
             Shrinks/elongates a given edge or edge collection of a given panel. Applies equally
             to straight and curvy edges tnks to relative coordinates of curve controls
             Expects
                 * each influenced edge to supply the elongatoin direction
                 * scalar scaling_factor
+            'multiplicative' parameter controls the type of extention:
+                * if True, value is treated as a scaling factor of the edge or edge projection -- default
+                * if False, value is added to the edge or edge projection
         """
-        if isinstance(scaling_factor, list):
+        if isinstance(value, list):
             raise ValueError("Multiple scaling factors are not supported")
 
         panel = self.pattern['panels'][panel_name]
@@ -293,8 +294,24 @@ class ParametrizedPattern(BasicPattern):
         verts_projection = np.empty(verts_coords.shape)
         for i in range(verts_coords.shape[0]):
             verts_projection[i] = (verts_coords[i] - fixed).dot(target_line) * target_line
-        # * to match the scaled projection (correct point of application -- initial vertex position)
-        new_verts = verts_coords - (1 - scaling_factor) * verts_projection
+
+        print(multiplicative, value)
+        if multiplicative:
+            # * to match the scaled projection (correct point of application -- initial vertex position)
+            new_verts = verts_coords - (1 - value) * verts_projection
+        else:
+            # * to match the added projection: 
+            # still need projection to make sure the extention derection is corect relative to fixed point
+            
+            # normalize first
+            for i in range(verts_coords.shape[0]):
+                norm = np.linalg.norm(verts_projection[i])
+                if not np.isclose(norm, 0):
+                    verts_projection[i] /= norm
+
+            print(verts_projection)
+            # zero projections were not normalized -- they will zero-out the effect
+            new_verts = verts_coords + value * verts_projection
 
         # update in the initial structure
         for ni, idx in enumerate(verts_ids):
@@ -323,6 +340,30 @@ class ParametrizedPattern(BasicPattern):
             control[1] *= scaling_factor
 
         panel['edges'][edge]['curvature'] = control
+
+    def _invert_value(self, value, multiplicative=True):
+        """If value is a list, return a list with each value inverted.
+            'multiplicative' parameter controls the type of inversion:
+                * if True, returns multiplicative inverse (1/value) == default
+                * if False, returns additive inverse (-value)
+        """
+        print('Inverting value ', value)
+        if multiplicative:
+            def inversion(x): 
+                return 1 / x
+        else:
+            def inversion(x): 
+                return -x
+
+        try:  
+            if isinstance(value, list):
+                inv_value = map(inversion, value)
+            else:
+                inv_value = inversion(value)
+        except ZeroDivisionError as e:
+            raise ZeroDivisionError('Zero value encountered while restoring template. Value is skipped')
+
+        return inv_value
 
     # ---------- Randomization -
     def _new_value(self, param_range):

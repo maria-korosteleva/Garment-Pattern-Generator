@@ -648,11 +648,11 @@
         }
       ], 
       "range": [
-        0.1, 
-        6
+        -20, 
+        100
       ], 
-      "type": "length", 
-      "value": 1
+      "type": "additive_length", 
+      "value": 0
     }, 
     "low_wide": {
       "influence": [

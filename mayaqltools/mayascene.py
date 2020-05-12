@@ -695,9 +695,6 @@ class Scene(object):
         self.body = cmds.file(body_obj, i=True, rnn=True)[0]
         self.body = cmds.rename(self.body, 'body#')
 
-        # Put camera. 
-        self._add_camera()
-
         # scene
         self._init_arnold()
         self.scene = {}
@@ -710,7 +707,7 @@ class Scene(object):
         """Remove all objects related to current scene if requested on creation"""
         if self.self_clean:
             cmds.delete(self.body)
-            cmds.delete(self.camera)
+            cmds.delete(self.cameras)
             for key in self.scene:
                 cmds.delete(self.scene[key])
                 # garment color migh become invalid
@@ -730,23 +727,29 @@ class Scene(object):
     def cloth_shader(self):
         return self.scene['cloth_shader']
 
-    def render(self, save_to, name='scene'):
+    def render(self, save_to, name=''):
         """
             Makes a rendering of a current scene, and saves it to a given path
         """
-        # Set saving to file
-        filename = os.path.join(save_to, name)
-        
         # https://forums.autodesk.com/t5/maya-programming/rendering-with-arnold-in-a-python-script/td-p/7710875
-        # NOTE that attribute names depend on the Maya version. These are for Maya2020
-        cmds.setAttr("defaultArnoldDriver.aiTranslator", "png", type="string")
-        cmds.setAttr("defaultArnoldDriver.prefix", filename, type="string")
-
-        start_time = time.time()
+        # NOTE that attribute names depend on Maya version. These are for Maya2018-Maya2020
         im_size = self.config['resolution']
+        cmds.setAttr("defaultArnoldDriver.aiTranslator", "png", type="string")
 
-        arnoldRender(im_size[0], im_size[1], True, True, self.camera, ' -layer defaultRenderLayer')
-        
+        # fix dark rendering problem
+        # https://forums.autodesk.com/t5/maya-shading-lighting-and/output-render-w-color-management-is-darker-than-render-view/td-p/7207081
+        cmds.colorManagementPrefs(e=True, outputTransformEnabled=True, outputUseViewTransform=True)
+
+        # render all the cameras
+        start_time = time.time()
+        for camera in self.cameras:
+            camera_name = camera.split(':')[-1]  # list of one element if ':' is not found
+            local_name = (name + '_' + camera_name) if name else camera_name
+            filename = os.path.join(save_to, local_name)
+            cmds.setAttr("defaultArnoldDriver.prefix", filename, type="string")
+
+            arnoldRender(im_size[0], im_size[1], True, True, camera, ' -layer defaultRenderLayer')
+            
         self.stats['render_time'].append(time.time() - start_time)
 
     def fetch_props_from_Maya(self):
@@ -758,26 +761,8 @@ class Scene(object):
         """Return current color of a given shader node"""
         return cmds.getAttr(shader + '.color')[0]
 
-    def _add_camera(self):
-        """Puts camera in the scene
-        NOTE Assumes body is facing +z direction"""
-
-        self.camera = cmds.camera()
-        self.camera = self.camera[0]
-
-        default_rotation = [-23.2, 16, 0]
-        cmds.setAttr(
-            self.camera + '.rotate', 
-            default_rotation[0], 
-            default_rotation[1], 
-            default_rotation[2], 
-            type='double3')
-
-        fitFactor = self.config['resolution'][1] / self.config['resolution'][0]
-        cmds.viewFit(self.camera, self.body, f=fitFactor)
-
     def _simple_scene_setup(self):
-        """setup very simple scene & materials using info from props"""
+        """setup very simple scene & materials"""
         colors = {
             "body_color": [0.5, 0.5, 0.7], 
             "cloth_color": [0.8, 0.2, 0.2], 
@@ -796,35 +781,58 @@ class Scene(object):
             'light': mutils.createLocator('aiSkyDomeLight', asLight=True)
         })
 
+        # Put camera
+        self.cameras = [self._add_simple_camera()]
+
     def _load_maya_scene(self, scenefile):
         """Load scene from external file. 
             NOTE Assumes certain naming of nodes in the scene!"""
+        before = set(cmds.ls())
+        cmds.file(scenefile, i=True, namespace='imported')
+        new_objects = set(cmds.ls()) - before
+        # Maya may modify namespace for uniquness
+        scene_namespace = new_objects.pop().split(':')[0] + '::'  
 
-        cmds.file(scenefile, i=True)
         self.scene = {
-            'scene_group': cmds.ls('*scene*', transforms=True)[0],
-            'floor': cmds.ls('*backdrop*', geometry=True)[0],
-            'floor_shader': cmds.ls('*backdrop*', materials=True)[0],
-            'body_shader': cmds.ls('*body*', materials=True)[0],
-            'cloth_shader': cmds.ls('*garment*', materials=True)[0],
-            'side_shader': cmds.ls('*wall*', materials=True)[0]
+            'scene_group': cmds.ls(scene_namespace + '*scene*', transforms=True)[0],
+            'floor': cmds.ls(scene_namespace + '*backdrop*', geometry=True)[0],
+            'floor_shader': cmds.ls(scene_namespace + '*backdrop*', materials=True)[0],
+            'body_shader': cmds.ls(scene_namespace + '*body*', materials=True)[0],
+            'cloth_shader': cmds.ls(scene_namespace + '*garment*', materials=True, )[0],
+            'side_shader': cmds.ls(scene_namespace + '*wall*', materials=True)[0]
         }
         # apply coloring to body object
         if self.body:
             cmds.select(self.body)
             cmds.hyperShade(assign=self.scene['body_shader'])
 
+        # collect cameras
+        self.cameras = cmds.ls(scene_namespace + '*camera*', transforms=True)
+        print(self.cameras)
+
         # adjust scene position s.t. body is standing in the middle
         body_low_center = self._get_object_lower_center(self.body)
         floor_low_center = self._get_object_lower_center(self.scene['floor'])
         old_translation = cmds.getAttr(self.scene['scene_group'] + '.translate')[0]
-        
         cmds.setAttr(
             self.scene['scene_group'] + '.translate',
             old_translation[0] + body_low_center[0] - floor_low_center[0],
             old_translation[1] + body_low_center[1] - floor_low_center[1], 
             old_translation[2] + body_low_center[2] - floor_low_center[2],
             type='double3')  # apply to whole group s.t. lights positions were adjusted too
+
+    def _add_simple_camera(self, rotation=[-23.2, 16, 0]):
+        """Puts camera in the scene
+        NOTE Assumes body is facing +z direction"""
+
+        camera = cmds.camera()[0]
+        cmds.setAttr(camera + '.rotate', rotation[0], rotation[1], rotation[2], type='double3')
+
+        # to view the target body
+        fitFactor = self.config['resolution'][1] / self.config['resolution'][0]
+        cmds.viewFit(camera, self.body, f=fitFactor)
+
+        return camera
 
     def _get_object_lower_center(self, object):
         """return 3D position of the center of the lower side of bounding box"""

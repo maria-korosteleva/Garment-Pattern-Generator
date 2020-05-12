@@ -291,6 +291,7 @@ def load_scene_callback(view_field, state, *args):
 
     # Update scene with new config
     if state.scene is not None:
+        # del state.scene
         state.scene = mymaya.Scene(
             state.body_file, state.config['render'], 
             scenes_path=state.scenes_path,
@@ -348,7 +349,7 @@ def saving_folder_callback(view_field, state, *args):
     directory = cmds.fileDialog2(
         dialogStyle=2, 
         fileMode=3,  # directories 
-        caption='Choose body obj file'
+        caption='Choose folder to save snapshots and renderings to'
     )
     if not directory:  # do nothing
         return 

@@ -5,6 +5,7 @@
 # Basic
 from __future__ import print_function
 from __future__ import division
+import copy
 import json
 import numpy as np
 import os
@@ -41,11 +42,6 @@ class BasicPattern(object):
             self.name = os.path.basename(os.path.normpath(self.path))
         self.reloadJSON()
 
-        for panel_name in self.pattern['panels']:
-            if self._is_panel_self_intersecting(panel_name):
-                print('Panel {} is self-intersecting'.format(panel_name))
-        print(self.is_self_intersecting())
-
     def reloadJSON(self):
         """(Re)loads pattern info from spec file. 
         Useful when spec is updated from outside"""
@@ -77,6 +73,14 @@ class BasicPattern(object):
     def is_self_intersecting(self):
         """returns True if any of the pattern panels are self-intersecting"""
         return any(map(self._is_panel_self_intersecting, self.pattern['panels']))
+
+    def _restore(self, backup_copy):
+        """Restores spec structure from given backup copy 
+            Makes a full copy of backup to avoid accidential corruption of backup
+        """
+        self.spec = copy.deepcopy(backup_copy)
+        self.pattern = self.spec['pattern']
+        self.properties = self.spec['properties']  # mandatory part
 
     # --------- Pattern operations ----------
     def _normalize_template(self):
@@ -178,19 +182,30 @@ class BasicPattern(object):
 
     # -------- Checks ------------
     def _is_panel_self_intersecting(self, panel_name):
-        """Checks whatever a given panel contains intersecting edges"""
+        """Checks whatever a given panel contains intersecting edges
+        """
         panel = self.pattern['panels'][panel_name]
         vertices = np.array(panel['vertices'])
 
+        # construct edge list in coordinates
+        edge_list = []
+        for edge in panel['edges']:
+            edge_ids = edge['endpoints']
+            edge_coords = vertices[edge_ids]
+            if 'curvature' in edge:
+                curv_abs = self._control_to_abs_coord(edge_coords[0], edge_coords[1], edge['curvature'])
+                # view curvy edge as two segments
+                # NOTE this aproximation might lead to False positives in intersection tests
+                edge_list.append([edge_coords[0], curv_abs])
+                edge_list.append([curv_abs, edge_coords[1]])
+            else:
+                edge_list.append(edge_coords.tolist())
+
         # simple pairwise checks of edges
-        # TODO add special handling of curved edges
-        for i1 in range(0, len(panel['edges'])):
-            edge_1_ids = panel['edges'][i1]['endpoints']
-            edge_1 = vertices[edge_1_ids]
-            for i2 in range(i1 + 1, len(panel['edges'])):
-                edge_2_ids = panel['edges'][i2]['endpoints']
-                edge_2 = vertices[edge_2_ids]
-                if self._is_segm_intersecting(edge_1, edge_2):
+        # Follows discussion in  https://math.stackexchange.com/questions/80798/detecting-polygon-self-intersection 
+        for i1 in range(0, len(edge_list)):
+            for i2 in range(i1 + 1, len(edge_list)):
+                if self._is_segm_intersecting(edge_list[i1], edge_list[i2]):
                     return True
         
         return False          

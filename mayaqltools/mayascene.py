@@ -6,6 +6,7 @@
 from __future__ import print_function
 from __future__ import division
 from functools import partial
+import copy
 import errno
 import json
 import numpy as np
@@ -625,11 +626,18 @@ class MayaGarmentWithUI(MayaGarment):
         # restore template state before making any changes to parameters
         self._restore_template(params_to_default=False)
 
-        # get values
+        spec_backup = copy.deepcopy(self.spec)
         self._randomize_parameters()
-        
-        # reapply all parameters
         self._update_pattern_by_param_values()
+        for trial in range(100):  # upper bound on trials to avoid infinite loop
+            if not self.is_self_intersecting():
+                break
+
+            print('Warning::Randomized pattern is self-intersecting. Re-try..')
+            self._restore(spec_backup)
+            # Try again
+            self._randomize_parameters()
+            self._update_pattern_by_param_values()
         
         # update geometry in lazy manner
         if self.loaded_to_maya:
@@ -639,6 +647,9 @@ class MayaGarmentWithUI(MayaGarment):
 
     def _param_value_callback(self, param_name, value_idx, *args):
         """Update pattern with new value"""
+        # in case the try failes
+        spec_backup = copy.deepcopy(self.spec)
+
         # restore template state -- params are interdependent
         # change cannot be applied independently by but should follow specified param order
         self._restore_template(params_to_default=False)
@@ -653,7 +664,20 @@ class MayaGarmentWithUI(MayaGarment):
         
         # reapply all parameters
         self._update_pattern_by_param_values()
-        
+        if self.is_self_intersecting():
+            # bad state
+            result = cmds.confirmDialog( 
+                title='Restore from broken state', 
+                message=('Warning: Some of the panels contain intersected edges after applying value {} to {}.' 
+                         '\nDo you want to revert to previous state?' 
+                         '\n\nNote: simulation in broken state might result in Maya crashing').format(new_value, param_name), 
+                button=['Yes', 'No'], 
+                defaultButton='Yes', cancelButton='No', dismissString='No')
+            if result == 'Yes':
+                # TODO the value in the UI is not valid any more
+                self._restore(spec_backup)
+                return  # No need to reload geometry -- nothing changed
+
         # update geometry in lazy manner
         if self.loaded_to_maya:
             self.load()

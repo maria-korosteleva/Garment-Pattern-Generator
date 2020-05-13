@@ -2,14 +2,15 @@
     Adapted to be used in Python 3.6+
     TODO It might make sence to turn drawing into routines rather then new class
 """
-import svgwrite
-from svglib import svglib
-from reportlab.graphics import renderPM
+import copy
 import random
 import string
 import os
 import numpy as np
 
+import svgwrite
+from svglib import svglib
+from reportlab.graphics import renderPM
 
 # my
 import customconfig
@@ -205,11 +206,25 @@ class RandomPattern(VisPattern):
         self.name = self.name + '_' + self._id_generator()
 
         # randomization setup
+        self._randomize()
+
+    def _randomize(self):
+        """Robustly randomize current pattern"""
+
+        spec_backup = copy.deepcopy(self.spec)
         self._randomize_parameters()
         self._update_pattern_by_param_values()
+        for tries in range(100):  # upper bound on trials to avoid infinite loop
+            if not self.is_self_intersecting():
+                break
+
+            print('Warning::Randomized pattern is self-intersecting. Re-try..')
+            self._restore(spec_backup)
+            # Try again
+            self._randomize_parameters()
+            self._update_pattern_by_param_values()
 
     # -------- Other Utils ---------
-
     def _id_generator(self, size=10,
                       chars=string.ascii_uppercase + string.digits):
         """Generated a random string of a given size, see

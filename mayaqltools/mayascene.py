@@ -555,14 +555,16 @@ class MayaGarmentWithUI(MayaGarment):
         cmds.setParent('..')
 
         # value
-        cmds.floatSliderGrp(
+        value_field = cmds.floatSliderGrp(
             label='Value ' + tag + ':', 
             field=True, value=value, 
             minValue=param_range[0], maxValue=param_range[1], 
             cal=[1, 'left'], cw=[1, 45], 
-            changeCommand=partial(self._param_value_callback, param_name, idx),
             step=0.01
         )
+        # add command with reference to current field
+        cmds.floatSliderGrp(value_field, edit=True, 
+                            changeCommand=partial(self._param_value_callback, param_name, idx, value_field))
 
     def _ui_params(self, params, order):
         """draw params UI"""
@@ -645,10 +647,14 @@ class MayaGarmentWithUI(MayaGarment):
             # update UI in lazy manner
             self.drawUI()
 
-    def _param_value_callback(self, param_name, value_idx, *args):
+    def _param_value_callback(self, param_name, value_idx, value_field, *args):
         """Update pattern with new value"""
         # in case the try failes
         spec_backup = copy.deepcopy(self.spec)
+        if isinstance(self.parameters[param_name]['value'], list):
+            old_value = self.parameters[param_name]['value'][value_idx]
+        else:
+            old_value = self.parameters[param_name]['value']
 
         # restore template state -- params are interdependent
         # change cannot be applied independently by but should follow specified param order
@@ -656,7 +662,7 @@ class MayaGarmentWithUI(MayaGarment):
 
         # get value
         new_value = args[0]
-        # save value. No need to check ranges -- correct by UI
+        # save new value. No need to check ranges -- correct by UI
         if isinstance(self.parameters[param_name]['value'], list):
             self.parameters[param_name]['value'][value_idx] = new_value
         else:
@@ -665,7 +671,6 @@ class MayaGarmentWithUI(MayaGarment):
         # reapply all parameters
         self._update_pattern_by_param_values()
         if self.is_self_intersecting():
-            # bad state
             result = cmds.confirmDialog( 
                 title='Restore from broken state', 
                 message=('Warning: Some of the panels contain intersected edges after applying value {} to {}.' 
@@ -674,9 +679,9 @@ class MayaGarmentWithUI(MayaGarment):
                 button=['Yes', 'No'], 
                 defaultButton='Yes', cancelButton='No', dismissString='No')
             if result == 'Yes':
-                # TODO the value in the UI is not valid any more
                 self._restore(spec_backup)
-                return  # No need to reload geometry -- nothing changed
+                cmds.floatSliderGrp(value_field, edit=True, value=old_value)
+                # return  # No need to reload geometry -- nothing changed
 
         # update geometry in lazy manner
         if self.loaded_to_maya:

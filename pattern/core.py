@@ -41,6 +41,11 @@ class BasicPattern(object):
             self.name = os.path.basename(os.path.normpath(self.path))
         self.reloadJSON()
 
+        for panel_name in self.pattern['panels']:
+            if self._is_panel_self_intersecting(panel_name):
+                print('Panel {} is self-intersecting'.format(panel_name))
+        print(self.is_self_intersecting())
+
     def reloadJSON(self):
         """(Re)loads pattern info from spec file. 
         Useful when spec is updated from outside"""
@@ -68,6 +73,10 @@ class BasicPattern(object):
             json.dump(self.spec, f_json, indent=2)
         
         return log_dir
+
+    def is_self_intersecting(self):
+        """returns True if any of the pattern panels are self-intersecting"""
+        return any(map(self._is_panel_self_intersecting, self.pattern['panels']))
 
     # --------- Pattern operations ----------
     def _normalize_template(self):
@@ -166,7 +175,42 @@ class BasicPattern(object):
             np.array(panel['vertices'][v_id_end])
         
         return np.linalg.norm(v_end - v_start)
+
+    # -------- Checks ------------
+    def _is_panel_self_intersecting(self, panel_name):
+        """Checks whatever a given panel contains intersecting edges"""
+        panel = self.pattern['panels'][panel_name]
+        vertices = np.array(panel['vertices'])
+
+        # simple pairwise checks of edges
+        # TODO add special handling of curved edges
+        for i1 in range(0, len(panel['edges'])):
+            edge_1_ids = panel['edges'][i1]['endpoints']
+            edge_1 = vertices[edge_1_ids]
+            for i2 in range(i1 + 1, len(panel['edges'])):
+                edge_2_ids = panel['edges'][i2]['endpoints']
+                edge_2 = vertices[edge_2_ids]
+                if self._is_segm_intersecting(edge_1, edge_2):
+                    return True
         
+        return False          
+        
+    def _is_segm_intersecting(self, segment1, segment2):
+        """Checks wheter two segments intersect 
+            in the points interior to both segments"""
+        # https://algs4.cs.princeton.edu/91primitives/
+        def ccw(start, end, point):
+            """A test whether three points form counterclockwize angle (>0) 
+            Returns (<0) if they form clockwize angle
+            0 if collinear"""
+            return (end[0] - start[0]) * (point[1] - start[1]) - (point[0] - start[0]) * (end[1] - start[1])
+
+        # == 0 for edges sharing a vertex
+        if (ccw(segment1[0], segment1[1], segment2[0]) * ccw(segment1[0], segment1[1], segment2[1]) >= 0
+                or ccw(segment2[0], segment2[1], segment1[0]) * ccw(segment2[0], segment2[1], segment1[1]) >= 0):
+            return False
+        return True
+
 
 class ParametrizedPattern(BasicPattern):
     """

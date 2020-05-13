@@ -227,11 +227,12 @@ if __name__ == "__main__":
 
     system_config = customconfig.Properties('../system.json')
     base_path = system_config['output']
-    pattern = VisPattern(os.path.join(system_config['templates_path'], 'basic tee', 'tee.json'))
+    # pattern = VisPattern(os.path.join(system_config['templates_path'], 'basic tee', 'tee.json'))
+    pattern = VisPattern(os.path.join(base_path, 't-data_tee_200507-14-01-01', 'tee_4F0L01ONR5_specification.json'))
     newpattern = RandomPattern(os.path.join(system_config['templates_path'], 'basic tee', 'tee.json'))
 
     # log to file
-    log_folder = 'tee_' + datetime.now().strftime('%y%m%d-%H-%M-%S')
+    log_folder = 'intersect_' + datetime.now().strftime('%y%m%d-%H-%M-%S')
     log_folder = os.path.join(base_path, log_folder)
     os.makedirs(log_folder)
 

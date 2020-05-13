@@ -113,33 +113,32 @@
     // Sewing information of which edges should be stitched together to form a garment
     // the ordering of stitches does not matters
     "stitches": [
-      // each stitch is just a list of edges to connect. 
-      // it supports 1-to-1 and 1-to-many stitches
-      {
-        // one side of a stitch -- each stitch has only one 'from' value
-        // in case of 1-to-many, this should be the longest side
-        "from": {
+      // each stitch is just a list of 2 edges to connect. 
+      // (we only support 1-to-1 stitches)
+      [
+        // edge locator ensures uniquness of the reference
+        {
           // for edge identification, we need to know the panel name 
           "panel": "front",
           // and the edge id in that panel.
           "edge": 1
         },
         // there could be one or multiple 'to's -- e.g. to describe sleeves
-        "to": {
+        {
           "panel": "back",
           "edge": 1
         }
-      },
-      {
-        "from": {
+      ],
+      [
+        {
           "panel": "front",
           "edge": 3
         },
-        "to": {
+        {
           "panel": "back",
           "edge": 3
         }
-      }
+      ]
     ]
   },
   // This section describes how the pattern above can be changed

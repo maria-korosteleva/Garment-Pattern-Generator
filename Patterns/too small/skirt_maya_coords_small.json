@@ -54,27 +54,27 @@
       }
     },
     
-    "stitches" : [
-      {
-        "from": {
-          "panel" : "front",
-          "edge" : 1
-        },
-        "to": {
-          "panel" : "back",
-          "edge" : 3
+    "stitches": [
+      [
+        {
+          "edge": 3, 
+          "panel": "back"
+        }, 
+        {
+          "edge": 1, 
+          "panel": "front"
         }
-      },
-      {
-        "from": {
-          "panel" : "front",
-          "edge" : 3
-        },
-        "to": {
-          "panel" : "back",
-          "edge" : 1
+      ], 
+      [
+        {
+          "edge": 1, 
+          "panel": "back"
+        }, 
+        {
+          "edge": 3, 
+          "panel": "front"
         }
-      }
+      ]
     ]
   },
 

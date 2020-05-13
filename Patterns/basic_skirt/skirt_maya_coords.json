@@ -119,26 +119,26 @@
       }
     }, 
     "stitches": [
-      {
-        "to": {
+      [
+        {
           "edge": 3, 
           "panel": "back"
         }, 
-        "from": {
+        {
           "edge": 1, 
           "panel": "front"
         }
-      }, 
-      {
-        "to": {
+      ], 
+      [
+        {
           "edge": 1, 
           "panel": "back"
         }, 
-        "from": {
+        {
           "edge": 3, 
           "panel": "front"
         }
-      }
+      ]
     ]
   }, 
   "properties": {

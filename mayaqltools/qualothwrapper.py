@@ -48,7 +48,6 @@ def qlCreatePattern(curves_group):
 def qlCreateSeam(curve1, curve2):
     """
         Create a seam between two selected curves
-        TODO add support for 1-many stitches
     """
     cmds.select([curve1, curve2])
     # Operates on selection

@@ -465,126 +465,126 @@
       }
     }, 
     "stitches": [
-      {
-        "to": {
+      [
+        {
           "edge": 7, 
           "panel": "back"
         }, 
-        "from": {
+        {
           "edge": 1, 
           "panel": "front"
         }
-      }, 
-      {
-        "to": {
+      ],
+      [
+        {
           "edge": 5, 
           "panel": "back"
         }, 
-        "from": {
+        {
           "edge": 3, 
           "panel": "front"
         }
-      }, 
-      {
-        "to": {
+      ], 
+      [
+        {
           "edge": 3, 
           "panel": "back"
         }, 
-        "from": {
+        {
           "edge": 5, 
           "panel": "front"
         }
-      }, 
-      {
-        "to": {
+      ], 
+      [
+        {
           "edge": 1, 
           "panel": "back"
         }, 
-        "from": {
+        {
           "edge": 7, 
           "panel": "front"
         }
-      }, 
-      {
-        "to": {
+      ], 
+      [
+        {
           "edge": 2, 
           "panel": "rfsleeve"
         }, 
-        "from": {
+        {
           "edge": 2, 
           "panel": "front"
         }
-      }, 
-      {
-        "to": {
+      ], 
+      [
+        {
           "edge": 2, 
           "panel": "rbsleeve"
         }, 
-        "from": {
+        {
           "edge": 6, 
           "panel": "back"
         }
-      }, 
-      {
-        "to": {
+      ], 
+      [
+        {
           "edge": 2, 
           "panel": "lfsleeve"
         }, 
-        "from": {
+        {
           "edge": 6, 
           "panel": "front"
         }
-      }, 
-      {
-        "to": {
+      ], 
+      [
+        {
           "edge": 2, 
           "panel": "lbsleeve"
         }, 
-        "from": {
+        {
           "edge": 2, 
           "panel": "back"
         }
-      }, 
-      {
-        "to": {
+      ], 
+      [
+        {
           "edge": 1, 
           "panel": "lbsleeve"
         }, 
-        "from": {
+        {
           "edge": 3, 
           "panel": "lfsleeve"
         }
-      }, 
-      {
-        "to": {
+      ], 
+      [
+        {
           "edge": 3, 
           "panel": "lbsleeve"
         }, 
-        "from": {
+        {
           "edge": 1, 
           "panel": "lfsleeve"
         }
-      }, 
-      {
-        "to": {
+      ], 
+      [
+        {
           "edge": 3, 
           "panel": "rbsleeve"
         }, 
-        "from": {
+        {
           "edge": 1, 
           "panel": "rfsleeve"
         }
-      }, 
-      {
-        "to": {
+      ], 
+      [
+        {
           "edge": 1, 
           "panel": "rbsleeve"
         }, 
-        "from": {
+        {
           "edge": 3, 
           "panel": "rfsleeve"
         }
-      }
+      ]
     ]
   }, 
   "properties": {

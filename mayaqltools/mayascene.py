@@ -419,10 +419,9 @@ class MayaGarment(core.ParametrizedPattern):
         """
         self.MayaObjects['stitches'] = []
         for stitch in self.pattern['stitches']:
-            from_curve = self._maya_curve_name(stitch['from'])
-            # TODO add support for multiple "to" components
-            to_curve = self._maya_curve_name(stitch['to'])
-            stitch_id = qw.qlCreateSeam(from_curve, to_curve)
+            stitch_id = qw.qlCreateSeam(
+                self._maya_curve_name(stitch[0]), 
+                self._maya_curve_name(stitch[1]))
             stitch_id = cmds.parent(stitch_id, self.MayaObjects['pattern'])  # organization
             self.MayaObjects['stitches'].append(stitch_id[0])
 

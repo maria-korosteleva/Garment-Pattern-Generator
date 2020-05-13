@@ -226,14 +226,20 @@
         }
       ]
     },
-    // one more parameter of 'length' type
+    // parameter of 'additive_length' type
+    // These parameters extend\shink edges with param value directly, without regard to current edge length 
     "low_wide": {
-      "value": 1,
+      // So, the neutral (template) value is now Zero instead of One
+      "value": 0,
+      // Note: range here is unit-dependent! If pattern is scaled, the range here should also be updated
       "range": [
-        0.3,
-        1.5
+        -100,
+        100
       ],
-      "type": "length",
+      // type tag: 
+      "type": "additive_length",
+      // influence definition is the same as for other parameters
+      // 'along' type of extention is also supported
       "influence": [
         {
           "panel": "front",

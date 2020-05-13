@@ -12,4 +12,7 @@ reload(mymaya)
 # -------------- Main -------------
 if __name__ == "__main__":
     mymaya.qualothwrapper.load_plugin()
-    mymaya.garmentUI.start_GUI()
+    try:
+        mymaya.garmentUI.start_GUI()
+    except Exception as e:
+        print(e)

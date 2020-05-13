@@ -4,6 +4,7 @@
 """
 # Basic
 from __future__ import print_function
+from __future__ import division
 import json
 import numpy as np
 import os
@@ -207,8 +208,7 @@ class ParametrizedPattern(BasicPattern):
                     if param_type == 'length':
                         self._extend_edge(panel_influence['panel'], edge, value)
                     elif param_type == 'additive_length':
-                        pass
-                        # self._extend_edge(panel_influence['panel'], edge, value, multiplicative=False)
+                        self._extend_edge(panel_influence['panel'], edge, value, multiplicative=False)
                     elif param_type == 'curve':
                         self._curve_edge(panel_influence['panel'], edge, value)
 
@@ -229,17 +229,16 @@ class ParametrizedPattern(BasicPattern):
                     if param_type == 'length':
                         self._extend_edge(panel_influence['panel'], edge, self._invert_value(value))
                     elif param_type == 'additive_length':
-                        print('Additive inverse', self._invert_value(-10, multiplicative=False))
-                        # self._extend_edge(panel_influence['panel'], edge, 
-                        #                   self._invert_value(value, multiplicative=False), 
-                        #                   multiplicative=False)
+                        self._extend_edge(panel_influence['panel'], edge, 
+                                          self._invert_value(value, multiplicative=False), 
+                                          multiplicative=False)
                     elif param_type == 'curve':
                         self._curve_edge(panel_influence['panel'], edge, self._invert_value(value))
             
             # restore defaults
             if params_to_default:
-                if isinstance(inv_value, list):
-                    self.parameters[parameter]['value'] = [self.parameter_defaults[param_type] for _ in inv_value]
+                if isinstance(value, list):
+                    self.parameters[parameter]['value'] = [self.parameter_defaults[param_type] for _ in value]
                 else:
                     self.parameters[parameter]['value'] = self.parameter_defaults[param_type]
 
@@ -287,7 +286,11 @@ class ParametrizedPattern(BasicPattern):
             target_line = edge_influence['along']
         else:
             target_line = verts_coords[-1] - verts_coords[0] 
-        target_line /= np.linalg.norm(target_line)
+
+        if np.isclose(np.linalg.norm(target_line), 0):
+            raise ZeroDivisionError('target line is zero ' + str(target_line))
+        else:
+            target_line /= np.linalg.norm(target_line)
 
         # move verts 
         # * along target line that sits on fixed point (correct sign & distance along the line)
@@ -295,7 +298,6 @@ class ParametrizedPattern(BasicPattern):
         for i in range(verts_coords.shape[0]):
             verts_projection[i] = (verts_coords[i] - fixed).dot(target_line) * target_line
 
-        print(multiplicative, value)
         if multiplicative:
             # * to match the scaled projection (correct point of application -- initial vertex position)
             new_verts = verts_coords - (1 - value) * verts_projection
@@ -309,7 +311,6 @@ class ParametrizedPattern(BasicPattern):
                 if not np.isclose(norm, 0):
                     verts_projection[i] /= norm
 
-            print(verts_projection)
             # zero projections were not normalized -- they will zero-out the effect
             new_verts = verts_coords + value * verts_projection
 
@@ -347,23 +348,20 @@ class ParametrizedPattern(BasicPattern):
                 * if True, returns multiplicative inverse (1/value) == default
                 * if False, returns additive inverse (-value)
         """
-        print('Inverting value ', value)
         if multiplicative:
-            def inversion(x): 
-                return 1 / x
-        else:
-            def inversion(x): 
-                return -x
-
-        try:  
             if isinstance(value, list):
-                inv_value = map(inversion, value)
+                if any(np.isclose(value), 0):
+                    raise ZeroDivisionError('Zero value encountered while restoring multiplicative parameter.')
+                return map(lambda x: 1 / x, value)
             else:
-                inv_value = inversion(value)
-        except ZeroDivisionError as e:
-            raise ZeroDivisionError('Zero value encountered while restoring template. Value is skipped')
-
-        return inv_value
+                if np.isclose(value, 0):
+                    raise ZeroDivisionError('Zero value encountered while restoring multiplicative parameter.')
+                return 1 / value
+        else:
+            if isinstance(value, list):
+                return map(lambda x: -x, value)
+            else:
+                return -value
 
     # ---------- Randomization -
     def _new_value(self, param_range):

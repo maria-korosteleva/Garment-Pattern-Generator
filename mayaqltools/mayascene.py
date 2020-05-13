@@ -635,8 +635,8 @@ class MayaGarmentWithUI(MayaGarment):
         # update geometry in lazy manner
         if self.loaded_to_maya:
             self.load()
-        # update UI in lazy manner
-        self.drawUI()
+            # update UI in lazy manner
+            self.drawUI()
 
     def _param_value_callback(self, param_name, value_idx, *args):
         """Update pattern with new value"""
@@ -658,9 +658,10 @@ class MayaGarmentWithUI(MayaGarment):
         # update geometry in lazy manner
         if self.loaded_to_maya:
             self.load()
-
-        # update values in UI too (lazy)
-        self.drawUI()
+            # NOTE updating values in UI in this callback causes Maya crashes! 
+            # Without update, the 3D placement UI gets disconnected from geometry but 
+            # that's minor
+            # self.drawUI()
 
     def _panel_placement_callback(self, panel_name, attribute, maya_attr):
         """Update pattern spec with tranlation/rotation info from Maya"""

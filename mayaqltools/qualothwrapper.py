@@ -104,6 +104,10 @@ def run_sim(garment, props):
     config = props['config']
     solver = _init_sim(config)
     garment.setMaterialSimProps(config['material'])  # ensure running sim with suplied material props
+
+    # take no responsibility for result in case of 3d penetrations
+    if garment.has_3D_intersections():
+        props['stats']['sim_fails'].append(garment.name)
     
     start_time = time.time()
     # Allow to assemble without gravity + skip checks for first few frames

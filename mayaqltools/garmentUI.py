@@ -318,6 +318,14 @@ def start_sim_callback(button, state, *args):
     # Reload geometry in case something changed
     state.reload_garment()
 
+    if state.garment.has_3D_intersections():
+        result = cmds.confirmDialog(
+            title='Confirm simulating with initial penetrations', 
+            message='Garment in the initial stated either penetrates colliders or itself. Do you want to proceed with simulation?', 
+            button=['Yes','No'], defaultButton='Yes', cancelButton='No', dismissString='No')
+        if result == 'No':
+            return  # Do not start simulation
+
     mymaya.qualothwrapper.start_maya_sim(state.garment, state.config['sim'])
 
     # Update button 

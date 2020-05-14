@@ -64,15 +64,18 @@ class MayaGarment(core.ParametrizedPattern):
             self.sim_material = self.fetchMaterialSimProps()  # save the latest material
         self.clean(True)
         
+        cmds.scriptEditorInfo(edit=True, suppressWarnings=0)  # Normal flow produces garbage warnings 
         self.load_panels(parent_group)
         self.stitch_panels()
         self.loaded_to_maya = True
+        cmds.scriptEditorInfo(edit=True, suppressWarnings=1) 
 
         self.setShader(shader)
         self.add_colliders(obstacles)
         self.setMaterialSimProps(material)
 
         print('Garment ' + self.name + ' is loaded to Maya')
+        print('Quality: ' + ('OK' if self.check_setup() else 'NOT OK'))
 
     def load_panels(self, parent_group=None):
         """Load panels to Maya as curve collection & geometry objects.
@@ -133,6 +136,8 @@ class MayaGarment(core.ParametrizedPattern):
             qw.setColliderFriction(collider, 0.5)
             # organize object tree
             cmds.parent(collider, self.MayaObjects['pattern'])
+        
+        print('Colliders Quality: ' + ('OK' if self.check_setup() else 'NOT OK'))
 
     def clean(self, delete=False):
         """ Hides/removes the garment from Maya scene 
@@ -260,34 +265,43 @@ class MayaGarment(core.ParametrizedPattern):
         else:
             return False
 
-    def is_penetrating(self, obstacles=[]):
-        """Checks wheter garment intersects given obstacles or
-        its colliders if obstacles are not given
-        NOTE Implementation is lazy & might have false negatives
-        TODO proper penetration check
-        """
-        raise NotImplementedError()
+    def check_setup(self, obstacles=[]):
+        """Checks the adequacy of loaded garment initial setup:
+            * TODO wheter garment intersects given obstacles or its colliders if obstacles are not given
+            * TODO wheter garment has self-intersections
+            Returns True is no pproblems found
 
+        NOTE Implementation is lazy & might have false negatives
+        """
         if not obstacles:
             obstacles = self.obstacles
         
         print('Penetration check')
+        setup_ok = True
 
+        # Normal flow produces errors: supress them
+        cmds.scriptEditorInfo(edit=True, suppressErrors=0) 
         for obj in obstacles:
             # experiment on copies
-            obj_2 = cmds.duplicate(obj)[0]
-            cloth_2 = cmds.duplicate(self.get_qlcloth_geomentry())[0]
-
-            intersect = cmds.polyBoolOp(cloth_2, obj_2, op=3)
-            print(intersect)
+            obj_copy = cmds.duplicate(obj)
+            cloth_copy = cmds.duplicate(self.get_qlcloth_geomentry())
+            intersect = cmds.polyCBoolOp(cloth_copy[0], obj_copy[0], op=3, classification=2)[0]
 
             # check if empty
-            print(cmds.polyEvaluate(intersect[0], t=True))
+            intersect_size = cmds.polyEvaluate(intersect, t=True)
 
             # delete all the extra objects
-            # cmds.delete(obj_2)
-            # cmds.delete(cloth_2)
-            # cmds.delete(intersect)
+            cmds.delete(obj_copy)
+            cmds.delete(cloth_copy)
+            cmds.delete(intersect)
+
+            if intersect_size > 0:
+                setup_ok = False
+                break
+        
+        # revert settings
+        cmds.scriptEditorInfo(edit=True, suppressErrors=1)
+        return setup_ok
 
     def sim_caching(self, caching=True):
         """Toggles the caching of simulation steps to garment folder"""
@@ -303,6 +317,27 @@ class MayaGarment(core.ParametrizedPattern):
         else:
             # disable caching
             self.cache_path = ''            
+    
+    def stitch_panels(self):
+        """
+            Create seams between qualoth panels.
+            Assumes that panels are already loadeded (as curves).
+            Assumes that after stitching every pattern becomes a single piece of geometry
+            Returns
+                Qulaoth cloth object name
+        """
+        self.MayaObjects['stitches'] = []
+        for stitch in self.pattern['stitches']:
+            stitch_id = qw.qlCreateSeam(
+                self._maya_curve_name(stitch[0]), 
+                self._maya_curve_name(stitch[1]))
+            stitch_id = cmds.parent(stitch_id, self.MayaObjects['pattern'])  # organization
+            self.MayaObjects['stitches'].append(stitch_id[0])
+
+        # after stitching, only one cloth\cloth shape object per pattern is left -- move up the hierarechy
+        children = cmds.listRelatives(self.MayaObjects['pattern'], ad=True)
+        cloths = [obj for obj in children if 'qlCloth' in obj]
+        cmds.parent(cloths, self.MayaObjects['pattern'])
 
     def save_mesh(self, folder=''):
         """
@@ -409,27 +444,6 @@ class MayaGarment(core.ParametrizedPattern):
         # now place correctly
         self._set_panel_3D_attr(panel, panel_group, 'translation', 'translate')
         self._set_panel_3D_attr(panel, panel_group, 'rotation', 'rotate')
-
-    def stitch_panels(self):
-        """
-            Create seams between qualoth panels.
-            Assumes that panels are already loadeded (as curves).
-            Assumes that after stitching every pattern becomes a single piece of geometry
-            Returns
-                Qulaoth cloth object name
-        """
-        self.MayaObjects['stitches'] = []
-        for stitch in self.pattern['stitches']:
-            stitch_id = qw.qlCreateSeam(
-                self._maya_curve_name(stitch[0]), 
-                self._maya_curve_name(stitch[1]))
-            stitch_id = cmds.parent(stitch_id, self.MayaObjects['pattern'])  # organization
-            self.MayaObjects['stitches'].append(stitch_id[0])
-
-        # after stitching, only one cloth\cloth shape object per pattern is left -- move up the hierarechy
-        children = cmds.listRelatives(self.MayaObjects['pattern'], ad=True)
-        cloths = [obj for obj in children if 'qlCloth' in obj]
-        cmds.parent(cloths, self.MayaObjects['pattern'])
 
     def _maya_curve_name(self, address):
         """ Shortcut to retrieve the name of curve corresponding to the edge"""

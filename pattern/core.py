@@ -428,7 +428,25 @@ class ParametrizedPattern(BasicPattern):
             else:
                 return -value
 
-    # ---------- Randomization -
+    # ---------- Randomization -------------
+    def _randomize_pattern(self):
+        """Robustly randomize current pattern"""
+        # restore template state before making any changes to parameters
+        self._restore_template(params_to_default=False)
+
+        spec_backup = copy.deepcopy(self.spec)
+        self._randomize_parameters()
+        self._update_pattern_by_param_values()
+        for tries in range(100):  # upper bound on trials to avoid infinite loop
+            if not self.is_self_intersecting():
+                break
+
+            print('Warning::Randomized pattern is self-intersecting. Re-try..')
+            self._restore(spec_backup)
+            # Try again
+            self._randomize_parameters()
+            self._update_pattern_by_param_values()
+
     def _new_value(self, param_range):
         """Random value within range given as an iteratable"""
         value = random.uniform(param_range[0], param_range[1])

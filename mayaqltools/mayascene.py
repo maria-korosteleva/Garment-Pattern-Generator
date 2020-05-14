@@ -625,21 +625,7 @@ class MayaGarmentWithUI(MayaGarment):
 
     def _param_randomization_callback(self, *args):
         """Randomize parameter values & update everything"""
-        # restore template state before making any changes to parameters
-        self._restore_template(params_to_default=False)
-
-        spec_backup = copy.deepcopy(self.spec)
-        self._randomize_parameters()
-        self._update_pattern_by_param_values()
-        for trial in range(100):  # upper bound on trials to avoid infinite loop
-            if not self.is_self_intersecting():
-                break
-
-            print('Warning::Randomized pattern is self-intersecting. Re-try..')
-            self._restore(spec_backup)
-            # Try again
-            self._randomize_parameters()
-            self._update_pattern_by_param_values()
+        self._randomize_pattern()
         
         # update geometry in lazy manner
         if self.loaded_to_maya:

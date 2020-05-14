@@ -75,7 +75,6 @@ class MayaGarment(core.ParametrizedPattern):
         self.setMaterialSimProps(material)
 
         print('Garment ' + self.name + ' is loaded to Maya')
-        print('Quality: ' + ('OK' if not self.has_3D_intersections() else 'NOT OK'))
 
     def load_panels(self, parent_group=None):
         """Load panels to Maya as curve collection & geometry objects.
@@ -136,8 +135,6 @@ class MayaGarment(core.ParametrizedPattern):
             qw.setColliderFriction(collider, 0.5)
             # organize object tree
             cmds.parent(collider, self.MayaObjects['pattern'])
-        
-        print('Colliders Quality: ' + ('OK' if not self.has_3D_intersections() else 'NOT OK'))
 
     def clean(self, delete=False):
         """ Hides/removes the garment from Maya scene 
@@ -268,39 +265,49 @@ class MayaGarment(core.ParametrizedPattern):
     def has_3D_intersections(self, obstacles=[]):
         """Checks the adequacy of loaded garment initial setup:
             * wheter garment intersects given obstacles or its colliders if obstacles are not given
-            * TODO wheter garment has self-intersections
+            * wheter garment has self-intersections
             Returns True if intersections found
 
         NOTE Implementation is lazy & might have false negatives
+        NOTE the garment geometry has to be reloaded after this checks! Do not put this routine inside the loading process!
         """
+        if not self.loaded_to_maya:
+            raise ValueError('Garment is not yet loaded: cannot check for intersections')
+
         if not obstacles:
             obstacles = self.obstacles
         
-        print('Penetration check')
+        print('Garment::3D Penetration checks')
         intersecting = False
 
         # Normal flow produces errors: supress them
         cmds.scriptEditorInfo(edit=True, suppressErrors=0) 
+
+        # check intersection with colliders
         for obj in obstacles:
-            # experiment on copies
-            obj_copy = cmds.duplicate(obj)
-            cloth_copy = cmds.duplicate(self.get_qlcloth_geomentry())
-            intersect = cmds.polyCBoolOp(cloth_copy[0], obj_copy[0], op=3, classification=2)[0]
-
-            # check if empty
-            intersect_size = cmds.polyEvaluate(intersect, t=True)
-
-            # delete all the extra objects
+            obj_copy = cmds.duplicate(obj)  # geometry will get affected
+            intersecting = self._intersect_object(obj_copy)
             cmds.delete(obj_copy)
-            cmds.delete(cloth_copy)
-            cmds.delete(intersect)
 
-            if intersect_size > 0:
-                intersecting = True
+            if intersecting:
                 break
         
+        if not intersecting:
+            # check self-intersection in 3D (NOTE simlified -- panel-to-geometry check)
+            for panel_name in self.pattern['panels']:
+                panel_3d = qw.qlCreatePattern(self.MayaObjects['panels'][panel_name]['curve_group'])
+                panel_geomentry = [obj for obj in panel_3d if 'Out' in obj][0]  # will be corrupted
+
+                intersecting = self._intersect_object(panel_geomentry)
+                cmds.delete(panel_3d)
+                if intersecting:
+                    break
+            # reload to create new solver and prevent Maya crashes
+            self.load()
+
         # revert settings
         cmds.scriptEditorInfo(edit=True, suppressErrors=1)
+
         return intersecting
 
     def sim_caching(self, caching=True):
@@ -364,6 +371,7 @@ class MayaGarment(core.ParametrizedPattern):
         if hasattr(self, 'cache_path') and self.cache_path:
             self._save_to_path(self.cache_path, self.name + '_{:04d}'.format(frame))
 
+    # ------ ~Private -------
     def _load_panel(self, panel_name, pattern_group=None):
         """
             Loads curves contituting given panel to Maya. 
@@ -463,6 +471,21 @@ class MayaGarment(core.ParametrizedPattern):
             op='groups=0;ptgroups=0;materials=0;smoothing=0;normals=1',  # very simple obj
             f=1  # force override if file exists
         )
+
+    def _intersect_object(self, geometry):
+        """Check if given object intersects current cloth geometry
+            Note that input geometry will be corrupted after check!"""
+        cloth_copy = cmds.duplicate(self.get_qlcloth_geomentry())
+        intersect = cmds.polyCBoolOp(geometry, cloth_copy[0], op=3, classification=2)[0]
+
+        # check if empty
+        intersect_size = cmds.polyEvaluate(intersect, t=True)
+
+        # delete extra objects
+        cmds.delete(cloth_copy)
+        cmds.delete(intersect)
+
+        return intersect_size > 0
 
 
 class MayaGarmentWithUI(MayaGarment):

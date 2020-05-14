@@ -321,8 +321,8 @@ def start_sim_callback(button, state, *args):
     if state.garment.has_3D_intersections():
         result = cmds.confirmDialog(
             title='Confirm simulating with initial penetrations', 
-            message='Garment in the initial stated either penetrates colliders or itself. Do you want to proceed with simulation?', 
-            button=['Yes','No'], defaultButton='Yes', cancelButton='No', dismissString='No')
+            message='Garment either penetrates colliders or itself. Do you want to proceed with simulation?', 
+            button=['Yes', 'No'], defaultButton='Yes', cancelButton='No', dismissString='No')
         if result == 'No':
             return  # Do not start simulation
 

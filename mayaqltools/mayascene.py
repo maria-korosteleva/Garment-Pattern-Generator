@@ -96,17 +96,7 @@ class MayaGarment(core.ParametrizedPattern):
         """
         if not self.loaded_to_maya:
             raise RuntimeError(
-                'MayaGarmentError::Pattern is not yet loaded. Cannot set materials')
-
-        # TODO accept input from file
-        cloth = self.get_qlcloth_props_obj()
-
-        # Controls stretchness of the fabric
-        cmds.setAttr(cloth + '.stretch', 100)
-
-        # Friction between cloth and itself 
-        # (friction with body controlled by collider props)
-        cmds.setAttr(cloth + '.friction', 0.25)
+                'MayaGarmentError::Pattern is not yet loaded. Cannot set shader')
 
         if shader is not None:  # use previous othervise
             self.shader = shader
@@ -256,7 +246,7 @@ class MayaGarment(core.ParametrizedPattern):
         # Checking vertices change is the same as checking if velocity is zero
         diff = np.abs(self.current_verts - self.last_verts)
         diff_L1 = np.sum(diff, axis=1)
-        # DEBUG print(np.sum(diff), threshold * len(diff))
+
         if (diff_L1 < threshold).all():  # compare vertex-vize to be independent of #verts
             return True
         else:
@@ -272,7 +262,7 @@ class MayaGarment(core.ParametrizedPattern):
         NOTE the garment geometry has to be reloaded after this checks! Do not put this routine inside the loading process!
         """
         if not self.loaded_to_maya:
-            raise ValueError('Garment is not yet loaded: cannot check for intersections')
+            raise RuntimeError('Garment is not yet loaded: cannot check for intersections')
 
         if not obstacles:
             obstacles = self.obstacles
@@ -494,12 +484,6 @@ class MayaGarmentWithUI(MayaGarment):
         super(MayaGarmentWithUI, self).__init__(pattern_file, clean_on_die)
         self.ui_top_layout = None
         self.ui_controls = {}
-        # TODO - move to Parametrized class
-        self.edge_dirs_list = [
-            'start', 
-            'end', 
-            'both'
-        ]
     
     def __del__(self):
         super(MayaGarmentWithUI, self).__del__()
@@ -560,7 +544,6 @@ class MayaGarmentWithUI(MayaGarment):
         
     def _clean_layout(self, layout):
         """Removes all of the childer from layout"""
-        # TODO make static or move outside? 
         children = cmds.layout(layout, query=True, childArray=True)
         if children:
             cmds.deleteUI(children)
@@ -787,7 +770,7 @@ class Scene(object):
         im_size = self.config['resolution']
         cmds.setAttr("defaultArnoldDriver.aiTranslator", "png", type="string")
 
-        # fix dark rendering problem
+        # fixing dark rendering problem
         # https://forums.autodesk.com/t5/maya-shading-lighting-and/output-render-w-color-management-is-darker-than-render-view/td-p/7207081
         cmds.colorManagementPrefs(e=True, outputTransformEnabled=True, outputUseViewTransform=True)
 

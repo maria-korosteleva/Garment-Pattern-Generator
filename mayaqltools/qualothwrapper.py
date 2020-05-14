@@ -122,9 +122,7 @@ def run_sim(garment, props):
         cmds.currentTime(frame)  # step
         garment.cache_if_enabled(frame)
         garment.update_verts_info()
-        if garment.is_static(config['static_threshold']):  
-            # TODO Add penetration checks
-            # Success!
+        if garment.is_static(config['static_threshold']):  # Success!
             break
 
     # Fail check: static equilibrium never detected -- might have false negs!

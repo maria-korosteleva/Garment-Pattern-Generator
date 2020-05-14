@@ -343,8 +343,10 @@ class ParametrizedPattern(BasicPattern):
             fixed = verts_coords[0]  # start is fixed
         elif edge_influence['direction'] == 'start':
             fixed = verts_coords[-1]  # end is fixed
-        else:  # both
+        elif edge_influence['direction'] == 'both':
             fixed = (verts_coords[0] + verts_coords[-1]) / 2
+        else:
+            raise RuntimeError('Unknown edge extention direction {}'.format(edge_influence['direction']))
 
         # calc extention line
         if 'along' in edge_influence:

@@ -113,7 +113,6 @@ class VisPattern(core.ParametrizedPattern):
         path = drawing.path(['M', start[0], start[1]],
                             stroke='black', fill='rgb(255,217,194)')
         for edge in panel['edges']:
-            # TODO add darts visualization here!
             start = vertices[edge['endpoints'][0]]
             end = vertices[edge['endpoints'][1]]
             if ('curvature' in edge):

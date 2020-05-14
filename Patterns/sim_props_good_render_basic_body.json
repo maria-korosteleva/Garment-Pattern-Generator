@@ -38,7 +38,7 @@
         "weft_resistance_scale": 1.0, 
         "weft_rubber_scale": 1.0
       }, 
-      "max_sim_steps": 500, 
+      "max_sim_steps": 750, 
       "static_threshold": 0.05, 
       "zero_gravity_steps": 5
     }, 

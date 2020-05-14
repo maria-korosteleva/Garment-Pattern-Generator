@@ -75,7 +75,7 @@ class MayaGarment(core.ParametrizedPattern):
         self.setMaterialSimProps(material)
 
         print('Garment ' + self.name + ' is loaded to Maya')
-        print('Quality: ' + ('OK' if self.check_setup() else 'NOT OK'))
+        print('Quality: ' + ('OK' if not self.has_3D_intersections() else 'NOT OK'))
 
     def load_panels(self, parent_group=None):
         """Load panels to Maya as curve collection & geometry objects.
@@ -137,7 +137,7 @@ class MayaGarment(core.ParametrizedPattern):
             # organize object tree
             cmds.parent(collider, self.MayaObjects['pattern'])
         
-        print('Colliders Quality: ' + ('OK' if self.check_setup() else 'NOT OK'))
+        print('Colliders Quality: ' + ('OK' if not self.has_3D_intersections() else 'NOT OK'))
 
     def clean(self, delete=False):
         """ Hides/removes the garment from Maya scene 
@@ -265,11 +265,11 @@ class MayaGarment(core.ParametrizedPattern):
         else:
             return False
 
-    def check_setup(self, obstacles=[]):
+    def has_3D_intersections(self, obstacles=[]):
         """Checks the adequacy of loaded garment initial setup:
-            * TODO wheter garment intersects given obstacles or its colliders if obstacles are not given
+            * wheter garment intersects given obstacles or its colliders if obstacles are not given
             * TODO wheter garment has self-intersections
-            Returns True is no pproblems found
+            Returns True if intersections found
 
         NOTE Implementation is lazy & might have false negatives
         """
@@ -277,7 +277,7 @@ class MayaGarment(core.ParametrizedPattern):
             obstacles = self.obstacles
         
         print('Penetration check')
-        setup_ok = True
+        intersecting = False
 
         # Normal flow produces errors: supress them
         cmds.scriptEditorInfo(edit=True, suppressErrors=0) 
@@ -296,12 +296,12 @@ class MayaGarment(core.ParametrizedPattern):
             cmds.delete(intersect)
 
             if intersect_size > 0:
-                setup_ok = False
+                intersecting = True
                 break
         
         # revert settings
         cmds.scriptEditorInfo(edit=True, suppressErrors=1)
-        return setup_ok
+        return intersecting
 
     def sim_caching(self, caching=True):
         """Toggles the caching of simulation steps to garment folder"""

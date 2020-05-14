@@ -597,11 +597,13 @@
         {
           "edge_list": [
             {
-              "direction": "end", 
+              "direction": "end",     
+              "along": [1, 0],          
               "id": 3
             }, 
             {
               "direction": "start", 
+              "along": [1, 0],
               "id": 1
             }
           ], 
@@ -611,10 +613,12 @@
           "edge_list": [
             {
               "direction": "end", 
+              "along": [1, 0],
               "id": 3
             }, 
             {
               "direction": "start", 
+              "along": [1, 0],
               "id": 1
             }
           ], 
@@ -624,10 +628,12 @@
           "edge_list": [
             {
               "direction": "start", 
+              "along": [1, 0],
               "id": 1
             }, 
             {
               "direction": "end", 
+              "along": [1, 0],
               "id": 3
             }
           ], 
@@ -636,11 +642,13 @@
         {
           "edge_list": [
             {
-              "direction": "start", 
+              "direction": "start",
+              "along": [1, 0], 
               "id": 1
             }, 
             {
               "direction": "end", 
+              "along": [1, 0],
               "id": 3
             }
           ], 

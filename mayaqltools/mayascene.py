@@ -681,14 +681,13 @@ class MayaGarmentWithUI(MayaGarment):
             if result == 'Yes':
                 self._restore(spec_backup)
                 cmds.floatSliderGrp(value_field, edit=True, value=old_value)
-                # return  # No need to reload geometry -- nothing changed
+                return  # No need to reload geometry -- nothing changed
 
         # update geometry in lazy manner
         if self.loaded_to_maya:
             self.load()
             # NOTE updating values in UI in this callback causes Maya crashes! 
-            # Without update, the 3D placement UI gets disconnected from geometry but 
-            # that's minor
+            # Without update, the 3D placement UI gets disconnected from geometry but that's minor
             # self.drawUI()
 
     def _panel_placement_callback(self, panel_name, attribute, maya_attr):

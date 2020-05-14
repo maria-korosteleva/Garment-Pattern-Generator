@@ -54,15 +54,15 @@ class BasicPattern(object):
         # template normalization - panel translations and curvature to relative coords
         self._normalize_template()
 
-    def serialize(self, path, to_subfolder=True):
+    def serialize(self, path, to_subfolder=True, tag=''):
         # log context
         if to_subfolder:
-            log_dir = os.path.join(path, self.name)
+            log_dir = os.path.join(path, self.name + tag)
             os.makedirs(log_dir)
             spec_file = os.path.join(log_dir, 'specification.json')
         else:
             log_dir = path
-            spec_file = os.path.join(path, (self.name + '_specification.json'))
+            spec_file = os.path.join(path, (self.name + tag + '_specification.json'))
 
         # Save specification
         with open(spec_file, 'w') as f_json:
@@ -246,6 +246,12 @@ class ParametrizedPattern(BasicPattern):
         super(ParametrizedPattern, self).reloadJSON()
         self.parameters = self.spec['parameters']
 
+    def _restore(self, backup_copy):
+        """Restores spec structure from given backup copy 
+            Makes a full copy of backup to avoid accidential corruption of backup
+        """
+        super(ParametrizedPattern, self)._restore(backup_copy)
+        self.parameters = self.spec['parameters']
     # ---------- Parameters operations --------
 
     def _update_pattern_by_param_values(self):

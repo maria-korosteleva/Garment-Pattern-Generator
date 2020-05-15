@@ -2,30 +2,16 @@
   "body": "f_smpl_templatex300.obj", 
   "render": {
     "config": {
-      "body_color": [
-        0.5, 
-        0.5, 
-        0.699999988079071
-      ], 
-      "cloth_color": [
-        0.800000011920929, 
-        0.20000000298023224, 
-        0.20000000298023224
-      ], 
-      "floor_color": [
-        0.800000011920929, 
-        0.800000011920929, 
-        0.800000011920929
-      ], 
       "resolution": [
         800, 
         800
-      ]
+      ], 
+      "scene": "studio_orange.mb"
     }, 
     "stats": {
-      "render_time": [
-        3.678999900817871
-      ]
+      "render_time": {
+        "tee": 90.65599989891052
+      }
     }
   }, 
   "sim": {
@@ -40,7 +26,7 @@
         "bend_yield": 0.0, 
         "compression_resistance": 100.0, 
         "density": 0.01, 
-        "friction": 0.25, 
+        "friction": 0.0, 
         "length_scale": 1.0, 
         "pressure": 0.0, 
         "rubber": 1.0, 
@@ -58,10 +44,10 @@
       "zero_gravity_steps": 5
     }, 
     "stats": {
-      "fin_frame": [], 
+      "fin_frame": {}, 
       "sim_fails": [], 
-      "sim_time": [], 
-      "spf": []
+      "sim_time": {}, 
+      "spf": {}
     }
   }
 }

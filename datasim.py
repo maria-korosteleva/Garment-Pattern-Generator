@@ -19,7 +19,7 @@ if __name__ == "__main__":
     path = system_config['templates_path']
 
     # ------ Dataset Example ------
-    dataset = 'data_tee_200514-16-49-00'
+    dataset = 'data_tee_200514-16-49-00-failed'
     datapath = os.path.join(system_config['output'], dataset)
     dataset_file = os.path.join(datapath, 'dataset_properties.json')
 

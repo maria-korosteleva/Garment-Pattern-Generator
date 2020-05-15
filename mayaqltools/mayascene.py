@@ -64,11 +64,11 @@ class MayaGarment(core.ParametrizedPattern):
             self.sim_material = self.fetchMaterialSimProps()  # save the latest material
         self.clean(True)
         
-        #cmds.scriptEditorInfo(edit=True, suppressWarnings=1)  # Normal flow produces garbage warnings 
+        # cmds.scriptEditorInfo(edit=True, suppressWarnings=1)  # Normal flow produces garbage warnings 
         self.load_panels(parent_group)
         self.stitch_panels()
         self.loaded_to_maya = True
-        #cmds.scriptEditorInfo(edit=True, suppressWarnings=0) 
+        # cmds.scriptEditorInfo(edit=True, suppressWarnings=0) 
 
         self.setShader(shader)
         self.add_colliders(obstacles)
@@ -514,7 +514,7 @@ class MayaGarmentWithUI(MayaGarment):
         # load panels info
         cmds.frameLayout(
             label='Panel Placement',
-            collapsable=False, borderVisible=True,
+            collapsable=True, borderVisible=True, collapse=True,
             mh=10, mw=10
         )
         if not self.loaded_to_maya:
@@ -533,7 +533,7 @@ class MayaGarmentWithUI(MayaGarment):
         # Parameters
         cmds.frameLayout(
             label='Parameters',
-            collapsable=False, borderVisible=True,
+            collapsable=True, borderVisible=True, collapse=True,
             mh=10, mw=10
         )
         self._ui_params(self.parameters, self.spec['parameter_order'])

@@ -85,7 +85,7 @@ def batch_sim(resources, data_path, dataset_props,
         if resume and pattern_spec in dataset_props['sim']['stats']['processed']:
             continue
         dataset_props['sim']['stats']['processed'].append(pattern_spec)
-        dataset_props.serialize(data_props_file)  # save info of processed files before potential crash
+        _serialize_props_with_stats(dataset_props, data_props_file)  # save info of processed files before potential crash
 
         template_simulation(pattern_spec, 
                             scene, 
@@ -101,7 +101,7 @@ def batch_sim(resources, data_path, dataset_props,
     except KeyError:
         pass
     # Logs
-    dataset_props.serialize(data_props_file)
+    _serialize_props_with_stats(dataset_props, data_props_file)
     # save Maya scene
     # NOTE when using Maya for students, this requires action from user
     cmds.file(rename=os.path.join(data_path, 'scene'))
@@ -198,3 +198,12 @@ def _get_pattern_files(data_path, dataset_props):
                     and 'dataset_properties' not in file):
                 pattern_specs.append(os.path.join(root, file))
     return pattern_specs
+
+
+def _serialize_props_with_stats(dataset_props, filename):
+    """Compute data processing statistics and serialize props to file"""
+    dataset_props.summarize_stats('render_time', log_sum=True, log_avg=True, as_time=True)
+    dataset_props.summarize_stats('fin_frame', log_avg=True)
+    dataset_props.summarize_stats('sim_time', log_sum=True, log_avg=True, as_time=True)
+    dataset_props.summarize_stats('spf', log_avg=True, as_time=True)
+    dataset_props.serialize(filename)

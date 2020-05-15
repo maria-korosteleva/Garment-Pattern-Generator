@@ -81,27 +81,27 @@ class Properties():
             if isinstance(value, dict) and 'stats' in value:
                 value['stats'] = {}
 
-    def summarize_stats(self):
-        """Make a summary of all statistic info in current props"""
-        for key, section in self.properties.items():
-            # detect stats sections
+    def summarize_stats(self, key, log_sum=False, log_avg=False, as_time=False):
+        """Make a summary of requested key with requested statistics in current props"""
+        for section in self.properties.values():
+            # check all stats sections
             if isinstance(section, dict) and 'stats' in section:
-                for stats_key, stats_values in section['stats'].items():
+                if key in section['stats']:
+                    stats_values = section['stats'][key]
+                    if isinstance(stats_values, dict):
+                        stats_values = stats_values.values()
                     # summarize all foundable statistics
-                    if isinstance(stats_values, dict) and len(stats_values) > 0 and isinstance(stats_values.values()[0], Number):
-                        section['stats'][stats_key + "_sum"] = sum(stats_values.values())
-                        section['stats'][stats_key + "_avg"] = section['stats'][stats_key + "_sum"] / len(stats_values)
-                        section['stats'][stats_key + "_total_time"] = str(timedelta(seconds=sum(stats_values.values())))
-
                     if isinstance(stats_values, list) and len(stats_values) > 0 and isinstance(stats_values[0], Number):
-                        section['stats'][stats_key + "_sum"] = sum(stats_values)
-                        section['stats'][stats_key + "_total_time"] = str(timedelta(seconds=sum(stats_values.values())))
-                        section['stats'][stats_key + "_avg"] = section['stats'][stats_key + "_sum"] / len(stats_values)
+                        if log_sum:
+                            section['stats'][key + "_sum"] = str(timedelta(seconds=sum(stats_values))) if as_time else sum(stats_values)
+                        if log_avg:
+                            section['stats'][key + "_avg"] = sum(stats_values) / len(stats_values)
+                            if as_time:
+                                section['stats'][key + "_avg"] = str(timedelta(seconds=section['stats'][key + "_avg"]))
 
     def serialize(self, filename):
         """Log current props to file"""
         # gather stats first
-        self.summarize_stats()
         with open(filename, 'w') as f_json:
             json.dump(self.properties, f_json, indent=2, sort_keys=True)
 

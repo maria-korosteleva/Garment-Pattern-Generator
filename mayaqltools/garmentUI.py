@@ -338,7 +338,7 @@ def stop_sim_callback(button, state, *args):
     """Stop simulation execution"""
     # toggle playback
     cmds.play(state=False)
-    print('Simulation::Stoped')
+    print('Simulation::Stopped')
     # uppdate button state
     cmds.button(button, edit=True, 
                 label='Start Sim', backgroundColor=[227 / 256, 255 / 256, 119 / 256],

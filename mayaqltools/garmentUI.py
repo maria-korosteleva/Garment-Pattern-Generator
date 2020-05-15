@@ -137,7 +137,7 @@ class State(object):
     def save_scene(self, directory):
         """Save scene objects"""
         self.garment.save_mesh(directory)
-        self.scene.render(directory)
+        self.scene.render(directory, self.garment.name)
 
 
 # ------- Errors --------

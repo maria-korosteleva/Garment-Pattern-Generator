@@ -144,13 +144,13 @@ def init_sim_props(props, batch_run=False, force_restart=False):
     props.set_section_stats(
         'sim', 
         sim_fails=[], 
-        sim_time=[], 
-        spf=[], 
-        fin_frame=[])
+        sim_time={}, 
+        spf={}, 
+        fin_frame={})
 
     props.set_section_stats(
         'render', 
-        render_time=[]
+        render_time={}
     )
 
     if batch_run:  # track batch processing

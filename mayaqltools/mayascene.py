@@ -64,11 +64,11 @@ class MayaGarment(core.ParametrizedPattern):
             self.sim_material = self.fetchMaterialSimProps()  # save the latest material
         self.clean(True)
         
-        cmds.scriptEditorInfo(edit=True, suppressWarnings=0)  # Normal flow produces garbage warnings 
+        #cmds.scriptEditorInfo(edit=True, suppressWarnings=1)  # Normal flow produces garbage warnings 
         self.load_panels(parent_group)
         self.stitch_panels()
         self.loaded_to_maya = True
-        cmds.scriptEditorInfo(edit=True, suppressWarnings=1) 
+        #cmds.scriptEditorInfo(edit=True, suppressWarnings=0) 
 
         self.setShader(shader)
         self.add_colliders(obstacles)
@@ -271,7 +271,7 @@ class MayaGarment(core.ParametrizedPattern):
         intersecting = False
 
         # Normal flow produces errors: supress them
-        cmds.scriptEditorInfo(edit=True, suppressErrors=0) 
+        #cmds.scriptEditorInfo(edit=True, suppressErrors=1) 
 
         # check intersection with colliders
         for obj in obstacles:
@@ -282,21 +282,21 @@ class MayaGarment(core.ParametrizedPattern):
             if intersecting:
                 break
         
-        if not intersecting:
-            # check self-intersection in 3D (NOTE simlified -- panel-to-geometry check)
-            for panel_name in self.pattern['panels']:
-                panel_3d = qw.qlCreatePattern(self.MayaObjects['panels'][panel_name]['curve_group'])
-                panel_geomentry = [obj for obj in panel_3d if 'Out' in obj][0]  # will be corrupted
+        # if not intersecting:
+        #     # check self-intersection in 3D (NOTE simlified -- panel-to-geometry check)
+        #     for panel_name in self.pattern['panels']:
+        #         panel_3d = qw.qlCreatePattern(self.MayaObjects['panels'][panel_name]['curve_group'])
+        #         panel_geomentry = [obj for obj in panel_3d if 'Out' in obj][0]  # will be corrupted
 
-                intersecting = self._intersect_object(panel_geomentry)
-                cmds.delete(panel_3d)
-                if intersecting:
-                    break
-            # reload to create new solver and prevent Maya crashes
-            self.load()
+        #         intersecting = self._intersect_object(panel_geomentry)
+        #         cmds.delete(panel_3d)
+        #         if intersecting:
+        #             break
+        #     # reload to create new solver and prevent Maya crashes
+        #     self.load()
 
         # revert settings
-        cmds.scriptEditorInfo(edit=True, suppressErrors=1)
+        #cmds.scriptEditorInfo(edit=True, suppressErrors=0)
 
         return intersecting
 
@@ -761,7 +761,7 @@ class Scene(object):
     def cloth_shader(self):
         return self.scene['cloth_shader']
 
-    def render(self, save_to, name=''):
+    def render(self, save_to, name='last'):
         """
             Makes a rendering of a current scene, and saves it to a given path
         """
@@ -784,7 +784,7 @@ class Scene(object):
 
             arnoldRender(im_size[0], im_size[1], True, True, camera, ' -layer defaultRenderLayer')
             
-        self.stats['render_time'].append(time.time() - start_time)
+        self.stats['render_time'][name] = time.time() - start_time
 
     def fetch_props_from_Maya(self):
         """Get properties records from Maya
@@ -842,7 +842,6 @@ class Scene(object):
 
         # collect cameras
         self.cameras = cmds.ls(scene_namespace + '*camera*', transforms=True)
-        print(self.cameras)
 
         # adjust scene position s.t. body is standing in the middle
         body_low_center = self._get_object_lower_center(self.body)

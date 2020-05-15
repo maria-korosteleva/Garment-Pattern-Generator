@@ -3,7 +3,9 @@
     The module might be used in Maya, so its Python 2.7 compatible
 """
 
+from datetime import timedelta
 import json
+from numbers import Number
 
 
 class Properties():
@@ -79,7 +81,27 @@ class Properties():
             if isinstance(value, dict) and 'stats' in value:
                 value['stats'] = {}
 
+    def summarize_stats(self):
+        """Make a summary of all statistic info in current props"""
+        for key, section in self.properties.items():
+            # detect stats sections
+            if isinstance(section, dict) and 'stats' in section:
+                for stats_key, stats_values in section['stats'].items():
+                    # summarize all foundable statistics
+                    if isinstance(stats_values, dict) and len(stats_values) > 0 and isinstance(stats_values.values()[0], Number):
+                        section['stats'][stats_key + "_sum"] = sum(stats_values.values())
+                        section['stats'][stats_key + "_avg"] = section['stats'][stats_key + "_sum"] / len(stats_values)
+                        section['stats'][stats_key + "_total_time"] = str(timedelta(seconds=sum(stats_values.values())))
+
+                    if isinstance(stats_values, list) and len(stats_values) > 0 and isinstance(stats_values[0], Number):
+                        section['stats'][stats_key + "_sum"] = sum(stats_values)
+                        section['stats'][stats_key + "_total_time"] = str(timedelta(seconds=sum(stats_values.values())))
+                        section['stats'][stats_key + "_avg"] = section['stats'][stats_key + "_sum"] / len(stats_values)
+
     def serialize(self, filename):
+        """Log current props to file"""
+        # gather stats first
+        self.summarize_stats()
         with open(filename, 'w') as f_json:
             json.dump(self.properties, f_json, indent=2, sort_keys=True)
 

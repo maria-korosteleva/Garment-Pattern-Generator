@@ -2,15 +2,14 @@
   "body": "f_smpl_templatex300.obj", 
   "render": {
     "config": {
-      "scene": "studio.mb",
+      "scene": "studio_orange.mb",
       "resolution": [
         800, 
         800
       ]
     }, 
     "stats": {
-      "render_time": [
-      ]
+      "render_time": {}
     }
   }, 
   "sim": {
@@ -43,10 +42,10 @@
       "zero_gravity_steps": 5
     }, 
     "stats": {
-      "fin_frame": [], 
+      "fin_frame": {}, 
       "sim_fails": [], 
-      "sim_time": [], 
-      "spf": []
+      "sim_time": {}, 
+      "spf": {}
     }
   }
 }

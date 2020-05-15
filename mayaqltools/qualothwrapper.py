@@ -101,14 +101,14 @@ def run_sim(garment, props):
             * All of the garments existing in Maya scene will be simulated
                 because solver is shared!!
     """
+    # take no responsibility for result in case of 3d penetrations
+    if garment.has_3D_intersections():
+        props['stats']['sim_fails'].append(garment.name)
+
     config = props['config']
     solver = _init_sim(config)
     garment.setMaterialSimProps(config['material'])  # ensure running sim with suplied material props
 
-    # take no responsibility for result in case of 3d penetrations
-    if garment.has_3D_intersections():
-        props['stats']['sim_fails'].append(garment.name)
-    
     start_time = time.time()
     # Allow to assemble without gravity + skip checks for first few frames
     _set_gravity(solver, 0)
@@ -129,10 +129,10 @@ def run_sim(garment, props):
     if frame == config['max_sim_steps'] - 1:
         props['stats']['sim_fails'].append(garment.name)
 
-    # TODO make recording pattern-specific, not dataset-specific
-    props['stats']['sim_time'].append(time.time() - start_time)
-    props['stats']['spf'].append(props['stats']['sim_time'][-1] / frame)
-    props['stats']['fin_frame'].append(frame)
+    # stats
+    props['stats']['sim_time'][garment.name] = time.time() - start_time
+    props['stats']['spf'][garment.name] = props['stats']['sim_time'][garment.name] / frame
+    props['stats']['fin_frame'][garment.name] = frame
 
 
 def findSolver():

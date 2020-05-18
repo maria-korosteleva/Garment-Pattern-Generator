@@ -20,7 +20,7 @@ from maya import OpenMaya
 # Arnold
 import mtoa.utils as mutils
 from mtoa.cmds.arnoldRender import arnoldRender
-import mtoa.core as mtoa
+import mtoa.core
 
 # My modules
 import pattern.core as core
@@ -46,7 +46,7 @@ class MayaGarment(core.ParametrizedPattern):
         self.current_verts = None
         self.loaded_to_maya = False
         self.obstacles = []
-        self.shader = None
+        self.shader_group = None
         self.MayaObjects = {}
         self.sim_material = {}
     
@@ -55,7 +55,7 @@ class MayaGarment(core.ParametrizedPattern):
         if self.self_clean:
             self.clean(True)
 
-    def load(self, obstacles=[], shader=None, material={}, parent_group=None):
+    def load(self, obstacles=[], shader_group=None, material={}, parent_group=None):
         """
             Loads current pattern to Maya as simulatable garment.
             If already loaded, cleans previous geometry & reloads
@@ -70,7 +70,7 @@ class MayaGarment(core.ParametrizedPattern):
         self.loaded_to_maya = True
         # cmds.scriptEditorInfo(edit=True, suppressWarnings=0) 
 
-        self.setShader(shader)
+        self.setShaderGroup(shader_group)
         self.add_colliders(obstacles)
         self.setMaterialSimProps(material)
 
@@ -90,7 +90,7 @@ class MayaGarment(core.ParametrizedPattern):
         for panel_name in self.pattern['panels']:
             panel_maya = self._load_panel(panel_name, group_name)
     
-    def setShader(self, shader=None):
+    def setShaderGroup(self, shader_group=None):
         """
             Sets material properties for the cloth object created from current panel
         """
@@ -98,12 +98,11 @@ class MayaGarment(core.ParametrizedPattern):
             raise RuntimeError(
                 'MayaGarmentError::Pattern is not yet loaded. Cannot set shader')
 
-        if shader is not None:  # use previous othervise
-            self.shader = shader
+        if shader_group is not None:  # use previous othervise
+            self.shader_group = shader_group
 
-        if self.shader is not None:
-            cmds.select(self.get_qlcloth_geomentry())
-            cmds.hyperShade(assign=self.shader)
+        if self.shader_group is not None:
+            cmds.sets(self.get_qlcloth_geomentry(), forceElement=self.shader_group)
 
     def add_colliders(self, obstacles=[]):
         """
@@ -753,13 +752,13 @@ class Scene(object):
         if not objects:  # Arnold objects not found
             # https://arnoldsupport.com/2015/12/09/mtoa-creating-the-defaultarnold-nodes-in-scripting/
             print('Initialized Arnold')
-            mtoa.createOptions()
+            mtoa.core.createOptions()
 
     def floor(self):
         return self.scene['floor']
     
-    def cloth_shader(self):
-        return self.scene['cloth_shader']
+    def cloth_SG(self):
+        return self.scene['cloth_SG']
 
     def render(self, save_to, name='last'):
         """
@@ -806,14 +805,12 @@ class Scene(object):
         self.scene = {
             'floor': self._add_floor(self.body)
         }
-        self.scene.update({
-            # materials
-            'body_shader': self._new_lambert(colors['body_color'], self.body),
-            'cloth_shader': self._new_lambert(colors['cloth_color']),
-            'floor_shader': self._new_lambert(colors['floor_color'], self.scene['floor']),
-            # light
-            'light': mutils.createLocator('aiSkyDomeLight', asLight=True)
-        })
+        # materials
+        self.scene['body_shader'], self.scene['body_SG'] = self._new_lambert(colors['body_color'], self.body)
+        self.scene['cloth_shader'], self.scene['cloth_SG'] = self._new_lambert(colors['cloth_color'], self.body)
+        self.scene['floor_shader'], self.scene['floor_SG'] = self._new_lambert(colors['floor_color'], self.body)
+
+        self.scene['light'] = mutils.createLocator('aiSkyDomeLight', asLight=True)
 
         # Put camera
         self.cameras = [self._add_simple_camera()]
@@ -835,10 +832,13 @@ class Scene(object):
             'cloth_shader': cmds.ls(scene_namespace + '*garment*', materials=True, )[0],
             'side_shader': cmds.ls(scene_namespace + '*wall*', materials=True)[0]
         }
+        # shader groups (to be used in cmds.sets())
+        self.scene['body_SG'] = self._create_shader_group(self.scene['body_shader'], 'bodySG')
+        self.scene['cloth_SG'] = self._create_shader_group(self.scene['cloth_shader'], 'garmentSG')
+
         # apply coloring to body object
         if self.body:
-            cmds.select(self.body)
-            cmds.hyperShade(assign=self.scene['body_shader'])
+            cmds.sets(self.body, forceElement=self.scene['body_SG'])
 
         # collect cameras
         self.cameras = cmds.ls(scene_namespace + '*camera*', transforms=True)
@@ -901,8 +901,14 @@ class Scene(object):
                      color[0], color[1], color[2],
                      type='double3')
 
+        shader_group = self._create_shader_group(shader)
         if target is not None:
-            cmds.select(target)
-            cmds.hyperShade(assign=shader)
+            cmds.sets(target, forceElement=shader_group)
 
-        return shader
+        return shader, shader_group
+
+    def _create_shader_group(self, material, name='shader'):
+        """Create a shader group set for a given material (to be used in cmds.sets())"""
+        shader_group = cmds.sets(renderable=True, noSurfaceShader=True, empty=True, name=name)
+        cmds.connectAttr(material + '.outColor', shader_group + '.surfaceShader')
+        return shader_group

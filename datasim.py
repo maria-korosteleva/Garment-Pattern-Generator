@@ -6,6 +6,13 @@ from __future__ import print_function
 import os
 import errno
 
+try: 
+    import maya.standalone 			
+    maya.standalone.initialize()
+    cmds.loadPlugin('mtoa.mll')  # https://stackoverflow.com/questions/50422566/how-to-register-arnold-render
+except Exception as e: 
+    print(e) 			
+    pass
 
 # My modules
 import mayaqltools as mymaya
@@ -15,11 +22,11 @@ reload(customconfig)
 
 
 if __name__ == "__main__":
-    system_config = customconfig.Properties('./system.json')  # Make sure it's in \Autodesk\MayaNNNN\
+    system_config = customconfig.Properties('../system.json')  # Make sure it's in \Autodesk\MayaNNNN\
     path = system_config['templates_path']
 
     # ------ Dataset Example ------
-    dataset = 'data_150_tee_200515-15-31-40-slice'
+    dataset = 'data_150_tee_200515-15-31-40'
     datapath = os.path.join(system_config['output'], dataset)
     dataset_file = os.path.join(datapath, 'dataset_properties.json')
 

@@ -112,7 +112,7 @@ class State(object):
 
         if self.scene is not None:
             self.garment.load(
-                shader=self.scene.cloth_shader(), 
+                shader_group=self.scene.cloth_SG(), 
                 obstacles=[self.scene.body, self.scene.floor()]
             )
         else:

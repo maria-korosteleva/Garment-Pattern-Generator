@@ -70,6 +70,7 @@ def batch_sim(resources, data_path, dataset_props,
     """
     # ----- Init -----
     resume = init_sim_props(dataset_props, batch_run=True, force_restart=force_restart)
+
     qw.load_plugin()
     scene = mymaya.Scene(
         os.path.join(resources['bodies_path'], dataset_props['body']),
@@ -82,12 +83,14 @@ def batch_sim(resources, data_path, dataset_props,
     # Simulate every template
     for pattern_spec in pattern_specs:
         # skip processed cases -- in case of resume. First condition needed to skip checking second one on False =) 
-        if resume and pattern_spec in dataset_props['sim']['stats']['processed']:
+        pattern_spec_norm = os.path.normpath(pattern_spec)
+        if resume and pattern_spec_norm in dataset_props['sim']['stats']['processed']:
+            print('Skipped as already processed {}'.format(pattern_spec_norm))
             continue
-        dataset_props['sim']['stats']['processed'].append(pattern_spec)
+        dataset_props['sim']['stats']['processed'].append(pattern_spec_norm)
         _serialize_props_with_stats(dataset_props, data_props_file)  # save info of processed files before potential crash
 
-        template_simulation(pattern_spec, 
+        template_simulation(pattern_spec_norm, 
                             scene, 
                             dataset_props['sim'], 
                             delete_on_clean=False,  # delete geometry after sim s.t. it doesn't resim with each new example
@@ -136,10 +139,11 @@ def init_sim_props(props, batch_run=False, force_restart=False):
     if batch_run and 'processed' in props['sim']['stats'] and not force_restart:
         # resuming existing batch processing -- do not clean stats 
         # Assuming the last example processed example caused the failure
+        props['sim']['stats']['processed'] = [os.path.normpath(path) for path in props['sim']['stats']['processed']]
         props['sim']['stats']['sim_fails'].append(props['sim']['stats']['processed'][-1])
         return True
     
-    # new life
+    # else new life
     # Prepare commulative stats
     props.set_section_stats(
         'sim', 
@@ -196,7 +200,7 @@ def _get_pattern_files(data_path, dataset_props):
             if ('.json' in file
                     and 'template' not in file
                     and 'dataset_properties' not in file):
-                pattern_specs.append(os.path.join(root, file))
+                pattern_specs.append(os.path.normpath(os.path.join(root, file)))
     return pattern_specs
 
 

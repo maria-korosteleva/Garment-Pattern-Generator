@@ -8,7 +8,9 @@
     
 """
 from __future__ import print_function
+from __future__ import division
 import time
+import sys
 
 from maya import mel
 from maya import cmds
@@ -111,10 +113,14 @@ def run_sim(garment, props):
 
     start_time = time.time()
     # Allow to assemble without gravity + skip checks for first few frames
+    print('Simulating {}'.format(garment.name))
     _set_gravity(solver, 0)
     for frame in range(1, config['zero_gravity_steps']):
         cmds.currentTime(frame)  # step
         garment.cache_if_enabled(frame)
+        garment.update_verts_info()
+
+        _update_progress(frame, config['max_sim_steps'])  # progress bar
 
     # resume normally
     _set_gravity(solver, -980)
@@ -122,11 +128,15 @@ def run_sim(garment, props):
         cmds.currentTime(frame)  # step
         garment.cache_if_enabled(frame)
         garment.update_verts_info()
+
+        _update_progress(frame, config['max_sim_steps'])  # progress bar
         if garment.is_static(config['static_threshold']):  # Success!
+            print('\nAchieved static equilibrium for {}'.format(garment.name))
             break
 
     # Fail check: static equilibrium never detected -- might have false negs!
     if frame == config['max_sim_steps'] - 1:
+        print('\nFailed to achieve static equilibrium for {}'.format(garment.name))
         props['stats']['sim_fails'].append(garment.name)
 
     # stats
@@ -269,3 +279,12 @@ def _init_sim(config):
 def _set_gravity(solver, gravity):
     """Set a given value of gravity to sim solver"""
     cmds.setAttr(solver + '.gravity1', gravity)
+
+
+def _update_progress(progress, total):
+    """Progress bar in console"""
+    # https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
+    amtDone = progress / total
+    num_dash = int(amtDone * 50)
+    sys.stdout.write('\rProgress: [{0:50s}] {1:.1f}%'.format('#' * num_dash + '-' * (50 - num_dash), amtDone * 100))
+    sys.stdout.flush()

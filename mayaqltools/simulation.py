@@ -33,7 +33,7 @@ def single_file_sim(resources, props, caching=False):
                             scene, props['sim'], caching=caching)
 
         # Fin
-        print('Finished experiment')
+        print('\nFinished experiment')
         try:
             # remove unnecessaty field
             del props['sim']['stats']['processed']
@@ -97,7 +97,7 @@ def batch_sim(resources, data_path, dataset_props,
                             caching=caching)  
 
     # Fin
-    print('Finished ' + os.path.basename(data_path))
+    print('\nFinished ' + os.path.basename(data_path))
     try:
         # processing successfully finished -- no need to resume later
         del dataset_props['sim']['stats']['processed']
@@ -167,7 +167,7 @@ def template_simulation(spec, scene, sim_props, delete_on_clean=False, caching=F
     """
         Simulate given template withing given scene & save log files
     """
-    print('Garment load')
+    print('\nGarment load')
     garment = mymaya.MayaGarment(spec)
     garment.load(
         shader_group=scene.cloth_SG(), 

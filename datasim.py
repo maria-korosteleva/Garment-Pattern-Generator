@@ -7,6 +7,7 @@ import os
 import errno
 
 try: 
+    from maya import cmds
     import maya.standalone 			
     maya.standalone.initialize()
     cmds.loadPlugin('mtoa.mll')  # https://stackoverflow.com/questions/50422566/how-to-register-arnold-render
@@ -23,7 +24,7 @@ reload(customconfig)
 
 
 if __name__ == "__main__":
-    system_config = customconfig.Properties('../system.json')  # Make sure it's in \Autodesk\MayaNNNN\
+    system_config = customconfig.Properties('./system.json')  # Make sure it's in \Autodesk\MayaNNNN\
     path = system_config['templates_path']
 
     # ------ Dataset Example ------
@@ -37,8 +38,12 @@ if __name__ == "__main__":
     # props.merge(os.path.join(system_config['sim_configs_path'], 
     #                         'sim_props_good_render_basic_body.json'))
 
-    mymaya.simulation.batch_sim(system_config, datapath, props, caching=False, force_restart=False)
-    props.serialize(dataset_file)
+    try:
+        mymaya.simulation.batch_sim(system_config, datapath, props, caching=False, force_restart=False)
+        props.serialize(dataset_file)
+    except Exception as e: 
+        print(e)
+        pass
 
     # ------ Example for single template generation ------
     # path_example = os.path.join(system_config['output'], 'from_editor', 'deactive_200430-15-42-02')

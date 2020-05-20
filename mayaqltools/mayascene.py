@@ -133,6 +133,13 @@ class MayaGarment(core.ParametrizedPattern):
         if self.loaded_to_maya:
             # Remove from simulation
             cmds.setAttr(self.get_qlcloth_props_obj() + '.active', 0)
+            # flush Qualoth cache
+            qw.qlCleanCache(self.get_qlcloth_props_obj())
+            # flush maya caches
+            cmds.flushUndo()
+            cmds.clearCache(all=True)
+            cmds.DeleteHistory()
+
             if delete:
                 print('MayaGarment::Deleting {}'.format(self.MayaObjects['pattern']))
                 cmds.delete(self.MayaObjects['pattern'])
@@ -460,7 +467,7 @@ class MayaGarment(core.ParametrizedPattern):
 
         filepath = os.path.join(path, filename + '.obj')
         cmds.select(self.get_qlcloth_geomentry())
-        print(cmds.ls(sl=True))
+
         cmds.file(
             filepath,
             type='OBJExport',  

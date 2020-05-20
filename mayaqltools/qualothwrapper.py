@@ -72,6 +72,12 @@ def qlCreateCollider(cloth, target):
     return list(set(objects_after) - set(objects_before))
 
 
+def qlCleanCache(cloth):
+    """Clean layback cache for given cloth. Accepts qlCloth object"""
+    cmds.select(cloth)
+    mel.eval('qlClearCache()')
+
+
 # ------- Higher-level functions --------
 
 def start_maya_sim(garment, props):

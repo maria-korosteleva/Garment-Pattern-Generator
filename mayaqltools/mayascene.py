@@ -215,11 +215,18 @@ class MayaGarment(core.ParametrizedPattern):
                 'MayaGarmentError::Pattern is not yet loaded. Cannot update verts info')
 
         # working with meshes http://www.fevrierdorian.com/blog/post/2011/09/27/Quickly-retrieve-vertex-positions-of-a-Maya-mesh-%28English-Translation%29
+
+        # print('Getting dag object')
+
         cloth_dag = self.get_qlcloth_geom_dag()
+
+        # print(cloth_dag)
         
         mesh = OpenMaya.MFnMesh(cloth_dag)
         maya_vertices = OpenMaya.MPointArray()
         mesh.getPoints(maya_vertices, OpenMaya.MSpace.kWorld)
+
+        # print('Got mesh points')
 
         vertices = np.empty((maya_vertices.length(), 3))
         for i in range(maya_vertices.length()):
@@ -453,12 +460,13 @@ class MayaGarment(core.ParametrizedPattern):
 
         filepath = os.path.join(path, filename + '.obj')
         cmds.select(self.get_qlcloth_geomentry())
+        print(cmds.ls(sl=True))
         cmds.file(
             filepath + '.obj',  # Maya 2020 stupidly cuts file extention 
-            typ='OBJExport',
-            es=1,  # export selected
-            op='groups=0;ptgroups=0;materials=0;smoothing=0;normals=1',  # very simple obj
-            f=1  # force override if file exists
+            type='OBJExport',
+            exportSelected=True,  # export selected
+            options='groups=0;ptgroups=0;materials=0;smoothing=0;normals=1',  # very simple obj
+            force=True   # force override if file exists
         )
 
     def _intersect_object(self, geometry):
@@ -746,13 +754,17 @@ class Scene(object):
                 # garment color migh become invalid
 
     def _init_arnold(self):
-        """Endure Arnold objects are launched in Maya"""
+        """Ensure Arnold objects are launched in Maya & init GPU rendering settings"""
 
         objects = cmds.ls('defaultArnoldDriver')
         if not objects:  # Arnold objects not found
             # https://arnoldsupport.com/2015/12/09/mtoa-creating-the-defaultarnold-nodes-in-scripting/
             print('Initialized Arnold')
             mtoa.core.createOptions()
+        
+        cmds.setAttr('defaultArnoldRenderOptions.renderDevice', 1)  # turn on GPPU rendering
+        cmds.setAttr('defaultArnoldRenderOptions.render_device_fallback', 1)  # switch to CPU in case of failure
+        cmds.setAttr('defaultArnoldRenderOptions.AASamples', 10)  # increase sampling for clean results
 
     def floor(self):
         return self.scene['floor']

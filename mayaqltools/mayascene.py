@@ -133,12 +133,6 @@ class MayaGarment(core.ParametrizedPattern):
         if self.loaded_to_maya:
             # Remove from simulation
             cmds.setAttr(self.get_qlcloth_props_obj() + '.active', 0)
-            # flush Qualoth cache
-            qw.qlCleanCache(self.get_qlcloth_props_obj())
-            # flush maya caches
-            cmds.flushUndo()
-            cmds.clearCache(all=True)
-            cmds.DeleteHistory()
 
             if delete:
                 print('MayaGarment::Deleting {}'.format(self.MayaObjects['pattern']))

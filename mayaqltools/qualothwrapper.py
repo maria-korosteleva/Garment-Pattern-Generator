@@ -114,13 +114,15 @@ def run_sim(garment, props):
     start_time = time.time()
     # Allow to assemble without gravity + skip checks for first few frames
     print('Simulating {}'.format(garment.name))
+    print(garment.MayaObjects)
     _set_gravity(solver, 0)
     for frame in range(1, config['zero_gravity_steps']):
+        print('Frame: {}'.format(frame))
         cmds.currentTime(frame)  # step
+        print('Step made')
         garment.cache_if_enabled(frame)
         garment.update_verts_info()
-
-        _update_progress(frame, config['max_sim_steps'])  # progress bar
+        # _update_progress(frame, config['max_sim_steps'])  # progress bar
 
     # resume normally
     _set_gravity(solver, -980)

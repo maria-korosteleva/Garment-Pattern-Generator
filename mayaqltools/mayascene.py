@@ -168,7 +168,7 @@ class MayaGarment(core.ParametrizedPattern):
         if 'qlClothShape' not in self.MayaObjects:
             children = cmds.listRelatives(self.MayaObjects['pattern'], ad=True)
             cloths = [obj for obj in children 
-                      if 'qlCloth' in obj and 'Out' in obj and 'Shape' in obj]
+                      if 'qlCloth' in obj and 'Out' in obj and 'Shape' not in obj]
             self.MayaObjects['qlClothShape'] = cloths[0]
 
         return self.MayaObjects['qlClothShape']
@@ -462,13 +462,14 @@ class MayaGarment(core.ParametrizedPattern):
         cmds.select(self.get_qlcloth_geomentry())
         print(cmds.ls(sl=True))
         cmds.file(
-            filepath + '.obj',  # Maya 2020 stupidly cuts file extention 
-            type='OBJExport',
-            exportSelected=True,  # export selected
+            filepath,
+            type='OBJExport',  
+            exportSelectedStrict=True,  # export selected -- only explicitely selected
             options='groups=0;ptgroups=0;materials=0;smoothing=0;normals=1',  # very simple obj
-            force=True   # force override if file exists
+            force=True,   # force override if file exists
+            defaultExtensions=False
         )
-
+        
     def _intersect_object(self, geometry):
         """Check if given object intersects current cloth geometry
             Note that input geometry will be corrupted after check!"""

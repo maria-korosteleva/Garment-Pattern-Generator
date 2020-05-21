@@ -216,18 +216,11 @@ class MayaGarment(core.ParametrizedPattern):
                 'MayaGarmentError::Pattern is not yet loaded. Cannot update verts info')
 
         # working with meshes http://www.fevrierdorian.com/blog/post/2011/09/27/Quickly-retrieve-vertex-positions-of-a-Maya-mesh-%28English-Translation%29
-
-        # print('Getting dag object')
-
         cloth_dag = self.get_qlcloth_geom_dag()
-
-        # print(cloth_dag)
         
         mesh = OpenMaya.MFnMesh(cloth_dag)
         maya_vertices = OpenMaya.MPointArray()
         mesh.getPoints(maya_vertices, OpenMaya.MSpace.kWorld)
-
-        # print('Got mesh points')
 
         vertices = np.empty((maya_vertices.length(), 3))
         for i in range(maya_vertices.length()):
@@ -790,6 +783,8 @@ class Scene(object):
         # render all the cameras
         start_time = time.time()
         for camera in self.cameras:
+            print('Rendering from camera {}'.format(camera))
+
             camera_name = camera.split(':')[-1]  # list of one element if ':' is not found
             local_name = (name + '_' + camera_name) if name else camera_name
             filename = os.path.join(save_to, local_name)

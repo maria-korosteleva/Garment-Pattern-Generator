@@ -45,7 +45,7 @@ def single_file_sim(resources, props, caching=False):
 
 
 def batch_sim(resources, data_path, dataset_props, 
-              caching=False, force_restart=False):
+              num_samples=None, caching=False, force_restart=False):
     """
         Performs pattern simulation for each example in the dataset 
         given by dataset_props. 
@@ -54,16 +54,19 @@ def batch_sim(resources, data_path, dataset_props,
         example on the processes list is assumed to cause the failure, so it can be later found in failure cases. 
 
         Parameters:
-            * template_path -- path to folder with pattern templates
-            * body_path -- path to folder with body meshes
-            * data_path -- path to folder with the dataset
+            * resources -- dict of paths to needed resoursed: 
+                * body_path -- path to folder with body meshes
+                * data_path -- path to folder with the dataset
+                * scenes_path -- path to folder with rendering scenes
             * dataset_props -- dataset properties. Properties has to be of custom customconfig.Properties() class and contain
                     * dataset folder (inside data_path) 
                     * name of pattern template
                     * name of body .obj file
                     * type of dataset structure (with/without subfolders for patterns)
+                    * list of processed samples if processing of dataset was allready attempted
                 Other needed properties will be filles with default values if the corresponding sections
                 are not found in props object
+            * num_samples -- number of (unprocessed) samples from dataset to process with this run. If None, runs over all unprocessed samples
             * caching -- enables caching of every frame of simulation (disabled by default)
             * force_restart -- force restarting the batch processing even if resume conditions are met. 
         
@@ -81,12 +84,14 @@ def batch_sim(resources, data_path, dataset_props,
     data_props_file = os.path.join(data_path, 'dataset_properties.json')
 
     # Simulate every template
+    count = 0
     for pattern_spec in pattern_specs:
         # skip processed cases -- in case of resume. First condition needed to skip checking second one on False =) 
         pattern_spec_norm = os.path.normpath(pattern_spec)
         if resume and pattern_spec_norm in dataset_props['sim']['stats']['processed']:
             print('Skipped as already processed {}'.format(pattern_spec_norm))
             continue
+
         dataset_props['sim']['stats']['processed'].append(pattern_spec_norm)
         _serialize_props_with_stats(dataset_props, data_props_file)  # save info of processed files before potential crash
 
@@ -96,19 +101,31 @@ def batch_sim(resources, data_path, dataset_props,
                             delete_on_clean=False,  # delete geometry after sim s.t. it doesn't resim with each new example
                             caching=caching)  
 
+        count += 1  # count actively processed cases
+        if num_samples is not None and count >= num_samples:  # only process requested number of samples       
+            break
+
     # Fin
-    print('\nFinished ' + os.path.basename(data_path))
+    print('\nFinished batch of ' + os.path.basename(data_path))
     try:
-        # processing successfully finished -- no need to resume later
-        del dataset_props['sim']['stats']['processed']
+        if len(dataset_props['sim']['stats']['processed']) >= len(pattern_specs):
+            # processing successfully finished -- no need to resume later
+            del dataset_props['sim']['stats']['processed']
+            process_finished = True
+        else:
+            process_finished = False
     except KeyError:
+        print('KeyError -processed-')
+        process_finished = True
         pass
+
     # Logs
     _serialize_props_with_stats(dataset_props, data_props_file)
     # save Maya scene
-    # NOTE when using Maya for students, this requires action from user
     cmds.file(rename=os.path.join(data_path, 'scene'))
     cmds.file(save=True, type='mayaBinary', force=True, defaultExtensions=True)
+
+    return process_finished
 
 
 # ------- Utils -------
@@ -140,7 +157,7 @@ def init_sim_props(props, batch_run=False, force_restart=False):
         # resuming existing batch processing -- do not clean stats 
         # Assuming the last example processed example caused the failure
         props['sim']['stats']['processed'] = [os.path.normpath(path) for path in props['sim']['stats']['processed']]
-        props['sim']['stats']['sim_fails'].append(props['sim']['stats']['processed'][-1])
+        props['sim']['stats']['stop_over'].append(props['sim']['stats']['processed'][-1])
         return True
     
     # else new life
@@ -158,7 +175,7 @@ def init_sim_props(props, batch_run=False, force_restart=False):
     )
 
     if batch_run:  # track batch processing
-        props.set_section_stats('sim', processed=[])
+        props.set_section_stats('sim', processed=[], stop_over=[])
 
     return False
         

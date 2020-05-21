@@ -64,11 +64,10 @@ class MayaGarment(core.ParametrizedPattern):
             self.sim_material = self.fetchMaterialSimProps()  # save the latest material
         self.clean(True)
         
-        # cmds.scriptEditorInfo(edit=True, suppressWarnings=1)  # Normal flow produces garbage warnings 
+        # Normal flow produces garbage warnings of parenting from Maya. Solution suggestion didn't work, so I just live with them
         self.load_panels(parent_group)
         self.stitch_panels()
         self.loaded_to_maya = True
-        # cmds.scriptEditorInfo(edit=True, suppressWarnings=0) 
 
         self.setShaderGroup(shader_group)
         self.add_colliders(obstacles)
@@ -270,17 +269,15 @@ class MayaGarment(core.ParametrizedPattern):
         print('Garment::3D Penetration checks')
         intersecting = False
 
-        # Normal flow produces errors: supress them
-        #cmds.scriptEditorInfo(edit=True, suppressErrors=1) 
-
         # check intersection with colliders
+        # NOTE Normal flow produces errors: they are the indication of no intersection -- desired outcome
         for obj in obstacles:
             obj_copy = cmds.duplicate(obj)  # geometry will get affected
             intersecting = self._intersect_object(obj_copy)
             cmds.delete(obj_copy)
 
             if intersecting:
-                break
+                return True
         
         # if not intersecting:
         #     # check self-intersection in 3D (NOTE simlified -- panel-to-geometry check)
@@ -294,9 +291,6 @@ class MayaGarment(core.ParametrizedPattern):
         #             break
         #     # reload to create new solver and prevent Maya crashes
         #     self.load()
-
-        # revert settings
-        #cmds.scriptEditorInfo(edit=True, suppressErrors=0)
 
         return intersecting
 

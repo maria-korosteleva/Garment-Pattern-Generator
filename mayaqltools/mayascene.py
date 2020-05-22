@@ -7,6 +7,7 @@ from __future__ import print_function
 from __future__ import division
 from functools import partial
 import copy
+import ctypes
 import errno
 import json
 import numpy as np
@@ -256,9 +257,6 @@ class MayaGarment(core.ParametrizedPattern):
             * wheter garment intersects given obstacles or its colliders if obstacles are not given
             * wheter garment has self-intersections
             Returns True if intersections found
-
-        NOTE Implementation is lazy & might have false negatives
-        NOTE the garment geometry has to be reloaded after this checks! Do not put this routine inside the loading process!
         """
         if not self.loaded_to_maya:
             raise RuntimeError('Garment is not yet loaded: cannot check for intersections')
@@ -267,7 +265,6 @@ class MayaGarment(core.ParametrizedPattern):
             obstacles = self.obstacles
         
         print('Garment::3D Penetration checks')
-        intersecting = False
 
         # check intersection with colliders
         # NOTE Normal flow produces errors: they are the indication of no intersection -- desired outcome
@@ -278,21 +275,8 @@ class MayaGarment(core.ParametrizedPattern):
 
             if intersecting:
                 return True
-        
-        # if not intersecting:
-        #     # check self-intersection in 3D (NOTE simlified -- panel-to-geometry check)
-        #     for panel_name in self.pattern['panels']:
-        #         panel_3d = qw.qlCreatePattern(self.MayaObjects['panels'][panel_name]['curve_group'])
-        #         panel_geomentry = [obj for obj in panel_3d if 'Out' in obj][0]  # will be corrupted
-
-        #         intersecting = self._intersect_object(panel_geomentry)
-        #         cmds.delete(panel_3d)
-        #         if intersecting:
-        #             break
-        #     # reload to create new solver and prevent Maya crashes
-        #     self.load()
-
-        return intersecting
+        # self-intersection is assumed to be a havier check
+        return self._is_geom_self_intersecting()
 
     def sim_caching(self, caching=True):
         """Toggles the caching of simulation steps to garment folder"""
@@ -472,6 +456,70 @@ class MayaGarment(core.ParametrizedPattern):
         cmds.delete(intersect)
 
         return intersect_size > 0
+
+    def _is_geom_self_intersecting(self):
+        """Checks wheter currently loaded garment geometry intersects itself
+            Unline boolOp, check is non-invasive and do not requre """
+        if not self.loaded_to_maya:
+            raise RuntimeError(
+                'MayaGarmentError::Pattern is not yet loaded. Cannot check geometry self-intersection')
+        
+        cloth_dag = self.get_qlcloth_geom_dag()
+        
+        mesh = OpenMaya.MFnMesh(cloth_dag)  # reference https://help.autodesk.com/view/MAYAUL/2017/ENU/?guid=__py_ref_class_open_maya_1_1_m_fn_mesh_html
+        vertices = OpenMaya.MPointArray()
+        mesh.getPoints(vertices, OpenMaya.MSpace.kWorld)
+        # It turns out that OpenMaya python reference has nothing to do with reality of passing argument:
+        # the functions I use below are to be treated as wrappers of c++ API
+
+        # use ray intersect with all edges of current mesh & the mesh itself
+        num_edges = mesh.numEdges()
+        accelerator = OpenMaya.MMeshIsectAccelParams()
+        tolerance = 1e-5
+        perturbation = OpenMaya.MFloatVector(2 * tolerance, 2 * tolerance, 2 * tolerance)  # somewhere on https://forums.cgsociety.org/ I found a suggestion to perturb edge location to ensure it's not on the mesh!
+        for edge_id in range(num_edges):  # range(num_edges)
+            util = OpenMaya.MScriptUtil(0.0)
+            v_ids_cptr = util.asInt2Ptr()  # https://forums.cgsociety.org/t/mfnmesh-getedgevertices-error-on-2011/1652362
+            mesh.getEdgeVertices(edge_id, v_ids_cptr)  # https://help.autodesk.com/view/MAYAUL/2018//ENU/?guid=__cpp_ref_class_m_fn_mesh_html
+
+            # get values from SWIG pointer https://stackoverflow.com/questions/39344039/python-cast-swigpythonobject-to-python-object
+            ty = ctypes.c_uint * 2
+            v_ids_list = ty.from_address(int(v_ids_cptr))
+            vtx1, vtx2 = v_ids_list[0], v_ids_list[1]
+
+            # print('Edge vertices ids: {}, {}'.format(vtx1, vtx2))
+
+            raySource = OpenMaya.MFloatPoint(vertices[vtx1]) + perturbation
+            rayDir = OpenMaya.MFloatVector(vertices[vtx2] - vertices[vtx1])
+            worldSpace = OpenMaya.MSpace.kWorld
+            maxParam = 1  # only within edge
+            testBothDirections = False
+            faceIds = None
+            triIds = None
+            idsSorted = False
+            accelParams = accelerator  # Use speed-up
+            sortHits = True
+
+            hitPoints = OpenMaya.MFloatPointArray()
+            hitRayParams = OpenMaya.MFloatArray()
+            hitFaces = OpenMaya.MIntArray()
+            hitTris = None
+            hitBarys1 = None
+            hitBarys2 = None
+
+            hit = mesh.allIntersections(
+                raySource, rayDir, faceIds, triIds, idsSorted, worldSpace, maxParam, testBothDirections, accelParams, sortHits,
+                hitPoints, hitRayParams, hitFaces, hitTris, hitBarys1, hitBarys2, tolerance)
+            
+            if hit:
+                print('Edge vertices ids: {}, {} at {}, {}, {}'.format(vtx1, vtx2, vertices[vtx1][0], vertices[vtx1][1], vertices[vtx1][2]))
+                print('Hit {} with {} points'.format(hit, hitPoints.length()))
+                print('{} is self-intersecting'.format(self.name))
+                # return True
+
+        # no need to reload -- non-invasive checks 
+        # self.load()
+        return False
 
 
 class MayaGarmentWithUI(MayaGarment):

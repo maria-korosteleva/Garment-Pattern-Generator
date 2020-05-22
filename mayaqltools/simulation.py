@@ -99,7 +99,11 @@ def batch_sim(resources, data_path, dataset_props,
                             scene, 
                             dataset_props['sim'], 
                             delete_on_clean=False,  # delete geometry after sim s.t. it doesn't resim with each new example
-                            caching=caching)  
+                            caching=caching)
+        
+        if pattern_spec in dataset_props['sim']['stats']['crashes']:
+            # if we successfully finished simulating crashed example -- it's not a crash any more!
+            dataset_props['sim']['stats']['crashes'].remove(pattern_spec)
 
         count += 1  # count actively processed cases
         if num_samples is not None and count >= num_samples:  # only process requested number of samples       
@@ -157,7 +161,17 @@ def init_sim_props(props, batch_run=False, force_restart=False):
         # resuming existing batch processing -- do not clean stats 
         # Assuming the last example processed example caused the failure
         props['sim']['stats']['processed'] = [os.path.normpath(path) for path in props['sim']['stats']['processed']]
-        props['sim']['stats']['stop_over'].append(props['sim']['stats']['processed'][-1])
+        last_processed = props['sim']['stats']['processed'][-1]
+        props['sim']['stats']['stop_over'].append(last_processed)  # indicate resuming dataset simulation 
+
+        if not any([name in last_processed for name in props['sim']['stats']['sim_time']]):
+            # crash detected -- the last example does not appear in the stats
+            if last_processed not in props['sim']['stats']['crashes']:
+                # first time to crash here -- try to re-do this example => remove from visited
+                props['sim']['stats']['processed'].pop()
+                props['sim']['stats']['crashes'].append(last_processed)
+            # else we crashed here before -- do not re-try + leave in crashed list
+
         return True
     
     # else new life
@@ -175,7 +189,7 @@ def init_sim_props(props, batch_run=False, force_restart=False):
     )
 
     if batch_run:  # track batch processing
-        props.set_section_stats('sim', processed=[], stop_over=[])
+        props.set_section_stats('sim', processed=[], stop_over=[], crashes=[])
 
     return False
         

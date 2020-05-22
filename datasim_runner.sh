@@ -1,15 +1,19 @@
 #!/bin/bash
+# This script is needed to autorestart execution of simulating datapoints for a dataset in case of Maya\Qualoth hangs or crashes
+# Note that it's needed to suppress Maya crash report requests 
+#   * https://knowledge.autodesk.com/support/maya/troubleshooting/caas/sfdcarticles/sfdcarticles/How-to-Disable-or-Enable-Crash-Error-Reports-s.html
+#   * https://forums.autodesk.com/t5/installation-licensing/disable-error-reporting/td-p/4071164 
 # Use something like git bash to run this script on Win
 
 # ensure killing is possible
 # https://www.linuxjournal.com/article/10815
 
+# Use Ctrl-C to stop this script after currently running mini-batch finishes
 sigint()
 {
    echo "Ctrl-C signal INT received, script ending after returning from datasim execution"
    exit 1
 }
-
 trap 'sigint'  INT
 
 # -- Main calls --

@@ -1,6 +1,12 @@
 """
-    Run the simulation of a dataset with MayaPy standalone mode
-    Note that it's Python 2.7 friendly
+    Run or Resume simulation of a pattern dataset with MayaPy standalone mode
+    Note that this module is executed in Maya (or by mayapy) and is Python 2.7 friendly.
+
+    How to use: 
+        * fill out system.json with approppriate paths 
+        Running itself:
+        <path_to_maya/bin>/mayapy.exe ./datasim.py --data <dataset folder name> --minibatch <size>  --config <simulation_rendering_configuration.json>
+
 """
 from __future__ import print_function
 import argparse
@@ -87,14 +93,3 @@ if __name__ == "__main__":
         sys.exit(0)
     else:
         sys.exit(1)  # not finished dataset processing
-
-    # ------ Example for single template generation ------
-    # path_example = os.path.join(system_config['output'], 'from_editor', 'deactive_200430-15-42-02')
-    # # props = customconfig.Properties(path_example + '/dataset_properties.json', True)  
-    # props = customconfig.Properties(os.path.join(path_example, 'sim_props.json'), True)  
-    # props.set_basic(
-    #     body='f_smpl_templatex300.obj',
-    #     templates='skirt_maya_coords_specification.json'
-    # )
-    # mymaya.simulation.single_file_sim(system_config, props, caching=False)
-    # print(props)

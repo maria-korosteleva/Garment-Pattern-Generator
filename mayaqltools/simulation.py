@@ -167,27 +167,25 @@ def init_sim_props(props, batch_run=False, force_restart=False):
 
         if not any([name in last_processed for name in props['sim']['stats']['sim_time']]):
             # crash detected -- the last example does not appear in the stats
-            if last_processed not in props['sim']['stats']['crashes']:
+            if last_processed not in props['sim']['stats']['fails']['crashes']:
                 # first time to crash here -- try to re-do this example => remove from visited
                 props['sim']['stats']['processed'].pop()
-                props['sim']['stats']['crashes'].append(last_processed)
+                props['sim']['stats']['fails']['crashes'].append(last_processed)
             # else we crashed here before -- do not re-try + leave in crashed list
 
         return True
     
     # else new life
     # Prepare commulative stats
-    props.set_section_stats(
-        'sim', 
-        sim_fails=[], 
-        sim_time={}, 
-        spf={}, 
-        fin_frame={})
+    props.set_section_stats('sim', fails={}, sim_time={}, spf={}, fin_frame={})
+    props['sim']['stats']['fails'] = {
+        'crashes': [],
+        'intersect': [],
+        'static_equilibrium': [],
+        'fast_finish': []
+    }
 
-    props.set_section_stats(
-        'render', 
-        render_time={}
-    )
+    props.set_section_stats('render', render_time={})
 
     if batch_run:  # track batch processing
         props.set_section_stats('sim', processed=[], stop_over=[], crashes=[])

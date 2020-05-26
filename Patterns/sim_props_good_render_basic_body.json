@@ -43,7 +43,7 @@
     }, 
     "stats": {
       "fin_frame": {}, 
-      "sim_fails": [], 
+      "fails": {}, 
       "sim_time": {}, 
       "spf": {}
     }

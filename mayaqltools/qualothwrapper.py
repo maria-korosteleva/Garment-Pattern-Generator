@@ -111,7 +111,7 @@ def run_sim(garment, props):
     """
     # take no responsibility for result in case of 3d penetrations
     if garment.has_3D_intersections():
-        props['stats']['sim_fails'].append(garment.name)
+        _record_fail(props, 'intersect', garment.name)
 
     config = props['config']
     solver = _init_sim(config)
@@ -142,7 +142,7 @@ def run_sim(garment, props):
     # Fail check: static equilibrium never detected -- might have false negs!
     if frame == config['max_sim_steps'] - 1:
         print('\nFailed to achieve static equilibrium for {}'.format(garment.name))
-        props['stats']['sim_fails'].append(garment.name)
+        _record_fail(props, 'static_equilibrium', garment.name)
 
     # stats
     props['stats']['sim_time'][garment.name] = time.time() - start_time
@@ -151,7 +151,7 @@ def run_sim(garment, props):
 
     # Fail check: finished too fast 
     if props['stats']['sim_time'][garment.name] < 2:  # 2 sec
-        props['stats']['sim_fails'].append(garment.name)
+        _record_fail(props, 'fast_finish', garment.name)
 
 
 def findSolver():
@@ -297,3 +297,13 @@ def _update_progress(progress, total):
     num_dash = int(amtDone * 50)
     sys.stdout.write('\rProgress: [{0:50s}] {1:.1f}%'.format('#' * num_dash + '-' * (50 - num_dash), amtDone * 100))
     sys.stdout.flush()
+
+
+def _record_fail(props, fail_type, garment_name):
+    """add a failure recording to props. Creates nodes if don't exist"""
+    if 'fails' not in props['stats']:
+        props['stats']['fails'] = {}
+    try:
+        props['stats']['fails'][fail_type].append(garment_name)
+    except KeyError:
+        props['stats']['fails'][fail_type] = [garment_name]

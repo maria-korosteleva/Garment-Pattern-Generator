@@ -6,6 +6,8 @@ This is work-in-progress, and licensing terms are not finalized. If you want to 
 ## Requirements
 * Python >= 3.6. Might work with earler versions, but wasn't tested on those
 * Maya 2018+ with Arnold and Qualoth
+    * NOTE Arnold requires license to render simulated data without watermarks using datasim.py\datasim_runner.sh. 
+    * A single-user Arnold license requires re-activation (logging-in) each time PC is rebooted
 * for libraries, refer to import sections that are grouped at the beginning of each .py file. All libs can be simply installed with pip.
 
 ## Filesystem paths settings

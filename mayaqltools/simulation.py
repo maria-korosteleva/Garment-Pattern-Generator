@@ -98,8 +98,9 @@ def batch_sim(resources, data_path, dataset_props,
         template_simulation(pattern_spec_norm, 
                             scene, 
                             dataset_props['sim'], 
-                            delete_on_clean=False,  # delete geometry after sim s.t. it doesn't resim with each new example
-                            caching=caching)
+                            delete_on_clean=True,  # delete geometry after sim as we don't need it any more
+                            caching=caching, 
+                            save_maya_scene=True)
         
         if pattern_spec_norm in dataset_props['sim']['stats']['crashes']:
             # if we successfully finished simulating crashed example -- it's not a crash any more!
@@ -126,9 +127,6 @@ def batch_sim(resources, data_path, dataset_props,
 
     # Logs
     _serialize_props_with_stats(dataset_props, data_props_file)
-    # save Maya scene
-    cmds.file(rename=os.path.join(data_path, 'scene'))
-    cmds.file(save=True, type='mayaBinary', force=True, defaultExtensions=True)
 
     return process_finished
 
@@ -193,9 +191,9 @@ def init_sim_props(props, batch_run=False, force_restart=False):
     return False
         
 
-def template_simulation(spec, scene, sim_props, delete_on_clean=False, caching=False):
+def template_simulation(spec, scene, sim_props, delete_on_clean=False, caching=False, save_maya_scene=False):
     """
-        Simulate given template withing given scene & save log files
+        Simulate given template within given scene & save log files
     """
     print('\nGarment load')
     garment = mymaya.MayaGarment(spec)
@@ -210,6 +208,10 @@ def template_simulation(spec, scene, sim_props, delete_on_clean=False, caching=F
     # save even if sim failed -- to see what happened!
     garment.save_mesh()
     scene.render(garment.path, garment.name + '_scene')
+    if save_maya_scene:
+        # save current Maya scene
+        cmds.file(rename=os.path.join(garment.path, garment.name + '_scene'))
+        cmds.file(save=True, type='mayaBinary', force=True, defaultExtensions=True)
 
     garment.clean(delete_on_clean)
 

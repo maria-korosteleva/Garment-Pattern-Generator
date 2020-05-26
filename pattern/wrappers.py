@@ -43,15 +43,15 @@ class VisPattern(core.ParametrizedPattern):
         self.scaling_for_drawing = self._verts_to_px_scaling_factor()
         self.view_ids = view_ids  # whatever to render vertices & endes indices
 
-    def serialize(self, path, to_subfolder=True):
+    def serialize(self, path, to_subfolder=True, tag=''):
 
-        log_dir = super().serialize(path, to_subfolder)
+        log_dir = super().serialize(path, to_subfolder, tag=tag)
         if to_subfolder:
-            svg_file = os.path.join(log_dir, 'pattern.svg')
-            png_file = os.path.join(log_dir, 'pattern.png')
+            svg_file = os.path.join(log_dir, tag + '_pattern.svg')
+            png_file = os.path.join(log_dir, tag + '_pattern.png')
         else:
-            svg_file = os.path.join(log_dir, (self.name + '_pattern.svg'))
-            png_file = os.path.join(log_dir, (self.name + '_pattern.png'))
+            svg_file = os.path.join(log_dir, (self.name + tag + '_pattern.svg'))
+            png_file = os.path.join(log_dir, (self.name + tag + '_pattern.png'))
 
         # save visualtisation
         self._save_as_image(svg_file, png_file)

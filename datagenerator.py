@@ -55,10 +55,9 @@ def generate(path, templates_path, props):
     # create data folder
     path_with_dataset = _create_data_folder(path, props)
 
-    # Copy template for convernience 
-    # TODO copy with visualization? 
-    shutil.copyfile(template_file_path, 
-                    path_with_dataset / ('template_' + template_file_path.name))
+    # Copy template files with pattern for convernience 
+    template = pattern.VisPattern(template_file_path)
+    template.serialize(path_with_dataset, to_subfolder=False, tag='_template')
 
     # init random seed
     if 'random_seed' not in gen_config or gen_config['random_seed'] is None:

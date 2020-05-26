@@ -257,6 +257,8 @@ class MayaGarment(core.ParametrizedPattern):
             * wheter garment intersects given obstacles or its colliders if obstacles are not given
             * wheter garment has self-intersections
             Returns True if intersections found
+
+            Having intersections may disrupt simulation result although it seems to recover from some of those
         """
         if not self.loaded_to_maya:
             raise RuntimeError('Garment is not yet loaded: cannot check for intersections')
@@ -275,8 +277,8 @@ class MayaGarment(core.ParametrizedPattern):
 
             if intersecting:
                 return True
-        # self-intersection is assumed to be a havier check
-        return self._is_geom_self_intersecting()
+        
+        return self._is_geom_self_intersecting() 
 
     def sim_caching(self, caching=True):
         """Toggles the caching of simulation steps to garment folder"""
@@ -459,40 +461,40 @@ class MayaGarment(core.ParametrizedPattern):
 
     def _is_geom_self_intersecting(self):
         """Checks wheter currently loaded garment geometry intersects itself
-            Unline boolOp, check is non-invasive and do not requre """
+            Unline boolOp, check is non-invasive and do not require garment reload or copy.
+            """
         if not self.loaded_to_maya:
             raise RuntimeError(
                 'MayaGarmentError::Pattern is not yet loaded. Cannot check geometry self-intersection')
         
+        # It turns out that OpenMaya python reference has nothing to do with reality of passing argument:
+        # most of the functions I use below are to be treated as wrappers of c++ API
+        # https://help.autodesk.com/view/MAYAUL/2018//ENU/?guid=__cpp_ref_class_m_fn_mesh_html
+
         cloth_dag = self.get_qlcloth_geom_dag()
         
         mesh = OpenMaya.MFnMesh(cloth_dag)  # reference https://help.autodesk.com/view/MAYAUL/2017/ENU/?guid=__py_ref_class_open_maya_1_1_m_fn_mesh_html
         vertices = OpenMaya.MPointArray()
         mesh.getPoints(vertices, OpenMaya.MSpace.kWorld)
-        # It turns out that OpenMaya python reference has nothing to do with reality of passing argument:
-        # the functions I use below are to be treated as wrappers of c++ API
-
+        
         # use ray intersect with all edges of current mesh & the mesh itself
         num_edges = mesh.numEdges()
         accelerator = OpenMaya.MMeshIsectAccelParams()
-        tolerance = 1e-5
-        perturbation = OpenMaya.MFloatVector(2 * tolerance, 2 * tolerance, 2 * tolerance)  # somewhere on https://forums.cgsociety.org/ I found a suggestion to perturb edge location to ensure it's not on the mesh!
-        for edge_id in range(num_edges):  # range(num_edges)
+        for edge_id in range(num_edges):
             util = OpenMaya.MScriptUtil(0.0)
             v_ids_cptr = util.asInt2Ptr()  # https://forums.cgsociety.org/t/mfnmesh-getedgevertices-error-on-2011/1652362
-            mesh.getEdgeVertices(edge_id, v_ids_cptr)  # https://help.autodesk.com/view/MAYAUL/2018//ENU/?guid=__cpp_ref_class_m_fn_mesh_html
+            mesh.getEdgeVertices(edge_id, v_ids_cptr) 
 
             # get values from SWIG pointer https://stackoverflow.com/questions/39344039/python-cast-swigpythonobject-to-python-object
             ty = ctypes.c_uint * 2
             v_ids_list = ty.from_address(int(v_ids_cptr))
             vtx1, vtx2 = v_ids_list[0], v_ids_list[1]
 
-            # print('Edge vertices ids: {}, {}'.format(vtx1, vtx2))
-
-            raySource = OpenMaya.MFloatPoint(vertices[vtx1]) + perturbation
+            # follow structure https://stackoverflow.com/questions/58390664/how-to-fix-typeerror-in-method-mfnmesh-anyintersection-argument-4-of-type
+            raySource = OpenMaya.MFloatPoint(vertices[vtx1])
             rayDir = OpenMaya.MFloatVector(vertices[vtx2] - vertices[vtx1])
             worldSpace = OpenMaya.MSpace.kWorld
-            maxParam = 1  # only within edge
+            maxParam = 1  # only search for intersections within edge
             testBothDirections = False
             faceIds = None
             triIds = None
@@ -503,22 +505,32 @@ class MayaGarment(core.ParametrizedPattern):
             hitPoints = OpenMaya.MFloatPointArray()
             hitRayParams = OpenMaya.MFloatArray()
             hitFaces = OpenMaya.MIntArray()
-            hitTris = None
+            hitTris = None  # always zero because all faces are triangles
             hitBarys1 = None
             hitBarys2 = None
+            tolerance = 1e-6
 
             hit = mesh.allIntersections(
                 raySource, rayDir, faceIds, triIds, idsSorted, worldSpace, maxParam, testBothDirections, accelParams, sortHits,
                 hitPoints, hitRayParams, hitFaces, hitTris, hitBarys1, hitBarys2, tolerance)
-            
-            if hit:
-                print('Edge vertices ids: {}, {} at {}, {}, {}'.format(vtx1, vtx2, vertices[vtx1][0], vertices[vtx1][1], vertices[vtx1][2]))
-                print('Hit {} with {} points'.format(hit, hitPoints.length()))
-                print('{} is self-intersecting'.format(self.name))
-                # return True
+
+            if not hit:
+                continue
+
+            # Since edge is on the mesh, we have tons of false hits
+            # => check if current edge is adjusent to hit faces: if shares a vertex
+            for face_id in range(hitFaces.length()):
+                face_verts = OpenMaya.MIntArray()
+                mesh.getPolygonVertices(hitFaces[face_id], face_verts)
+                face_verts = [face_verts[j] for j in range(face_verts.length())]
+                if vtx1 not in face_verts and vtx2 not in face_verts:
+                    # hit face is not adjacent to the edge => real hit
+                    for point in range(hitPoints.length()):
+                        print('Potential self-intersection: {}, {}, {}'.format(hitPoints[point][0], hitPoints[point][1], hitPoints[point][2]))
+                    print('{} is self-intersecting'.format(self.name))
+                    return True
 
         # no need to reload -- non-invasive checks 
-        # self.load()
         return False
 
 

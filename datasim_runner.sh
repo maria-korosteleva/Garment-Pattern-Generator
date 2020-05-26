@@ -19,7 +19,7 @@ trap 'sigint'  INT
 # -- Main calls --
 num_samples=15
 per_sample_delay=$((4*60))  # give about 4 min per sample before detecting Maya to hang
-dataset=data_150_tee_200515-15-31-40-slice-cleaning
+dataset=data_10_tee_200526-13-28-33
 ret_code=1
 while [ $ret_code != 0 ]  # failed for any reason
 do

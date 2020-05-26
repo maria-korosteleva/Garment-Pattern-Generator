@@ -67,12 +67,12 @@ if __name__ == "__main__":
     system_config = customconfig.Properties('../system.json')  # Make sure it's in \Autodesk\MayaNNNN\
     path = system_config['templates_path']
 
-    # ------ Dataset Example ------
+    # ------ Dataset ------
     dataset = command_args.data
     datapath = os.path.join(system_config['output'], dataset)
     dataset_file = os.path.join(datapath, 'dataset_properties.json')
 
-    # defining sim props
+    # ------- defining sim props -----
     props = customconfig.Properties(dataset_file)
     props.set_basic(data_folder=dataset)   # in case data properties are from other dataset/folder, update info
     if command_args.config is not None:
@@ -85,8 +85,8 @@ if __name__ == "__main__":
         caching=False, force_restart=False)
     props.serialize(dataset_file)
 
-    # fin
-    stop_mayapy()
+    # -------- fin --------
+    stop_mayapy()  # ensures correct exit without errors
     if finished:
         # finished processing the dataset
         print('Dataset processing finished')

@@ -101,9 +101,10 @@ def batch_sim(resources, data_path, dataset_props,
                             delete_on_clean=False,  # delete geometry after sim s.t. it doesn't resim with each new example
                             caching=caching)
         
-        if pattern_spec in dataset_props['sim']['stats']['crashes']:
+        if pattern_spec_norm in dataset_props['sim']['stats']['crashes']:
             # if we successfully finished simulating crashed example -- it's not a crash any more!
-            dataset_props['sim']['stats']['crashes'].remove(pattern_spec)
+            print('Crash successfully resimulated!')
+            dataset_props['sim']['stats']['crashes'].remove(pattern_spec_norm)
 
         count += 1  # count actively processed cases
         if num_samples is not None and count >= num_samples:  # only process requested number of samples       

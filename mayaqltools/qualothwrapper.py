@@ -149,6 +149,10 @@ def run_sim(garment, props):
     props['stats']['spf'][garment.name] = props['stats']['sim_time'][garment.name] / frame
     props['stats']['fin_frame'][garment.name] = frame
 
+    # Fail check: finished too fast 
+    if props['stats']['sim_time'][garment.name] < 2:  # 2 sec
+        props['stats']['sim_fails'].append(garment.name)
+
 
 def findSolver():
     """

@@ -102,10 +102,10 @@ def batch_sim(resources, data_path, dataset_props,
                             caching=caching, 
                             save_maya_scene=True)
         
-        if pattern_spec_norm in dataset_props['sim']['stats']['crashes']:
+        if pattern_spec_norm in dataset_props['sim']['stats']['fails']['crashes']:
             # if we successfully finished simulating crashed example -- it's not a crash any more!
             print('Crash successfully resimulated!')
-            dataset_props['sim']['stats']['crashes'].remove(pattern_spec_norm)
+            dataset_props['sim']['stats']['fails']['crashes'].remove(pattern_spec_norm)
 
         count += 1  # count actively processed cases
         if num_samples is not None and count >= num_samples:  # only process requested number of samples       
@@ -178,7 +178,8 @@ def init_sim_props(props, batch_run=False, force_restart=False):
     props.set_section_stats('sim', fails={}, sim_time={}, spf={}, fin_frame={})
     props['sim']['stats']['fails'] = {
         'crashes': [],
-        'intersect': [],
+        'intersect_colliders': [],
+        'intersect_self': [],
         'static_equilibrium': [],
         'fast_finish': []
     }

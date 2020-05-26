@@ -110,8 +110,10 @@ def run_sim(garment, props):
                 because solver is shared!!
     """
     # take no responsibility for result in case of 3d penetrations
-    if garment.has_3D_intersections():
-        _record_fail(props, 'intersect', garment.name)
+    if garment.intersect_colliders_3D():
+        _record_fail(props, 'intersect_colliders', garment.name)
+    if garment.self_intersect_3D():
+        _record_fail(props, 'intersect_self', garment.name)
 
     config = props['config']
     solver = _init_sim(config)

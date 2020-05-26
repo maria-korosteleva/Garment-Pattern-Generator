@@ -318,7 +318,7 @@ def start_sim_callback(button, state, *args):
     # Reload geometry in case something changed
     state.reload_garment()
 
-    if state.garment.has_3D_intersections():
+    if state.garment.intersect_colliders_3D() or state.garment.self_intersect_3D():
         result = cmds.confirmDialog(
             title='Confirm simulating with initial penetrations', 
             message='Garment either penetrates colliders or itself. Do you want to proceed with simulation?', 

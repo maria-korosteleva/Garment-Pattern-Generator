@@ -1,6 +1,5 @@
 """
-    Adapted to be used in Python 3.6+
-    TODO It might make sence to turn drawing into routines rather then new class
+    To be used in Python 3.6+ due to dependencies (failed to install reportlab for Python 2.7 used by Maya)
 """
 import copy
 import random

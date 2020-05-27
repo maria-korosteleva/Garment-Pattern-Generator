@@ -119,8 +119,7 @@ class MayaGarment(core.ParametrizedPattern):
                 self.get_qlcloth_geomentry(), 
                 obj
             )
-            # properties
-            # TODO experiment with the value -- it's now set arbitrarily
+            # Ensure the body is not entirely sleek
             qw.setColliderFriction(collider, 0.5)
             # organize object tree
             cmds.parent(collider, self.MayaObjects['pattern'])

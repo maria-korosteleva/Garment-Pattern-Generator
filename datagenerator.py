@@ -47,7 +47,6 @@ def generate(path, templates_path, props):
     gen_config = props['generator']['config']
     gen_stats = props['generator']['stats']
 
-    # TODO modify to support multiple templates
     if isinstance(props['templates'], list):
         raise NotImplementedError('Generation from multiple templates is not supported')
     template_file_path = Path(templates_path) / props['templates']

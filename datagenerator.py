@@ -86,8 +86,8 @@ if __name__ == "__main__":
         props = Properties()
         props.set_basic(
             templates='basic tee/tee.json',
-            name='data_150',
-            size=150,
+            name='data_5',
+            size=5,
             to_subfolders=True)
         props.set_section_config('generator')
     else:

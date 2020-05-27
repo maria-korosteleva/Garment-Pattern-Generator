@@ -37,9 +37,8 @@ class BasicPattern(object):
 
         self.spec_file = pattern_file
         self.path = os.path.dirname(pattern_file)
-        self.name = os.path.splitext(os.path.basename(self.spec_file))[0]
-        if self.name in standard_names:  # use name of directory instead
-            self.name = os.path.basename(os.path.normpath(self.path))
+        self.name = BasicPattern.name_from_path(pattern_file)
+        
         self.reloadJSON()
 
     def reloadJSON(self):
@@ -81,6 +80,14 @@ class BasicPattern(object):
         self.spec = copy.deepcopy(backup_copy)
         self.pattern = self.spec['pattern']
         self.properties = self.spec['properties']  # mandatory part
+
+    @staticmethod
+    def name_from_path(pattern_file):
+        name = os.path.splitext(os.path.basename(pattern_file))[0]
+        if name in standard_names:  # use name of directory instead
+            path = os.path.dirname(pattern_file)
+            name = os.path.basename(os.path.normpath(path))
+        return name
 
     # --------- Pattern operations ----------
     def _normalize_template(self):

@@ -9,6 +9,7 @@ import os
 from maya import cmds
 
 # My modules
+from pattern.core import BasicPattern
 import mayaqltools as mymaya
 from mayaqltools import qualothwrapper as qw
 
@@ -88,11 +89,12 @@ def batch_sim(resources, data_path, dataset_props,
     for pattern_spec in pattern_specs:
         # skip processed cases -- in case of resume. First condition needed to skip checking second one on False =) 
         pattern_spec_norm = os.path.normpath(pattern_spec)
-        if resume and pattern_spec_norm in dataset_props['sim']['stats']['processed']:
+        pattern_name = BasicPattern.name_from_path(pattern_spec_norm)
+        if resume and pattern_name in dataset_props['sim']['stats']['processed']:
             print('Skipped as already processed {}'.format(pattern_spec_norm))
             continue
 
-        dataset_props['sim']['stats']['processed'].append(pattern_spec_norm)
+        dataset_props['sim']['stats']['processed'].append(pattern_name)
         _serialize_props_with_stats(dataset_props, data_props_file)  # save info of processed files before potential crash
 
         template_simulation(pattern_spec_norm, 
@@ -102,10 +104,10 @@ def batch_sim(resources, data_path, dataset_props,
                             caching=caching, 
                             save_maya_scene=True)
         
-        if pattern_spec_norm in dataset_props['sim']['stats']['fails']['crashes']:
+        if pattern_name in dataset_props['sim']['stats']['fails']['crashes']:
             # if we successfully finished simulating crashed example -- it's not a crash any more!
             print('Crash successfully resimulated!')
-            dataset_props['sim']['stats']['fails']['crashes'].remove(pattern_spec_norm)
+            dataset_props['sim']['stats']['fails']['crashes'].remove(pattern_name)
 
         count += 1  # count actively processed cases
         if num_samples is not None and count >= num_samples:  # only process requested number of samples       
@@ -159,7 +161,6 @@ def init_sim_props(props, batch_run=False, force_restart=False):
     if batch_run and 'processed' in props['sim']['stats'] and not force_restart:
         # resuming existing batch processing -- do not clean stats 
         # Assuming the last example processed example caused the failure
-        props['sim']['stats']['processed'] = [os.path.normpath(path) for path in props['sim']['stats']['processed']]
         last_processed = props['sim']['stats']['processed'][-1]
         props['sim']['stats']['stop_over'].append(last_processed)  # indicate resuming dataset simulation 
 
@@ -187,7 +188,7 @@ def init_sim_props(props, batch_run=False, force_restart=False):
     props.set_section_stats('render', render_time={})
 
     if batch_run:  # track batch processing
-        props.set_section_stats('sim', processed=[], stop_over=[], crashes=[])
+        props.set_section_stats('sim', processed=[], stop_over=[])
 
     return False
         

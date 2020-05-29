@@ -344,6 +344,8 @@ def stop_sim_callback(button, state, *args):
                 label='Start Sim', backgroundColor=[227 / 256, 255 / 256, 119 / 256],
                 command=partial(start_sim_callback, button, state))
 
+    cmds.select(state.garment.get_qlcloth_props_obj())  # for props change
+
 
 def win_closed_callback(*args):
     """Clean-up"""
@@ -443,3 +445,5 @@ def full_save_callback(view_field, state, *args):
     state.serialize(new_dir)
 
     print('Pattern spec, props, 3D mesh & render saved to ' + new_dir)
+
+    cmds.select(state.garment.get_qlcloth_props_obj())  # for props change

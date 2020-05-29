@@ -117,7 +117,7 @@ def run_sim(garment, props):
 
     config = props['config']
     solver = _init_sim(config)
-    garment.setMaterialSimProps(config['material'])  # ensure running sim with suplied material props
+    garment.setMaterialSimProps(config)  # ensure running sim with suplied material props
 
     start_time = time.time()
     # Allow to assemble without gravity + skip checks for first few frames
@@ -179,7 +179,7 @@ def setColliderFriction(collider_objects, friction_value):
     cmds.setAttr(collider_shape[0] + '.friction', friction_value)
 
 
-def setMaterialProps(cloth, props):
+def setFabricProps(cloth, props):
     """Set given material propertied to qlClothObject"""
     if not props:
         return
@@ -212,7 +212,7 @@ def setMaterialProps(cloth, props):
     cmds.setAttr(cloth + '.rubberV', props['warp_rubber_scale'], clamp=True)
 
 
-def fetchMaterialProps(cloth):
+def fetchFabricProps(cloth):
     """Returns current material properties of the cloth's objects
         Requires qlCloth object
     """
@@ -271,6 +271,19 @@ def fetchMaterialProps(cloth):
 
     return props
 
+
+def fetchColliderFriction(collider_objects):
+    """Retrieve collider friction info from given collider"""
+
+    try:
+        main_collider = [obj for obj in collider_objects if 'Offset' not in obj]
+        collider_shape = cmds.listRelatives(main_collider[0], shapes=True)
+
+        return cmds.getAttr(collider_shape[0] + '.friction')
+    except ValueError as e:
+        # collider doesn't exist any more
+        return None
+    
 
 # ------- Utils ---------
 def _init_sim(config):

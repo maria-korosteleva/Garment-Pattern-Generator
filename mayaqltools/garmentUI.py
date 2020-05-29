@@ -113,10 +113,11 @@ class State(object):
         if self.scene is not None:
             self.garment.load(
                 shader_group=self.scene.cloth_SG(), 
-                obstacles=[self.scene.body, self.scene.floor()]
+                obstacles=[self.scene.body, self.scene.floor()], 
+                config=self.config['sim']['config']
             )
         else:
-            self.garment.load()
+            self.garment.load(config=self.config['sim']['config'])
 
         # calling UI after loading for correct connection of attributes
         self.garment.drawUI(self.pattern_layout)
@@ -258,6 +259,10 @@ def load_props_callback(view_field, state, *args):
     if state.body_file is not None:
         state.config['body'] = os.path.basename(state.body_file)
 
+    # Use current scene info instead of one from config if we don't have path to scene files
+    if not state.scenes_path:
+        state.config['render']['config'].pop('scene', None)
+
     # Update scene with new config
     if state.scene is not None:
         state.scene = mymaya.Scene(
@@ -267,7 +272,7 @@ def load_props_callback(view_field, state, *args):
     
     # Load material props
     if state.garment is not None:
-        state.garment.setMaterialSimProps(state.config['sim']['config']['material'])
+        state.garment.setMaterialSimProps(state.config['sim']['config'])
 
 
 def load_scene_callback(view_field, state, *args):

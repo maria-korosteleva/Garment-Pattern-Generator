@@ -145,7 +145,8 @@ def init_sim_props(props, batch_run=False, force_restart=False):
             max_sim_steps=500, 
             zero_gravity_steps=5,  # time to assembly 
             static_threshold=0.05,  # 0.01  # depends on the units used, 
-            material={}
+            material={},
+            body_friction=0.5
         )
     
     if 'material' not in props['sim']['config']:

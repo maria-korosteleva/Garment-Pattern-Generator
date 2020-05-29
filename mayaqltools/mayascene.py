@@ -49,20 +49,29 @@ class MayaGarment(core.ParametrizedPattern):
         self.obstacles = []
         self.shader_group = None
         self.MayaObjects = {}
-        self.sim_material = {}
+        self.config = {
+            'material': {},
+            'body_friction': 0.5
+        }
     
     def __del__(self):
         """Remove Maya objects when dying"""
         if self.self_clean:
             self.clean(True)
 
-    def load(self, obstacles=[], shader_group=None, material={}, parent_group=None):
+    def load(self, obstacles=[], shader_group=None, config={}, parent_group=None):
         """
             Loads current pattern to Maya as simulatable garment.
             If already loaded, cleans previous geometry & reloads
+            config should contain info on fabric matereials & body_friction (collider friction) if provided
         """
         if self.loaded_to_maya:
-            self.sim_material = self.fetchMaterialSimProps()  # save the latest material
+            # save the latest sim info
+            self.config['material'] = qw.fetchFabricProps(self.get_qlcloth_props_obj())  
+            if 'colliders' in self.MayaObjects and self.MayaObjects['colliders']:
+                friction = qw.fetchColliderFriction(self.MayaObjects['colliders'][0])  # assuming all colliders have the same value
+                if friction:
+                    self.config['body_friction'] = friction
         self.clean(True)
         
         # Normal flow produces garbage warnings of parenting from Maya. Solution suggestion didn't work, so I just live with them
@@ -71,8 +80,11 @@ class MayaGarment(core.ParametrizedPattern):
         self.loaded_to_maya = True
 
         self.setShaderGroup(shader_group)
+
+        print(config, self.config)
+
         self.add_colliders(obstacles)
-        self.setMaterialSimProps(material)
+        self.setMaterialSimProps(config)
 
         print('Garment ' + self.name + ' is loaded to Maya')
 
@@ -114,15 +126,18 @@ class MayaGarment(core.ParametrizedPattern):
         if obstacles:  # if not given, use previous ones
             self.obstacles = obstacles
 
+        if 'colliders' not in self.MayaObjects:
+            self.MayaObjects['colliders'] = []
         for obj in self.obstacles:
             collider = qw.qlCreateCollider(
                 self.get_qlcloth_geomentry(), 
                 obj
             )
-            # Ensure the body is not entirely sleek
-            qw.setColliderFriction(collider, 0.5)
+            # apply current friction settings
+            qw.setColliderFriction(collider, self.config['body_friction'])
             # organize object tree
-            cmds.parent(collider, self.MayaObjects['pattern'])
+            collider = cmds.parent(collider, self.MayaObjects['pattern'])
+            self.MayaObjects['colliders'].append(collider)
 
     def clean(self, delete=False):
         """ Hides/removes the garment from Maya scene 
@@ -145,18 +160,19 @@ class MayaGarment(core.ParametrizedPattern):
 
         # do nothing if not loaded -- already clean =)
 
-    def fetchMaterialSimProps(self):
-        """Return simulation properties"""
-        return qw.fetchMaterialProps(self.get_qlcloth_props_obj())
+    def setMaterialSimProps(self, config={}):
+        """Pass material properties for cloth & colliders to Qualoth"""
+        if config:
+            self.config = config
 
-    def setMaterialSimProps(self, props={}):
-        """Pass material properties for cloth to Qualoth"""
-        if props:
-            self.sim_material = props
-        qw.setMaterialProps(
+        qw.setFabricProps(
             self.get_qlcloth_props_obj(), 
-            self.sim_material
+            self.config['material']
         )
+
+        if 'colliders' in self.MayaObjects:
+            for collider in self.MayaObjects['colliders']:
+                qw.setColliderFriction(collider, self.config['body_friction'])
 
     def get_qlcloth_geomentry(self):
         """

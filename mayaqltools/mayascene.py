@@ -67,11 +67,7 @@ class MayaGarment(core.ParametrizedPattern):
         """
         if self.loaded_to_maya:
             # save the latest sim info
-            self.config['material'] = qw.fetchFabricProps(self.get_qlcloth_props_obj())  
-            if 'colliders' in self.MayaObjects and self.MayaObjects['colliders']:
-                friction = qw.fetchColliderFriction(self.MayaObjects['colliders'][0])  # assuming all colliders have the same value
-                if friction:
-                    self.config['body_friction'] = friction
+            self.fetchSimProps()
         self.clean(True)
         
         # Normal flow produces garbage warnings of parenting from Maya. Solution suggestion didn't work, so I just live with them
@@ -81,10 +77,8 @@ class MayaGarment(core.ParametrizedPattern):
 
         self.setShaderGroup(shader_group)
 
-        print(config, self.config)
-
         self.add_colliders(obstacles)
-        self.setMaterialSimProps(config)
+        self.setSimProps(config)
 
         print('Garment ' + self.name + ' is loaded to Maya')
 
@@ -160,8 +154,24 @@ class MayaGarment(core.ParametrizedPattern):
 
         # do nothing if not loaded -- already clean =)
 
-    def setMaterialSimProps(self, config={}):
+    def fetchSimProps(self):
+        """Fetch garment material & body friction from Maya settings"""
+        if not self.loaded_to_maya:
+            raise RuntimeError('MayaGarmentError::Pattern is not yet loaded.')
+
+        self.config['material'] = qw.fetchFabricProps(self.get_qlcloth_props_obj())  
+        if 'colliders' in self.MayaObjects and self.MayaObjects['colliders']:
+            friction = qw.fetchColliderFriction(self.MayaObjects['colliders'][0])  # assuming all colliders have the same value
+            if friction:
+                self.config['body_friction'] = friction
+        
+        return self.config['material'], self.config['body_friction']
+
+    def setSimProps(self, config={}):
         """Pass material properties for cloth & colliders to Qualoth"""
+        if not self.loaded_to_maya:
+            raise RuntimeError('MayaGarmentError::Pattern is not yet loaded.')
+
         if config:
             self.config = config
 

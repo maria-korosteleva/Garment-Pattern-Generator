@@ -85,7 +85,7 @@ if __name__ == "__main__":
     if new:
         props = Properties()
         props.set_basic(
-            templates='basic tee/tee.json',
+            templates='basic_skirt/skirt_maya_coords.json',
             name='data_5',
             size=5,
             to_subfolders=True)

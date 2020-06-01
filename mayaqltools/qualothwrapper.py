@@ -117,7 +117,7 @@ def run_sim(garment, props):
 
     config = props['config']
     solver = _init_sim(config)
-    garment.setMaterialSimProps(config)  # ensure running sim with suplied material props
+    garment.setSimProps(config)  # ensure running sim with suplied material props
 
     start_time = time.time()
     # Allow to assemble without gravity + skip checks for first few frames

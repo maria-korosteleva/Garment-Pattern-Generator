@@ -125,9 +125,11 @@ class State(object):
     def fetch(self):
         """Update info in deendent object from Maya"""
         self.scene.fetch_props_from_Maya()
+        material, body_friction = self.garment.fetchSimProps()
         self.config.set_section_config(
             'sim', 
-            material=self.garment.fetchMaterialSimProps()
+            material=material, 
+            body_friction=body_friction
         )
     
     def serialize(self, directory):
@@ -272,7 +274,7 @@ def load_props_callback(view_field, state, *args):
     
     # Load material props
     if state.garment is not None:
-        state.garment.setMaterialSimProps(state.config['sim']['config'])
+        state.garment.setSimProps(state.config['sim']['config'])
 
 
 def load_scene_callback(view_field, state, *args):

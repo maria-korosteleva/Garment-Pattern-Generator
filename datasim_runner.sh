@@ -20,13 +20,14 @@ trap 'sigint'  INT
 num_samples=15
 per_sample_delay=$((3*60))  # give about 3 min per sample before detecting Maya to hang
 dataset=data_1000_tee_200527-14-50-42
+config=sim_props_good_render_basic_body.json
 ret_code=1
 while [ $ret_code != 0 ]  # failed for any reason
 do
     # https://unix.stackexchange.com/questions/405337/bash-if-command-doesnt-finish-in-x-time
     # set timeout to catch hangs.
     # forse kill if not soft terminating
-    timeout -k 30 $((num_samples * per_sample_delay)) d:/Autodesk/Maya2020/bin/mayapy.exe "./datasim.py" --data $dataset --minibatch $num_samples  --config sim_props_good_render_basic_body.json
+    timeout -k 30 $((num_samples * per_sample_delay)) d:/Autodesk/Maya2020/bin/mayapy.exe "./datasim.py" --data $dataset --minibatch $num_samples  --config $config
     ret_code=$?
     echo $ret_code   # if it's 124, the execution was finished by timeout
 

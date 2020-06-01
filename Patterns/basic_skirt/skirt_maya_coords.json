@@ -17,17 +17,29 @@
           {
             "endpoints": [
               0, 
+              5
+            ]
+          }, 
+          {
+            "endpoints": [
+              5, 
+              4
+            ]
+          },
+          {
+            "endpoints": [
+              4, 
               3
+            ], 
+            "curvature": [
+              0.5, 
+              -0.2
             ]
           }, 
           {
             "endpoints": [
               3, 
               2
-            ], 
-            "curvature": [
-              0.5, 
-              -0.2
             ]
           }, 
           {
@@ -51,6 +63,10 @@
             57, 
             89.99999999999999
           ], 
+          [ 
+            75.75, 
+            45
+          ],
           [
             132.0, 
             -90.0
@@ -58,6 +74,10 @@
           [
             -132.0, 
             -90.0
+          ],
+          [ 
+            -75.75, 
+            45
           ]
         ]
       }, 
@@ -84,6 +104,12 @@
             "endpoints": [
               2, 
               3
+            ]
+          }, 
+          {
+            "endpoints": [
+              3, 
+              4
             ],
             "curvature": [
               0.5, 
@@ -92,7 +118,14 @@
           }, 
           {
             "endpoints": [
-              3, 
+              4, 
+              5
+            ]
+          }
+          , 
+          {
+            "endpoints": [
+              5, 
               0
             ]
           }
@@ -111,6 +144,10 @@
             57, 
             89.99999999999999
           ], 
+          [ 
+            75.75, 
+            45
+          ],
           [
             132.0, 
             -90.0
@@ -118,6 +155,10 @@
           [
             -132.0, 
             -90.0
+          ],
+          [ 
+            -75.75, 
+            45
           ]
         ]
       }
@@ -125,7 +166,7 @@
     "stitches": [
       [
         {
-          "edge": 3, 
+          "edge": 5, 
           "panel": "back"
         }, 
         {
@@ -135,11 +176,31 @@
       ], 
       [
         {
+          "edge": 4, 
+          "panel": "back"
+        }, 
+        {
+          "edge": 2, 
+          "panel": "front"
+        }
+      ],
+      [
+        {
+          "edge": 2, 
+          "panel": "back"
+        }, 
+        {
+          "edge": 4, 
+          "panel": "front"
+        }
+      ],
+      [
+        {
           "edge": 1, 
           "panel": "back"
         }, 
         {
-          "edge": 3, 
+          "edge": 5, 
           "panel": "front"
         }
       ]
@@ -156,7 +217,7 @@
           "edge_list": [
             {
               "direction": "both", 
-              "id": 2
+              "id": 3
             }
           ], 
           "panel": "front"
@@ -165,7 +226,7 @@
           "edge_list": [
             {
               "direction": "both", 
-              "id": 2
+              "id": 3
             }
           ], 
           "panel": "back"
@@ -184,11 +245,11 @@
           "edge_list": [
             {
               "direction": "end", 
-              "id": 1
+              "id": 2
             }, 
             {
               "direction": "start", 
-              "id": 3
+              "id": 4
             }
           ], 
           "panel": "front"
@@ -197,18 +258,18 @@
           "edge_list": [
             {
               "direction": "end", 
-              "id": 1
+              "id": 2
             }, 
             {
               "direction": "start", 
-              "id": 3
+              "id": 4
             }
           ], 
           "panel": "back"
         }
       ], 
       "range": [
-        0.5, 
+        0.2, 
         1.5
       ], 
       "type": "length", 
@@ -218,13 +279,13 @@
       "influence": [
         {
           "edge_list": [
-            2
+            3
           ], 
           "panel": "front"
         },
         {
           "edge_list": [
-            2
+            3
           ], 
           "panel": "back"
         }

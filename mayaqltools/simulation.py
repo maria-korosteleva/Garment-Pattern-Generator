@@ -165,7 +165,7 @@ def init_sim_props(props, batch_run=False, force_restart=False):
         last_processed = props['sim']['stats']['processed'][-1]
         props['sim']['stats']['stop_over'].append(last_processed)  # indicate resuming dataset simulation 
 
-        if not any([name in last_processed for name in props['sim']['stats']['sim_time']]):
+        if not any([name in last_processed for name in props['sim']['stats']['render_time']]):
             # crash detected -- the last example does not appear in the stats
             if last_processed not in props['sim']['stats']['fails']['crashes']:
                 # first time to crash here -- try to re-do this example => remove from visited

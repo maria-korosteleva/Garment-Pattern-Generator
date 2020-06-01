@@ -86,8 +86,8 @@ if __name__ == "__main__":
         props = Properties()
         props.set_basic(
             templates='basic_skirt/skirt_maya_coords.json',
-            name='data_5',
-            size=5,
+            name='data_500',
+            size=500,
             to_subfolders=True)
         props.set_section_config('generator')
     else:

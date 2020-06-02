@@ -2,7 +2,7 @@
   "body": "f_smpl_templatex300.obj", 
   "render": {
     "config": {
-      "scene": "studio_orange.mb",
+      "scene": "studio_blue.mb",
       "resolution": [
         800, 
         800

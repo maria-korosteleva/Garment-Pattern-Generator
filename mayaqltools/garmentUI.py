@@ -213,7 +213,11 @@ def template_field_callback(view_field, state, *args):
     cmds.textField(view_field, edit=True, text=template_file)
 
     # create new grament
-    state.garment = mymaya.MayaGarmentWithUI(template_file, True)  # previous object will autoclean
+    if state.garment is not None:
+        state.garment.clean(delete=True)  # sometimes cleaning by garbage collector (gc) is late => call for clearning manually
+        # TODO check what objects cause the late cleaning by checking references in gc
+
+    state.garment = mymaya.MayaGarmentWithUI(template_file, True) 
     state.reload_garment()
 
 

@@ -285,6 +285,17 @@ def fetchColliderFriction(collider_objects):
         return None
     
 
+def flipPanelNormal(panel_geom):
+    """Set flippling normals to True for a given panel geom objects
+        at least one of the provided objects should a qlPattern object"""
+
+    ql_pattern = [obj for obj in panel_geom if 'Pattern' in obj]
+    ql_pattern = ql_pattern[0]
+    shape = cmds.listRelatives(ql_pattern, shapes=True, path=True)
+
+    cmds.setAttr(shape[0] + '.flipNormal', 1)
+
+
 # ------- Utils ---------
 def _init_sim(config):
     """

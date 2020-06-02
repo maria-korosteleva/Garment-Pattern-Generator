@@ -468,7 +468,10 @@ class MayaGarment(core.ParametrizedPattern):
         # take out the solver node -- created only once per scene, no need to store
         solvers = [obj for obj in panel_geom if 'Solver' in obj]
         panel_geom = list(set(panel_geom) - set(solvers))
-        cmds.parent(panel_geom, panel_group)  # organize
+        panel_geom = cmds.parent(panel_geom, panel_group)  # organize
+
+        # fix normals if needed
+        self._match_normal(panel_geom, panel_name)
 
         return panel_group
 
@@ -490,6 +493,67 @@ class MayaGarment(core.ParametrizedPattern):
         points = np.c_[points, np.zeros(len(points))]
 
         return list(map(tuple, points))
+
+    def _match_normal(self, panel_geom, panel_name):
+        """Check if the normal of loaded geometry matches the expected normal of the pattern 
+            and flips the normal of the first is not matched"""
+        
+        # get intended normal direction from spec
+        # enough to check cross-product of two consecutive edges of a panel (with non-zero cross product)
+        panel = self.pattern['panels'][panel_name]
+        vertices = np.asarray(panel['vertices'])
+        cross = 0
+        
+        for i in range(len(panel['edges']) - 1):
+            edge_i = panel['edges'][i]
+            edge_i = vertices[edge_i['endpoints'][1]] - vertices[edge_i['endpoints'][0]]
+            edge_i_next = panel['edges'][i + 1]
+            edge_i_next = vertices[edge_i_next['endpoints'][1]] - vertices[edge_i_next['endpoints'][0]]
+            cross = np.cross(edge_i, edge_i_next)
+            if not np.isclose(cross, 0):
+                break
+
+        if np.isclose(cross, 0):
+            raise ValueError('In panel {} all edges are collinear'.format(panel_name))
+
+        # rotate to get normal
+        cross = np.array([0, 0, cross / abs(cross)])
+        normal = self._applyEuler(cross, panel['rotation'])
+
+        # get normal direction from panel 
+        # NOTE all the mesh faces have the same orientation
+        maya_normals = cmds.polyInfo(panel_geom, faceNormals=True)
+        maya_normal_str = maya_normals[0].split(':')[1]  # 'FACE_NORMAL      0: -0.000031 0.000000 18.254578'
+        maya_normal = np.fromstring(maya_normal_str, count=3, sep=' ')   
+        maya_normal /= np.linalg.norm(maya_normal)  # assume no zero normals
+
+        # check
+        if np.dot(normal, maya_normal) < 0:
+            # normals are opposite directions
+            print('Warning: panel {} normal is loaded wrong, flipping'.format(panel_name))
+            qw.flipPanelNormal(panel_geom)
+        pass
+
+    def _applyEuler(self, vector, eulerRot):
+        """Applies Euler angles (in degrees) to provided 3D vector"""
+        # https://www.cs.utexas.edu/~theshark/courses/cs354/lectures/cs354-14.pdf
+        eulerRot_rad = np.deg2rad(eulerRot)
+        # X 
+        vector_x = np.copy(vector)
+        vector_x[1] = vector[1] * np.cos(eulerRot_rad[0]) - vector[2] * np.sin(eulerRot_rad[0])
+        vector_x[2] = vector[1] * np.sin(eulerRot_rad[0]) + vector[2] * np.cos(eulerRot_rad[0])
+
+        # Y
+        vector_y = np.copy(vector_x)
+        vector_y[0] = vector_x[0] * np.cos(eulerRot_rad[1]) + vector_x[2] * np.sin(eulerRot_rad[1])
+        vector_y[2] = -vector_x[0] * np.sin(eulerRot_rad[1]) + vector_x[2] * np.cos(eulerRot_rad[1])
+
+        # Z
+        vector_z = np.copy(vector_y)
+        vector_z[0] = vector_y[0] * np.cos(eulerRot_rad[2]) - vector_y[1] * np.sin(eulerRot_rad[2])
+        vector_z[1] = vector_y[0] * np.sin(eulerRot_rad[2]) + vector_y[1] * np.cos(eulerRot_rad[2])
+
+        return vector_z
 
     def _set_panel_3D_attr(self, panel_dict, panel_group, attribute, maya_attr):
         """Set recuested attribute to value from the spec"""

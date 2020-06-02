@@ -224,8 +224,8 @@ if __name__ == "__main__":
 
     system_config = customconfig.Properties('../system.json')
     base_path = system_config['output']
-    # pattern = VisPattern(os.path.join(system_config['templates_path'], 'basic tee', 'tee.json'))
-    pattern = VisPattern(os.path.join(base_path, 't-data_tee_200507-14-01-01', 'tee_4F0L01ONR5_specification.json'))
+    pattern = VisPattern(os.path.join(system_config['templates_path'], 'basic tee', 'tee.json'))
+    # pattern = VisPattern(os.path.join(base_path, 'data_1000_tee_200527-14-50-42', 'tee_DIVLQNKVUJ', 'specification.json'))
     newpattern = RandomPattern(os.path.join(system_config['templates_path'], 'basic tee', 'tee.json'))
 
     # log to file

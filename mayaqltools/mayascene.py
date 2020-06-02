@@ -164,8 +164,10 @@ class MayaGarment(core.ParametrizedPattern):
             friction = qw.fetchColliderFriction(self.MayaObjects['colliders'][0])  # assuming all colliders have the same value
             if friction:
                 self.config['body_friction'] = friction
+
+        self.config['collision_thickness'] = cmds.getAttr(self.get_qlcloth_props_obj() + '.thickness')
         
-        return self.config['material'], self.config['body_friction']
+        return self.config
 
     def setSimProps(self, config={}):
         """Pass material properties for cloth & colliders to Qualoth"""
@@ -184,6 +186,11 @@ class MayaGarment(core.ParametrizedPattern):
             for collider in self.MayaObjects['colliders']:
                 qw.setColliderFriction(collider, self.config['body_friction'])
 
+        if 'collision_thickness' in self.config:
+            # if not provided, use default auto-calculated value
+            cmds.setAttr(self.get_qlcloth_props_obj() + '.overrideThickness', 1)
+            cmds.setAttr(self.get_qlcloth_props_obj() + '.thickness', self.config['collision_thickness'])
+
     def get_qlcloth_geomentry(self):
         """
             Find the first Qualoth cloth geometry object belonging to current pattern
@@ -191,13 +198,13 @@ class MayaGarment(core.ParametrizedPattern):
         if not self.loaded_to_maya:
             raise RuntimeError('MayaGarmentError::Pattern is not yet loaded.')
 
-        if 'qlClothShape' not in self.MayaObjects:
+        if 'qlClothOut' not in self.MayaObjects:
             children = cmds.listRelatives(self.MayaObjects['pattern'], ad=True)
             cloths = [obj for obj in children 
                       if 'qlCloth' in obj and 'Out' in obj and 'Shape' not in obj]
-            self.MayaObjects['qlClothShape'] = cloths[0]
+            self.MayaObjects['qlClothOut'] = cloths[0]
 
-        return self.MayaObjects['qlClothShape']
+        return self.MayaObjects['qlClothOut']
 
     def get_qlcloth_props_obj(self):
         """

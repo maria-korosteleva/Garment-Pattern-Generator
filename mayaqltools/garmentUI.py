@@ -125,11 +125,12 @@ class State(object):
     def fetch(self):
         """Update info in deendent object from Maya"""
         self.scene.fetch_props_from_Maya()
-        material, body_friction = self.garment.fetchSimProps()
+        garment_conf = self.garment.fetchSimProps()
         self.config.set_section_config(
             'sim', 
-            material=material, 
-            body_friction=body_friction
+            material=garment_conf['material'], 
+            body_friction=garment_conf['body_friction'],
+            collision_thickness=garment_conf['collision_thickness']
         )
     
     def serialize(self, directory):

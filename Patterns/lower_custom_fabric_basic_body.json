@@ -39,7 +39,7 @@
         "weft_rubber_scale": 1.0
       }, 
       "collision_thickness": 1.3,
-      "max_sim_steps": 750, 
+      "max_sim_steps": 1500, 
       "static_threshold": 0.05, 
       "zero_gravity_steps": 5, 
       "intersect_area_threshold": 300

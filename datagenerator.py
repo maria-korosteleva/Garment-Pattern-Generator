@@ -79,7 +79,7 @@ def generate(path, templates_path, props):
 # ------------------ MAIN ------------------------
 if __name__ == "__main__":
     
-    new = True
+    new = False
     system_props = Properties('../system.json')
 
     if new:
@@ -92,7 +92,7 @@ if __name__ == "__main__":
         props.set_section_config('generator')
     else:
         props = Properties(
-            Path(system_props['output']) / 'props_style_skirt_maya_coords_200416-12-48/dataset_properties.json', 
+            Path(system_props['output']) / 'data_150_tee_200526-13-29-37/dataset_properties.json', 
             True)
 
     # Generator

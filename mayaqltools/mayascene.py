@@ -612,8 +612,15 @@ class MayaGarment(core.ParametrizedPattern):
         cloth_copy = cmds.duplicate(self.get_qlcloth_geomentry())
         intersect = cmds.polyCBoolOp(geometry, cloth_copy[0], op=3, classification=2)[0]
 
-        # check if empty
-        intersect_size = cmds.polyEvaluate(intersect, t=True)
+        # use triangles as integer-based insicator -- more robust comparison with zero
+        intersect_size = cmds.polyEvaluate(intersect, triangle=True)
+
+        if intersect_size > 0 and 'intersect_area_threshold' in self.config:
+            intersect_area = cmds.polyEvaluate(intersect, worldArea=True)
+            if intersect_area < self.config['intersect_area_threshold']:
+                print('Intersection with area {:.2f} ignored by threshold {:.2f}'.format(
+                    intersect_area, self.config['intersect_area_threshold']))
+                intersect_size = 0
 
         # delete extra objects
         cmds.delete(cloth_copy)

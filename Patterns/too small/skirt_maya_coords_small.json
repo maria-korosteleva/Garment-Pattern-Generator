@@ -27,6 +27,11 @@
             "endpoints" : [2, 1]
           }
         ],
+        "rotation": [
+          0.0, 
+          0.0, 
+          0.0
+        ], 
         "translation" : [0, 0, 56.280]
       }, 
       "back": {
@@ -50,6 +55,11 @@
             "endpoints" : [3, 0]
           }
         ],
+        "rotation": [
+          0.0, 
+          0.0, 
+          0.0
+        ], 
         "translation" : [0, 0, -46.530]
       }
     },

@@ -27,7 +27,12 @@
             "endpoints" : [2, 1]
           }
         ],
-        "translation" : [0, 0, 26.280]
+        "translation" : [0, 0, 26.280],
+        "rotation": [
+          0.0, 
+          0.0, 
+          0.0
+        ]
       }, 
       "back": {
         "vertices" : [
@@ -50,7 +55,12 @@
             "endpoints" : [3, 0]
           }
         ],
-        "translation" : [0, 0, -26.530]
+        "translation" : [0, 0, -26.530],
+        "rotation": [
+          0.0, 
+          0.0, 
+          0.0
+        ]
       }
     },
     

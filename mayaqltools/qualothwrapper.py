@@ -109,15 +109,15 @@ def run_sim(garment, props):
             * All of the garments existing in Maya scene will be simulated
                 because solver is shared!!
     """
+    config = props['config']
+    solver = _init_sim(config)
+    garment.setSimProps(config)  # ensure running sim with suplied material props
+
     # take no responsibility for result in case of 3d penetrations
     if garment.intersect_colliders_3D():
         _record_fail(props, 'intersect_colliders', garment.name)
     if garment.self_intersect_3D():
         _record_fail(props, 'intersect_self', garment.name)
-
-    config = props['config']
-    solver = _init_sim(config)
-    garment.setSimProps(config)  # ensure running sim with suplied material props
 
     start_time = time.time()
     # Allow to assemble without gravity + skip checks for first few frames

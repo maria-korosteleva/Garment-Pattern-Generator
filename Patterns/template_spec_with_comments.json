@@ -309,5 +309,76 @@
     "length",
     "low_wide",
     "low_wide_curve"
+  ], 
+
+  // This section allows to define constraints on parametrized panel
+  // No matter how parameter values are changes, these contraints are ensured to hold
+  // They are applied after all the parameter values are applied
+  "constraints": {
+    // Constraints are named and unordered
+    // The order of application is defined in section 'constraint_order' (below)
+    // At the moment, only constraints of type 'length_equality' are supported
+    "side_stitches": {
+      // this type ensures that all the [meta] edges listed in "influence" sections 
+      //  have the same length. 
+      // More spesifically:
+      //    * all the listed edges are changed s.t. their length matches 
+      //      the length of the longest edge in the list
+      //    * meta-edges
+      "type": "length_equality",
+
+      // influence specification follows that of a parameter with type "length" (multiplicative)
+      // but the values are specified per edge
+      "influence": [
+        {
+          "edge_list": [
+            {
+              // As with parameters, edge secification supports
+              //  * direction to apply change to 
+              "direction": "end", 
+              //  * changes along the given vector
+              // if this info is specified, than all of the contraint calculations and
+              // conditions are applied along this vector 
+              "along": [0, 1],
+              //  * individual edges
+              //  * meta-edges -- a sequential collection of edges representing section of the panel border
+              "id": 1, 
+              // Info SPECIFIC to constraint definition
+              // value is defined per edge description and
+              // allows to invert the influence of constraint
+              // Value specifies the scaling factor that was applied to this (meta) edge
+              // to ensure constraint is held
+              "value": 1
+            },
+            {
+              "direction": "start", 
+              "id": 3, 
+              "value": 1
+            }
+          ], 
+          "panel": "front"
+        }, 
+        {
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 3, 
+              "value": 1
+            },
+            {
+              "direction": "start", 
+              "id": 1, 
+              "value": 1
+            }
+          ], 
+          "panel": "back"
+        }
+        
+      ]
+    }
+  },
+
+  "constraint_order": [
+    "side_stitches"
   ]
 }

@@ -8,6 +8,9 @@
 # ensure killing is possible
 # https://www.linuxjournal.com/article/10815
 
+# Running with output to file (see https://askubuntu.com/questions/38126/how-to-redirect-output-to-screen-as-well-as-a-file)
+#   ./datasim_runner.sh 2>&1  | tee <filename>
+
 # Use Ctrl-C to stop this script after currently running mini-batch finishes
 sigint()
 {
@@ -19,7 +22,7 @@ trap 'sigint'  INT
 # -- Main calls --
 num_samples=15
 per_sample_delay=$((3*60))  # give about 3 min per sample before detecting Maya to hang
-dataset=data_150_tee_200526-13-29-37_regen_200603-13-59-51
+dataset=data_150_tee_200526-13-29-37_regen_200603-13-59-51-intersects
 config=upper_custom_fabric_basic_body.json
 ret_code=1
 STARTTIME=$(date +%s)
@@ -38,4 +41,4 @@ done
 ENDTIME=$(date +%s)
 T=$(($ENDTIME - $STARTTIME))
 echo "It took ${T} seconds to complete this task..."
-printf "Pretty format: %02d d %02d:%02d %02d s\n" "$(($T/86400))" "$(($T/3600%24))" "$(($T/60%60))" "$(($T%60))"
+printf "Pretty format: %02dd %02dh %02dm %02ds\n" "$(($T/86400))" "$(($T/3600%24))" "$(($T/60%60))" "$(($T%60))"

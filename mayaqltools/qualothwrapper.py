@@ -113,12 +113,6 @@ def run_sim(garment, props):
     solver = _init_sim(config)
     garment.setSimProps(config)  # ensure running sim with suplied material props
 
-    # take no responsibility for result in case of 3d penetrations
-    if garment.intersect_colliders_3D():
-        _record_fail(props, 'intersect_colliders', garment.name)
-    if garment.self_intersect_3D():
-        _record_fail(props, 'intersect_self', garment.name)
-
     start_time = time.time()
     # Allow to assemble without gravity + skip checks for first few frames
     print('Simulating {}'.format(garment.name))
@@ -141,17 +135,22 @@ def run_sim(garment, props):
             print('\nAchieved static equilibrium for {}'.format(garment.name))
             break
 
-    # Fail check: static equilibrium never detected -- might have false negs!
-    if frame == config['max_sim_steps'] - 1:
-        print('\nFailed to achieve static equilibrium for {}'.format(garment.name))
-        _record_fail(props, 'static_equilibrium', garment.name)
-
     # stats
     props['stats']['sim_time'][garment.name] = time.time() - start_time
     props['stats']['spf'][garment.name] = props['stats']['sim_time'][garment.name] / frame
     props['stats']['fin_frame'][garment.name] = frame
 
-    # Fail check: finished too fast 
+    # Fail checks
+    # static equilibrium never detected -- might have false negs!
+    if frame == config['max_sim_steps'] - 1:
+        print('\nFailed to achieve static equilibrium for {}'.format(garment.name))
+        _record_fail(props, 'static_equilibrium', garment.name)
+    # 3D penetrations 
+    if garment.intersect_colliders_3D():
+        _record_fail(props, 'intersect_colliders', garment.name)
+    if garment.self_intersect_3D():
+        _record_fail(props, 'intersect_self', garment.name)
+    # Finished too fast 
     if props['stats']['sim_time'][garment.name] < 2:  # 2 sec
         _record_fail(props, 'fast_finish', garment.name)
 

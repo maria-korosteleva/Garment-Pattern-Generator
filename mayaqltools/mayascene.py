@@ -690,6 +690,16 @@ class MayaGarmentWithUI(MayaGarment):
         self._ui_params(self.parameters, self.spec['parameter_order'])
         cmds.setParent('..')
 
+        # constraints
+        if 'constraints' in self.spec:
+            cmds.frameLayout(
+                label='Constraints',
+                collapsable=True, borderVisible=True, collapse=True,
+                mh=10, mw=10
+            )
+            self._ui_constraints(self.spec['constraints'], self.spec['constraint_order'])
+            cmds.setParent('..')
+
         # fin
         cmds.setParent('..')
         
@@ -770,6 +780,14 @@ class MayaGarmentWithUI(MayaGarment):
 
             # fin
             cmds.setParent('..')
+
+    def _ui_constraints(self, constraints, order):
+        """View basic info about specified constraints"""
+        for constraint_name in order:
+            cmds.textFieldGrp(
+                label=constraint_name + ':', text=constraints[constraint_name]['type'], 
+                editable=False, 
+                cal=[1, 'left'], cw=[1, 90])
 
     def _quick_dropdown(self, options, chosen='', label=''):
         """Add a dropdown with given options"""

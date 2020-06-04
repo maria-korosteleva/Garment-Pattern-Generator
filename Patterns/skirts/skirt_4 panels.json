@@ -574,8 +574,8 @@
     "curve_back"
   ], 
 
-  "constraints": [
-    {
+  "constraints": {
+    "front_stitches": {
       "influence": [
         {
           "edge_list": [
@@ -615,7 +615,7 @@
       ],
       "type": "length_equality"
     },
-    {
+    "back_stitches": {
       "influence": [
         {
           "edge_list": [
@@ -655,5 +655,10 @@
       ],
       "type": "length_equality"
     }
+  },
+
+  "constraint_order": [
+    "front_stitches", 
+    "back_stitches"
   ]
 }

@@ -436,7 +436,8 @@ class ParametrizedPattern(BasicPattern):
         if 'constraints' not in self.spec:
             return 
 
-        for constraint in self.spec['constraints']:  # order preserved as it's a list
+        for constraint_n in self.spec['constraints']:  # order preserved as it's a list
+            constraint = self.spec['constraints'][constraint_n]
             constraint_type = constraint['type']
             if constraint_type not in self.constraint_types:
                 raise ValueError("Incorrect constraint type. Alowed are "
@@ -466,7 +467,8 @@ class ParametrizedPattern(BasicPattern):
             return 
 
         # follow the process backwards
-        for constraint in reversed(self.spec['constraints']):  # order preserved as it's a list
+        for constraint_n in reversed(self.spec['constraint_order']):  # order preserved as it's a list
+            constraint = self.spec['constraints'][constraint_n]
             constraint_type = constraint['type']
             if constraint_type not in self.constraint_types:
                 raise ValueError("Incorrect constraint type. Alowed are "

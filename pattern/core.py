@@ -246,6 +246,9 @@ class ParametrizedPattern(BasicPattern):
             'additive_length': 0,
             'curve': 1
         }
+        self.constraint_types = [
+            'length_equality'
+        ]
 
     def reloadJSON(self):
         """(Re)loads pattern info from spec file. 
@@ -283,12 +286,16 @@ class ParametrizedPattern(BasicPattern):
                         self._extend_edge(panel_influence['panel'], edge, value, multiplicative=False)
                     elif param_type == 'curve':
                         self._curve_edge(panel_influence['panel'], edge, value)
+        # finally, ensure secified constraints are held
+        self._apply_constraints()    
 
     def _restore_template(self, params_to_default=True):
         """Restore pattern to it's state with all parameters having default values
             Recalculate vertex positions, edge curvatures & snap values to 1
         """
-        # Follow the every order backwards
+        # Follow process backwards
+        self._invert_constraints()
+
         for parameter in reversed(self.spec['parameter_order']):
             value = self.parameters[parameter]['value']
             param_type = self.parameters[parameter]['type']
@@ -328,22 +335,7 @@ class ParametrizedPattern(BasicPattern):
         if isinstance(value, list):
             raise ValueError("Multiple scaling factors are not supported")
 
-        panel = self.pattern['panels'][panel_name]
-
-        if isinstance(edge_influence["id"], list):
-            # meta-edge
-            # get all vertices in order
-            verts_ids = [panel['edges'][edge_influence['id'][0]]['endpoints'][0]]  # start
-            for edge_id in edge_influence['id']:
-                verts_ids.append(panel['edges'][edge_id]['endpoints'][1])  # end vertices
-        else:
-            # single edge
-            verts_ids = panel['edges'][edge_influence['id']]['endpoints']
-
-        verts_coords = []
-        for idx in verts_ids:
-            verts_coords.append(panel['vertices'][idx])
-        verts_coords = np.array(verts_coords)
+        verts_ids, verts_coords, _ = self._meta_edge(panel_name, edge_influence['id'])
 
         # calc extention pivot
         if edge_influence['direction'] == 'end':
@@ -389,6 +381,7 @@ class ParametrizedPattern(BasicPattern):
             new_verts = verts_coords + value * verts_projection
 
         # update in the initial structure
+        panel = self.pattern['panels'][panel_name]
         for ni, idx in enumerate(verts_ids):
             panel['vertices'][idx] = new_verts[ni].tolist()
 
@@ -436,6 +429,78 @@ class ParametrizedPattern(BasicPattern):
                 return map(lambda x: -x, value)
             else:
                 return -value
+
+    def _apply_constraints(self):
+        """Change the pattern to adhere to constraints if given in pattern spec
+            Assumes no zero-length edges exist"""
+        if 'constraints' not in self.spec:
+            return 
+
+        for constraint in self.spec['constraints']:  # order preserved as it's a list
+            constraint_type = constraint['type']
+            if constraint_type not in self.constraint_types:
+                raise ValueError("Incorrect constraint type. Alowed are "
+                                 + self.constraint_types)
+
+            if constraint_type == 'length_equality':
+                # get all length of the affected (meta) edges
+                max_len = -1
+                for panel_influence in constraint['influence']:
+                    for edge in panel_influence['edge_list']:
+                        _, _, length = self._meta_edge(panel_influence['panel'], edge['id'])
+                        edge['length'] = length
+                        max_len = length if length > max_len else max_len
+
+                # calculate scaling factor for every edge to match max length
+                # & update edges with it
+                for panel_influence in constraint['influence']:
+                    for edge in panel_influence['edge_list']:
+                        scaling = max_len / edge['length'] 
+                        if not np.isclose(scaling, 1):
+                            edge['value'] = scaling
+                            self._extend_edge(panel_influence['panel'], edge, edge['value'])
+
+    def _invert_constraints(self):
+        """Restore pattern to the state before constraint was applied"""
+        if 'constraints' not in self.spec:
+            return 
+
+        # follow the process backwards
+        for constraint in reversed(self.spec['constraints']):  # order preserved as it's a list
+            constraint_type = constraint['type']
+            if constraint_type not in self.constraint_types:
+                raise ValueError("Incorrect constraint type. Alowed are "
+                                 + self.constraint_types)
+
+            if constraint_type == 'length_equality':
+                # update edges with invertes scaling factor
+                for panel_influence in constraint['influence']:
+                    for edge in panel_influence['edge_list']:
+                        scaling = self._invert_value(edge['value'])
+                        self._extend_edge(panel_influence['panel'], edge, scaling)
+                        edge['value'] = 1
+
+    def _meta_edge(self, panel_name, edge_ids):
+        """Returns info for the given edge\meta-edge in inified form"""
+
+        panel = self.pattern['panels'][panel_name]
+
+        if isinstance(edge_ids, list):
+            # meta-edge
+            # get all vertices in order
+            verts_ids = [panel['edges'][edge_ids[0]]['endpoints'][0]]  # start
+            for edge_id in edge_ids:
+                verts_ids.append(panel['edges'][edge_id]['endpoints'][1])  # end vertices
+        else:
+            # single edge
+            verts_ids = panel['edges'][edge_ids]['endpoints']
+
+        verts_coords = []
+        for idx in verts_ids:
+            verts_coords.append(panel['vertices'][idx])
+        verts_coords = np.array(verts_coords)
+
+        return verts_ids, verts_coords, np.linalg.norm(verts_coords[-1] - verts_coords[0])
 
     # ---------- Randomization -------------
     def _randomize_pattern(self):

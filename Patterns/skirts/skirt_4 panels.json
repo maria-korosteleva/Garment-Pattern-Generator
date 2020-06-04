@@ -572,5 +572,88 @@
     "wideness", 
     "curve_front", 
     "curve_back"
+  ], 
+
+  "constraints": [
+    {
+      "influence": [
+        {
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 2, 
+              "value": 1
+            },
+            {
+              "direction": "start", 
+              "id": 4, 
+              "value": 1
+            }
+          ], 
+          "panel": "front"
+        }, 
+        {
+          "edge_list": [
+            {
+              "direction": "start", 
+              "id": 4, 
+              "value": 1
+            }
+          ], 
+          "panel": "right"
+        }, 
+        {
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 2, 
+              "value": 1
+            }
+          ], 
+          "panel": "left"
+        }
+      ],
+      "type": "length_equality"
+    },
+    {
+      "influence": [
+        {
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 2, 
+              "value": 1
+            },
+            {
+              "direction": "start", 
+              "id": 4, 
+              "value": 1
+            }
+          ], 
+          "panel": "back"
+        }, 
+        {
+          "edge_list": [
+            {
+              "direction": "start", 
+              "id": 4, 
+              "value": 1
+            }
+          ], 
+          "panel": "left"
+        }, 
+        {
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 2, 
+              "value": 1
+            }
+          ], 
+          "panel": "right"
+        }
+      ],
+      "type": "length_equality"
+    }
   ]
 }

@@ -335,7 +335,7 @@ class ParametrizedPattern(BasicPattern):
         if isinstance(value, list):
             raise ValueError("Multiple scaling factors are not supported")
 
-        verts_ids, verts_coords, _ = self._meta_edge(panel_name, edge_influence['id'])
+        verts_ids, verts_coords, target_line, _ = self._meta_edge(panel_name, edge_influence)
 
         # calc extention pivot
         if edge_influence['direction'] == 'end':
@@ -346,17 +346,6 @@ class ParametrizedPattern(BasicPattern):
             fixed = (verts_coords[0] + verts_coords[-1]) / 2
         else:
             raise RuntimeError('Unknown edge extention direction {}'.format(edge_influence['direction']))
-
-        # calc extention line
-        if 'along' in edge_influence:
-            target_line = edge_influence['along']
-        else:
-            target_line = verts_coords[-1] - verts_coords[0] 
-
-        if np.isclose(np.linalg.norm(target_line), 0):
-            raise ZeroDivisionError('target line is zero ' + str(target_line))
-        else:
-            target_line /= np.linalg.norm(target_line)
 
         # move verts 
         # * along target line that sits on fixed point (correct sign & distance along the line)
@@ -448,7 +437,8 @@ class ParametrizedPattern(BasicPattern):
                 max_len = -1
                 for panel_influence in constraint['influence']:
                     for edge in panel_influence['edge_list']:
-                        _, _, length = self._meta_edge(panel_influence['panel'], edge['id'])
+                        # TODO constraints along a custom line are not well tested
+                        _, _, _, length = self._meta_edge(panel_influence['panel'], edge)
                         edge['length'] = length
                         max_len = length if length > max_len else max_len
 
@@ -482,11 +472,11 @@ class ParametrizedPattern(BasicPattern):
                         self._extend_edge(panel_influence['panel'], edge, scaling)
                         edge['value'] = 1
 
-    def _meta_edge(self, panel_name, edge_ids):
+    def _meta_edge(self, panel_name, edge_influence):
         """Returns info for the given edge\meta-edge in inified form"""
 
         panel = self.pattern['panels'][panel_name]
-
+        edge_ids = edge_influence['id']
         if isinstance(edge_ids, list):
             # meta-edge
             # get all vertices in order
@@ -502,7 +492,18 @@ class ParametrizedPattern(BasicPattern):
             verts_coords.append(panel['vertices'][idx])
         verts_coords = np.array(verts_coords)
 
-        return verts_ids, verts_coords, np.linalg.norm(verts_coords[-1] - verts_coords[0])
+        # extention line
+        if 'along' in edge_influence:
+            target_line = edge_influence['along']
+        else:
+            target_line = verts_coords[-1] - verts_coords[0] 
+
+        if np.isclose(np.linalg.norm(target_line), 0):
+            raise ZeroDivisionError('target line is zero ' + str(target_line))
+        else:
+            target_line /= np.linalg.norm(target_line)
+
+        return verts_ids, verts_coords, target_line, target_line.dot(verts_coords[-1] - verts_coords[0])
 
     # ---------- Randomization -------------
     def _randomize_pattern(self):

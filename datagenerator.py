@@ -79,15 +79,15 @@ def generate(path, templates_path, props):
 # ------------------ MAIN ------------------------
 if __name__ == "__main__":
     
-    new = False
+    new = True
     system_props = Properties('../system.json')
 
     if new:
         props = Properties()
         props.set_basic(
-            templates='skirts/skirt_smaller_front.json',
-            name='data_5',
-            size=5,
+            templates='skirts/skirt_4_panels.json',
+            name='data_150',
+            size=150,
             to_subfolders=True)
         props.set_section_config('generator')
     else:

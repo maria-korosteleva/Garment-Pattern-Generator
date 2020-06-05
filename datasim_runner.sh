@@ -22,8 +22,8 @@ trap 'sigint'  INT
 # -- Main calls --
 num_samples=15
 per_sample_delay=$((3*60))  # give about 3 min per sample before detecting Maya to hang
-dataset=data_150_tee_200526-13-29-37_regen_200604-15-44-06
-config=upper_custom_fabric_basic_body.json
+dataset=data_5_skirt_4_panels_200605-14-47-21
+config=lower_custom_fabric_basic_body.json
 ret_code=1
 STARTTIME=$(date +%s)
 while [ $ret_code != 0 ]  # failed for any reason

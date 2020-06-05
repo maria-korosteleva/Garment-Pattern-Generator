@@ -323,8 +323,7 @@
       //  have the same length. 
       // More spesifically:
       //    * all the listed edges are changed s.t. their length matches 
-      //      the length of the longest edge in the list
-      //    * meta-edges
+      //      the MEAN length of all the edges in the list
       "type": "length_equality",
 
       // influence specification follows that of a parameter with type "length" (multiplicative)

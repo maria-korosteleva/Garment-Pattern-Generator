@@ -434,19 +434,23 @@ class ParametrizedPattern(BasicPattern):
 
             if constraint_type == 'length_equality':
                 # get all length of the affected (meta) edges
-                max_len = -1
+                target_len = []
                 for panel_influence in constraint['influence']:
                     for edge in panel_influence['edge_list']:
-                        # TODO constraints along a custom line are not well tested
+                        # TODO constraints along a custom vector are not well tested
                         _, _, _, length = self._meta_edge(panel_influence['panel'], edge)
                         edge['length'] = length
-                        max_len = length if length > max_len else max_len
+                        target_len.append(length)
+                if len(target_len) == 0:
+                    return
+                # target as mean of provided edges
+                target_len = sum(target_len) / len(target_len)  
 
                 # calculate scaling factor for every edge to match max length
                 # & update edges with it
                 for panel_influence in constraint['influence']:
                     for edge in panel_influence['edge_list']:
-                        scaling = max_len / edge['length'] 
+                        scaling = target_len / edge['length'] 
                         if not np.isclose(scaling, 1):
                             edge['value'] = scaling
                             self._extend_edge(panel_influence['panel'], edge, edge['value'])

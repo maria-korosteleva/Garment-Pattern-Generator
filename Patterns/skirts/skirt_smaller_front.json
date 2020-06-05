@@ -321,5 +321,47 @@
     "wideness", 
     "curve_front",
     "curve_back"
+  ],
+
+  "constraints": {
+    "stitches": {
+      "influence": [
+        {
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 2, 
+              "value": 1
+            },
+            {
+              "direction": "start", 
+              "id": 4, 
+              "value": 1
+            }
+          ], 
+          "panel": "front"
+        }, 
+        {
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 2, 
+              "value": 1
+            },
+            {
+              "direction": "start", 
+              "id": 4, 
+              "value": 1
+            }
+          ], 
+          "panel": "back"
+        }
+      ],
+      "type": "length_equality"
+    }
+  },
+
+  "constraint_order": [
+    "stitches"
   ]
 }

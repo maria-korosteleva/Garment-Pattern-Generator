@@ -426,7 +426,7 @@
     "normalize_panel_translation": false
   }, 
   "parameters": {
-    "wideness": {
+    "fb_wideness": {
       "influence": [
         {
           "edge_list": [
@@ -445,7 +445,17 @@
             }
           ], 
           "panel": "back"
-        }, 
+        }
+      ], 
+      "range": [
+        0.45, 
+        2.3
+      ], 
+      "type": "length", 
+      "value": 1
+    }, 
+    "side_wideness": {
+      "influence": [
         {
           "edge_list": [
             {
@@ -466,8 +476,8 @@
         }
       ], 
       "range": [
-        0.65, 
-        1.8
+        0.4, 
+        2.5
       ], 
       "type": "length", 
       "value": 1
@@ -528,8 +538,49 @@
         }
       ], 
       "range": [
-        0.45, 
-        1.7
+        0.65, 
+        1.5
+      ], 
+      "type": "length", 
+      "value": 1
+    }, 
+    "front_length": {
+      "influence": [
+        {
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 2
+            }, 
+            {
+              "direction": "start", 
+              "id": 4
+            }
+          ], 
+          "panel": "front"
+        }, 
+        {
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 2
+            }
+          ], 
+          "panel": "left"
+        }, 
+        {
+          "edge_list": [
+            {
+              "direction": "start", 
+              "id": 4
+            }
+          ], 
+          "panel": "right"
+        }
+      ], 
+      "range": [
+        0.7, 
+        1.3
       ], 
       "type": "length", 
       "value": 1
@@ -568,8 +619,10 @@
     }
   }, 
   "parameter_order": [
+    "front_length",
     "length", 
-    "wideness", 
+    "side_wideness", 
+    "fb_wideness", 
     "curve_front", 
     "curve_back"
   ], 

@@ -1,5 +1,5 @@
 {
-  "body": "f_smpl_templatex300.obj", 
+  "body": "f_smpl_template.obj", 
   "render": {
     "config": {
       "scene": "studio_orange.mb",
@@ -38,11 +38,12 @@
         "weft_resistance_scale": 1.0, 
         "weft_rubber_scale": 1.0
       }, 
-      "collision_thickness": 1.3,
+      "collision_thickness": 0.04,
       "max_sim_steps": 1000, 
-      "static_threshold": 0.07, 
+      "static_threshold": 0.02, 
       "zero_gravity_steps": 5, 
-      "intersect_area_threshold": 300
+      "intersect_area_threshold": 100,
+      "resolution_scale": 5
     }, 
     "stats": {
       "fin_frame": {}, 

@@ -1,5 +1,5 @@
 {
-  "body": "f_smpl_templatex300.obj", 
+  "body": "f_smpl_template.obj", 
   "render": {
     "config": {
       "scene": "studio_orange.mb",
@@ -14,7 +14,7 @@
   }, 
   "sim": {
     "config": {
-      "body_friction": 0.2,
+      "body_friction": 0.5,
       "material": {
         "air_drag": 0.01, 
         "bend_angle_dropoff": 0.0, 
@@ -40,7 +40,8 @@
       }, 
       "max_sim_steps": 750, 
       "static_threshold": 0.05, 
-      "zero_gravity_steps": 5
+      "zero_gravity_steps": 5, 
+      "resolution_scale": 5
     }, 
     "stats": {
       "fin_frame": {}, 

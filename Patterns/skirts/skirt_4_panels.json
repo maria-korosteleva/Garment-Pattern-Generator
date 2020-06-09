@@ -423,7 +423,8 @@
   }, 
   "properties": {
     "curvature_coords": "relative", 
-    "normalize_panel_translation": false
+    "normalize_panel_translation": false, 
+    "units_in_meter": 300
   }, 
   "parameters": {
     "fb_wideness": {

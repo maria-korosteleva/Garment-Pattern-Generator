@@ -94,7 +94,8 @@ class BasicPattern(object):
         """
         Updated template definition for convenient processing:
             * Converts curvature coordinates to realitive ones (in edge frame) -- for easy length scaling
-            * snaps each panel to start at (0, 0)
+            * snaps each panel center to (0, 0) if requested in props
+            * scales everything to cm
         """
         if self.properties['curvature_coords'] == 'absolute':
             for panel in self.pattern['panels']:
@@ -111,6 +112,16 @@ class BasicPattern(object):
             # now we have new property
             self.properties['curvature_coords'] = 'relative'
         
+        if ('units_in_meter' in self.properties 
+                and self.properties['units_in_meter'] != 100):
+            for panel in self.pattern['panels']:
+                self._normalize_panel_scaling(panel, self.properties['units_in_meter'])
+            # now we have cm
+            self.properties['original_units_in_meter'] = self.properties['units_in_meter']
+            self.properties['units_in_meter'] = 100
+        else:
+            print('Warning: units not specified in the pattern. Scaling normalization was not applied')
+
         # after curvature is converted!!
         # Only if requested
         if ('normalize_panel_translation' in self.properties 
@@ -141,6 +152,18 @@ class BasicPattern(object):
 
         return offset
     
+    def _normalize_panel_scaling(self, panel_name, units_in_meter):
+        """Convert all panel info to cm. I assume that curvature is alredy converted to relative coords -- scaling does not need update"""
+        scaling = 100 / units_in_meter
+        # vertices
+        vertices = np.array(self.pattern['panels'][panel_name]['vertices'])
+        vertices = scaling * vertices
+        self.pattern['panels'][panel_name]['vertices'] = vertices.tolist()
+
+        # translation
+        translation = self.pattern['panels'][panel_name]['translation']
+        self.pattern['panels'][panel_name]['translation'] = [scaling * coord for coord in translation]
+
     def _control_to_abs_coord(self, start, end, control_scale):
         """
         Derives absolute coordinates of Bezier control point given as an offset
@@ -254,7 +277,9 @@ class ParametrizedPattern(BasicPattern):
         """(Re)loads pattern info from spec file. 
         Useful when spec is updated from outside"""
         super(ParametrizedPattern, self).reloadJSON()
+
         self.parameters = self.spec['parameters']
+        self._normalize_param_scaling()
 
     def _restore(self, backup_copy):
         """Restores spec structure from given backup copy 
@@ -262,7 +287,25 @@ class ParametrizedPattern(BasicPattern):
         """
         super(ParametrizedPattern, self)._restore(backup_copy)
         self.parameters = self.spec['parameters']
+    
     # ---------- Parameters operations --------
+
+    def _normalize_param_scaling(self):
+        """Convert additive parameters to cm units"""
+
+        if 'original_units_in_meter' in self.properties:    # pattern was scaled
+            scaling = 100 / self.properties['original_units_in_meter']
+            for parameter in self.parameters:
+                if self.parameters[parameter]['type'] == 'additive_length': 
+                    self.parameters[parameter]['value'] = scaling * self.parameters[parameter]['value']
+                    self.parameters[parameter]['range'] = [
+                        scaling * elem for elem in self.parameters[parameter]['range']
+                    ]
+
+            # now we have cm everywhere -- no need to keep units info
+            self.properties.pop('original_units_in_meter', None)
+        else:
+            print('Warning: units not specified in the pattern. Parameter scaling normalization was not applied')
 
     def _update_pattern_by_param_values(self):
         """

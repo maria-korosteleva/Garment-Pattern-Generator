@@ -211,6 +211,13 @@ def setFabricProps(cloth, props):
     cmds.setAttr(cloth + '.rubberV', props['warp_rubber_scale'], clamp=True)
 
 
+def setPanelsResolution(scaling):
+    """Set resoluiton conroller of all qlPatterns in the scene"""
+    all_panels = cmds.ls('*qlPattern*', shapes=True)
+    for panel in all_panels:
+        cmds.setAttr(panel + '.resolutionScale', scaling)
+
+
 def fetchFabricProps(cloth):
     """Returns current material properties of the cloth's objects
         Requires qlCloth object
@@ -282,7 +289,15 @@ def fetchColliderFriction(collider_objects):
     except ValueError as e:
         # collider doesn't exist any more
         return None
-    
+
+
+def fetchPanelResolution():
+    some_panels = cmds.ls('*qlPattern*')
+
+    shape = cmds.listRelatives(some_panels[0], shapes=True, path=True)
+
+    return cmds.getAttr(shape[0] + '.resolutionScale')
+
 
 def flipPanelNormal(panel_geom):
     """Set flippling normals to True for a given panel geom objects

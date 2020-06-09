@@ -51,7 +51,8 @@ class MayaGarment(core.ParametrizedPattern):
         self.MayaObjects = {}
         self.config = {
             'material': {},
-            'body_friction': 0.5
+            'body_friction': 0.5, 
+            'resolution_scale': 5
         }
     
     def __del__(self):
@@ -161,12 +162,16 @@ class MayaGarment(core.ParametrizedPattern):
 
         self.config['material'] = qw.fetchFabricProps(self.get_qlcloth_props_obj())  
         if 'colliders' in self.MayaObjects and self.MayaObjects['colliders']:
-            friction = qw.fetchColliderFriction(self.MayaObjects['colliders'][0])  # assuming all colliders have the same value
+            # assuming all colliders have the same value
+            friction = qw.fetchColliderFriction(self.MayaObjects['colliders'][0])  
             if friction:
                 self.config['body_friction'] = friction
 
         self.config['collision_thickness'] = cmds.getAttr(self.get_qlcloth_props_obj() + '.thickness')
         
+        # take resolution scale from any of the panels assuming all the same
+        self.config['resolution_scale'] = qw.fetchPanelResolution()
+
         return self.config
 
     def setSimProps(self, config={}):
@@ -190,6 +195,9 @@ class MayaGarment(core.ParametrizedPattern):
             # if not provided, use default auto-calculated value
             cmds.setAttr(self.get_qlcloth_props_obj() + '.overrideThickness', 1)
             cmds.setAttr(self.get_qlcloth_props_obj() + '.thickness', self.config['collision_thickness'])
+
+        # update resolution properties
+        qw.setPanelsResolution(self.config['resolution_scale'])
 
     def get_qlcloth_geomentry(self):
         """
@@ -476,7 +484,7 @@ class MayaGarment(core.ParametrizedPattern):
         solvers = [obj for obj in panel_geom if 'Solver' in obj]
         panel_geom = list(set(panel_geom) - set(solvers))
         panel_geom = cmds.parent(panel_geom, panel_group)  # organize
-
+        
         # fix normals if needed
         self._match_normal(panel_geom, panel_name)
 
@@ -618,7 +626,7 @@ class MayaGarment(core.ParametrizedPattern):
         if intersect_size > 0 and 'intersect_area_threshold' in self.config:
             intersect_area = cmds.polyEvaluate(intersect, worldArea=True)
             if intersect_area < self.config['intersect_area_threshold']:
-                print('Intersection with area {:.2f} ignored by threshold {:.2f}'.format(
+                print('Intersection with area {:.2f} cm^2 ignored by threshold {:.2f}'.format(
                     intersect_area, self.config['intersect_area_threshold']))
                 intersect_size = 0
 
@@ -894,9 +902,7 @@ class Scene(object):
         self.config = props['config']
         self.stats = props['stats']
         # load body to be used as a translation reference
-        self.body_filepath = body_obj
-        self.body = cmds.file(body_obj, i=True, rnn=True)[0]
-        self.body = cmds.rename(self.body, 'body#')
+        self._load_body(body_obj)
 
         # scene
         self._init_arnold()
@@ -965,6 +971,30 @@ class Scene(object):
         """Get properties records from Maya
             Note: it updates global config!"""
         pass
+
+    # ------- Private -----------
+
+    def _load_body(self, bodyfilename):
+        """Load body object and scale it to cm units"""
+        # load
+        self.body_filepath = bodyfilename
+        self.body = cmds.file(bodyfilename, i=True, rnn=True)[0]
+        self.body = cmds.rename(self.body, 'body#')
+
+        # convert to cm heuristically
+        # check for througth height (Y axis)
+        # NOTE prone to fails if non-meter units are used for body
+        bb = cmds.polyEvaluate(self.body, boundingBox=True)  # ((xmin,xmax), (ymin,ymax), (zmin,zmax))
+        height = bb[1][1] - bb[1][0]
+        if height < 3:  # meters
+            cmds.scale(100, 100, 100, self.body, centerPivot=True, absolute=True)
+            print('Warning: Body Mesh is found to use meters as units. Scaled up by 100 for cm')
+        elif height < 10:  # decimeters
+            cmds.scale(10, 10, 10, self.body, centerPivot=True, absolute=True)
+            print('Warning: Body Mesh is found to use decimeters as units. Scaled up by 10 for cm')
+        elif height > 250:  # millimiters or something strange
+            cmds.scale(0.1, 0.1, 0.1, self.body, centerPivot=True, absolute=True)
+            print('Warning: Body Mesh is found to use millimiters as units. Scaled down by 0.1 for cm')
 
     def _fetch_color(self, shader):
         """Return current color of a given shader node"""

@@ -67,9 +67,9 @@ class VisPattern(core.ParametrizedPattern):
 
         box_size = np.max(vertices, axis=0) - np.min(vertices, axis=0) 
         if box_size[0] < 2:      # meters
-            scaling_to_px = 200
+            scaling_to_px = 300
         elif box_size[0] < 200:  # sentimeters
-            scaling_to_px = 2
+            scaling_to_px = 3
         else:                    # pixels
             scaling_to_px = 1  
 

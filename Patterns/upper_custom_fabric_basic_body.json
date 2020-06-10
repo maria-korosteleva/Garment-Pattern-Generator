@@ -40,7 +40,7 @@
       }, 
       "collision_thickness": 0.04,
       "max_sim_steps": 1000, 
-      "static_threshold": 0.02, 
+      "static_threshold": 0.01, 
       "zero_gravity_steps": 5, 
       "intersect_area_threshold": 100,
       "resolution_scale": 5

@@ -43,7 +43,7 @@
       "static_threshold": 0.02, 
       "zero_gravity_steps": 5, 
       "intersect_area_threshold": 100,
-      "resolution_scale": 3
+      "resolution_scale": 4
     }, 
     "stats": {
       "fin_frame": {}, 

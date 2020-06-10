@@ -1,6 +1,7 @@
 {
   "properties" : {
-    "curvature_coords" : "relative"
+    "curvature_coords" : "relative",
+    "units_in_meter": 300
   },
   "pattern" : {
     "panels" : {

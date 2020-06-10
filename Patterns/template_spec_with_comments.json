@@ -1,6 +1,7 @@
 // Specification of a 2D pattern template that describes the structure and the ways it can be modified
 // All of the string constants here are keywords with exeption of panel and parameter ids
 {
+  
   // Properties give additional instructions on how to read this template file
   "properties": {
     // Describes the way cordinates of the curvature control points are specified in this template. 
@@ -9,12 +10,17 @@
     // * "absolute" -- Coordinated are given in world frame, the same coordinate space as panel vertices.  
     // The chosen convention has to be used for all edge curvature specifications in the pattern!
     "curvature_coords": "relative", 
+    
     // indicates if each panel translation should be normalized to put local origin in the middle
     // of the panel.
     // The world translation vector is adjusted s.t. world position of vertices do not change when rotation is zero
     // BUT if rotation is present, normalization might affect it
     // It's only recommended to use this option for the benefits of easy editing
-    "normalize_panel_translation": false
+    "normalize_panel_translation": false, 
+    
+    // indicates how many units used for pattern specification fits in 1 meter
+    // the value is used to standardize units to cm on loading 
+    "units_in_meter": 300
   },
   // Section that fully describes the pattern. This section is enough to render a pattern in whatever form needed.  
   "pattern": {

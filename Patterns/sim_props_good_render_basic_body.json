@@ -39,7 +39,7 @@
         "weft_rubber_scale": 1.0
       }, 
       "max_sim_steps": 750, 
-      "static_threshold": 0.02, 
+      "static_threshold": 0.01, 
       "non_static_percent": 1,
       "zero_gravity_steps": 5, 
       "resolution_scale": 5

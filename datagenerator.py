@@ -79,7 +79,7 @@ def generate(path, templates_path, props):
 # ------------------ MAIN ------------------------
 if __name__ == "__main__":
     
-    new = True
+    new = False
     system_props = Properties('../system.json')
 
     if new:

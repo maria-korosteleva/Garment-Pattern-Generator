@@ -270,7 +270,7 @@ class MayaGarment(core.ParametrizedPattern):
         self.last_verts = self.current_verts
         self.current_verts = vertices
 
-    def is_static(self, threshold):
+    def is_static(self, threshold, allowed_non_static_percent=0):
         """
             Checks wether garment is in the static equilibrium
             Compares current state with the last recorded state
@@ -287,7 +287,9 @@ class MayaGarment(core.ParametrizedPattern):
         diff = np.abs(self.current_verts - self.last_verts)
         diff_L1 = np.sum(diff, axis=1)
 
-        if (diff_L1 < threshold).all():  # compare vertex-vize to be independent of #verts
+        non_static_len = len(diff_L1[diff_L1 > threshold])  # compare vertex-wize to allow accurate control over outliers
+
+        if non_static_len == 0 or non_static_len < len(self.current_verts) * 0.01 * allowed_non_static_percent:  
             return True
         else:
             return False

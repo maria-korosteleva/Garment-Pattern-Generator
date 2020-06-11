@@ -131,7 +131,7 @@ def run_sim(garment, props):
         garment.update_verts_info()
 
         _update_progress(frame, config['max_sim_steps'])  # progress bar
-        if garment.is_static(config['static_threshold']):  # Success!
+        if garment.is_static(config['static_threshold'], config['non_static_percent']):  # Success!
             print('\nAchieved static equilibrium for {}'.format(garment.name))
             break
 

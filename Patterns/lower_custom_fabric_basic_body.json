@@ -21,7 +21,7 @@
         "bend_damp": 0.1, 
         "bend_damp_dropoff": 0.0, 
         "bend_plasticity": 0.0, 
-        "bend_resistance": 0.0, 
+        "bend_resistance": 0.03, 
         "bend_yield": 0.0, 
         "compression_resistance": 100.0, 
         "density": 0.015, 
@@ -40,7 +40,8 @@
       }, 
       "collision_thickness": 0.04,
       "max_sim_steps": 1500, 
-      "static_threshold": 0.02, 
+      "static_threshold": 0.015, 
+      "non_static_percent": 1,
       "zero_gravity_steps": 5, 
       "intersect_area_threshold": 100,
       "resolution_scale": 4

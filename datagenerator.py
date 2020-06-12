@@ -92,7 +92,7 @@ if __name__ == "__main__":
         props.set_section_config('generator')
     else:
         props = Properties(
-            Path(system_props['output']) / 'data_150_tee_200526-13-29-37/dataset_properties.json', 
+            Path(system_props['output']) / 'data_1000_tee_200527-14-50-42/dataset_properties.json', 
             True)
 
     # Generator

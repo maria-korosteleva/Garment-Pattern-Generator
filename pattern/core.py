@@ -112,13 +112,14 @@ class BasicPattern(object):
             # now we have new property
             self.properties['curvature_coords'] = 'relative'
         
-        if ('units_in_meter' in self.properties 
-                and self.properties['units_in_meter'] != 100):
-            for panel in self.pattern['panels']:
-                self._normalize_panel_scaling(panel, self.properties['units_in_meter'])
-            # now we have cm
-            self.properties['original_units_in_meter'] = self.properties['units_in_meter']
-            self.properties['units_in_meter'] = 100
+        if 'units_in_meter' in self.properties:
+            if self.properties['units_in_meter'] != 100:
+                for panel in self.pattern['panels']:
+                    self._normalize_panel_scaling(panel, self.properties['units_in_meter'])
+                # now we have cm
+                self.properties['original_units_in_meter'] = self.properties['units_in_meter']
+                self.properties['units_in_meter'] = 100
+                print('Warning: pattern units converted to cm')
         else:
             print('Warning: units not specified in the pattern. Scaling normalization was not applied')
 
@@ -304,8 +305,8 @@ class ParametrizedPattern(BasicPattern):
 
             # now we have cm everywhere -- no need to keep units info
             self.properties.pop('original_units_in_meter', None)
-        else:
-            print('Warning: units not specified in the pattern. Parameter scaling normalization was not applied')
+
+            print('Warning: Parameter units were converted to cm')
 
     def _update_pattern_by_param_values(self):
         """

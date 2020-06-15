@@ -37,8 +37,9 @@ do
 
     # clear tmp files created by Qualoth -- they can be left after crashes && fill out all the free disk space
     find /tmp -regextype sed -regex "/tmp/tmp[0-9]*\.[0-9]*" -delete
+
+    ENDTIME=$(date +%s)
+    T=$(($ENDTIME - $STARTTIME))
+    echo "It took ${T} seconds to complete this task So far..."
+    printf "Pretty format: %02dd %02dh %02dm %02ds\n" "$(($T/86400))" "$(($T/3600%24))" "$(($T/60%60))" "$(($T%60))"
 done
-ENDTIME=$(date +%s)
-T=$(($ENDTIME - $STARTTIME))
-echo "It took ${T} seconds to complete this task..."
-printf "Pretty format: %02dd %02dh %02dm %02ds\n" "$(($T/86400))" "$(($T/3600%24))" "$(($T/60%60))" "$(($T%60))"

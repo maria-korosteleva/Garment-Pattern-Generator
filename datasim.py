@@ -73,7 +73,6 @@ if __name__ == "__main__":
         # avoid accidential re-runs of data
         print('Warning: dataset is frozen, processing is skipped')
         sys.exit(0)
-        return True
 
     # ------- Defining sim props -----
     props.set_basic(data_folder=dataset)   # in case data properties are from other dataset/folder, update info

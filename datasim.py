@@ -60,10 +60,6 @@ if __name__ == "__main__":
 
     command_args = get_command_args()
 
-    init_mayapy()
-    import mayaqltools as mymaya  # has to import after maya is loaded
-    reload(mymaya)  # reload in case we are in Maya internal python environment
-
     system_config = customconfig.Properties('../system.json')  # Make sure it's in \Autodesk\MayaNNNN\
     path = system_config['templates_path']
 
@@ -72,11 +68,22 @@ if __name__ == "__main__":
     datapath = os.path.join(system_config['output'], dataset)
     dataset_file = os.path.join(datapath, 'dataset_properties.json')
 
-    # ------- defining sim props -----
     props = customconfig.Properties(dataset_file)
+    if 'frozen' in props and props['frozen']:
+        # avoid accidential re-runs of data
+        print('Warning: dataset is frozen, processing is skipped')
+        sys.exit(0)
+        return True
+
+    # ------- Defining sim props -----
     props.set_basic(data_folder=dataset)   # in case data properties are from other dataset/folder, update info
     if command_args.config is not None:
         props.merge(os.path.join(system_config['sim_configs_path'], command_args.config)) 
+
+    # init maya 
+    init_mayapy()
+    import mayaqltools as mymaya  # has to import after maya is loaded
+    reload(mymaya)  # reload in case we are in Maya internal python environment
 
     # ----- Main loop ----------
     finished = mymaya.simulation.batch_sim(

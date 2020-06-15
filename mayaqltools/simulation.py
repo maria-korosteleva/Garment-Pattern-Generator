@@ -73,6 +73,11 @@ def batch_sim(resources, data_path, dataset_props,
         
     """
     # ----- Init -----
+    if 'frozen' in dataset_props and dataset_props['frozen']:
+        # avoid accidential re-runs of data
+        print('Warning: dataset is frozen, processing is skipped')
+        return True
+
     resume = init_sim_props(dataset_props, batch_run=True, force_restart=force_restart)
 
     qw.load_plugin()
@@ -119,6 +124,7 @@ def batch_sim(resources, data_path, dataset_props,
         if len(dataset_props['sim']['stats']['processed']) >= len(pattern_specs):
             # processing successfully finished -- no need to resume later
             del dataset_props['sim']['stats']['processed']
+            dataset_props['frozen'] = True
             process_finished = True
         else:
             process_finished = False

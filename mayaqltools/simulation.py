@@ -224,19 +224,22 @@ def template_simulation(spec, scene, sim_props, delete_on_clean=False, caching=F
 def _get_pattern_files(data_path, dataset_props):
     """ Collects paths to all the pattern files in given folder"""
 
+    to_ignore = ['renders']  # special dirs not to include in the pattern list
+
     pattern_specs = []
     root, dirs, files = next(os.walk(data_path))
     if dataset_props['to_subfolders']:
         # https://stackoverflow.com/questions/800197/how-to-get-all-of-the-immediate-subdirectories-in-python
         # cannot use os.scandir in python 2.7
         for directory in dirs:
-            pattern_specs.append(os.path.join(root, directory, 'specification.json'))  # cereful for file name changes ^^
+            if directory not in to_ignore:
+                pattern_specs.append(os.path.join(root, directory, 'specification.json'))  # cereful for file name changes ^^
     else:
         for file in files:
             # NOTE filtering might not be very robust
             if ('.json' in file
-                    and 'template' not in file
-                    and 'dataset_properties' not in file):
+                    and 'specification' in file
+                    and 'template' not in file):
                 pattern_specs.append(os.path.normpath(os.path.join(root, file)))
     return pattern_specs
 

@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     # ------ Dataset ------
     dataset = command_args.data
-    datapath = os.path.join(system_config['output'], dataset)
+    datapath = os.path.join(system_config['datasets_path'], dataset)
     dataset_file = os.path.join(datapath, 'dataset_properties.json')
 
     props = customconfig.Properties(dataset_file)

@@ -85,9 +85,9 @@ if __name__ == "__main__":
     if new:
         props = Properties()
         props.set_basic(
-            templates='skirts/skirt_4_panels.json',
-            name='data_1000',
-            size=1000,
+            templates='basic tee/tee.json',
+            name='data_5',
+            size=5,
             to_subfolders=True)
         props.set_section_config('generator')
     else:
@@ -96,4 +96,4 @@ if __name__ == "__main__":
             True)
 
     # Generator
-    generate(system_props['output'], system_props['templates_path'], props)
+    generate(system_props['datasets_path'], system_props['templates_path'], props)

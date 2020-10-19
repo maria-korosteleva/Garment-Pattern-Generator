@@ -9,7 +9,7 @@
 # https://www.linuxjournal.com/article/10815
 
 # Running with output to file (see https://askubuntu.com/questions/38126/how-to-redirect-output-to-screen-as-well-as-a-file)
-#   ./datasim_runner.sh 2>&1  | tee <filename>
+#   ./datasim_runner.sh 2>&1  | tee -a <filename>
 
 # Use Ctrl-C to stop this script after currently running mini-batch finishes
 sigint()
@@ -22,7 +22,7 @@ trap 'sigint'  INT
 # -- Main calls --
 num_samples=30   # number of reloads and re-sim vs. speed to detect Maya\Qualoth hang
 per_sample_delay=$((7*60))  # give about 7 min per sample before detecting Maya to hang
-dataset=data_5_tee_200923-15-24-53
+dataset=data_5000_tee_200924-16-57-59
 config=upper_custom_fabric_basic_body.json
 ret_code=1
 STARTTIME=$(date +%s)
@@ -37,6 +37,10 @@ do
 
     # clear tmp files created by Qualoth -- they can be left after crashes && fill out all the free disk space
     find /tmp -regextype sed -regex "/tmp/tmp[0-9]*\.[0-9]*" -delete
+
+    # help parallel sweep run in cache cleaning
+    find /c/Users/Maria/.cache/wandb/artifacts/ -delete
+    echo "Cleaned Qualoth and wandb cache!"
 
     ENDTIME=$(date +%s)
     T=$(($ENDTIME - $STARTTIME))

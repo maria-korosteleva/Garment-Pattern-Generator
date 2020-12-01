@@ -13,7 +13,7 @@ import customconfig
 reload(customconfig)
 
 
-# TODO do smth with repetitive code!
+# Had to make copy of functions from datasim.py, becuase of issues with importing maya-related packages
 def init_mayapy():
     try: 
         print('Initilializing Maya tools...')
@@ -32,28 +32,6 @@ def stop_mayapy():
     maya.standalone.uninitialize() 
     print("Maya stopped")
 
-# TODO repetive code with mayascene module
-def load_body(bodyfilename):
-    """Load body object to the scene"""
-    body = cmds.file(bodyfilename, i=True, rnn=True)[0]
-    body = cmds.rename(body, 'body#')
-
-    # convert to cm heuristically
-    # check for througth height (Y axis)
-    # NOTE prone to fails if non-meter units are used for body
-    bb = cmds.polyEvaluate(body, boundingBox=True)  # ((xmin,xmax), (ymin,ymax), (zmin,zmax))
-    height = bb[1][1] - bb[1][0]
-    if height < 3:  # meters
-        cmds.scale(100, 100, 100, body, centerPivot=True, absolute=True)
-        print('Warning: Body Mesh is found to use meters as units. Scaled up by 100 for cm')
-    elif height < 10:  # decimeters
-        cmds.scale(10, 10, 10, body, centerPivot=True, absolute=True)
-        print('Warning: Body Mesh is found to use decimeters as units. Scaled up by 10 for cm')
-    elif height > 250:  # millimiters or something strange
-        cmds.scale(0.1, 0.1, 0.1, body, centerPivot=True, absolute=True)
-        print('Warning: Body Mesh is found to use millimiters as units. Scaled down by 0.1 for cm')
-
-    return body
 
 if __name__ == "__main__":
 
@@ -67,9 +45,6 @@ if __name__ == "__main__":
     if not data_props['to_subfolders']:
         raise NotImplementedError('Scanning only works on datasets organized in subfolders')  # just for simplicity 
 
-    # Body info -- in the dataset itself ?
-    bodypath = os.path.join(system_config['bodies_path'], data_props['body'])
-
     # ------ Start Maya instance ------
     init_mayapy()
     import mayaqltools as mymaya  # has to import after maya is loaded
@@ -78,7 +53,8 @@ if __name__ == "__main__":
 
     # ------ Main loop --------
     # load body to the scene
-    body = load_body(bodypath)
+    body = utils.load_file(os.path.join(system_config['bodies_path'], data_props['body']), 'body')
+    utils.scale_to_cm(body)
     
     # go over the examples in the data
     to_ignore = ['renders']  # special dirs not to include in the pattern list
@@ -88,18 +64,14 @@ if __name__ == "__main__":
         if name not in to_ignore:
             dir_path = os.path.join(root, name)
             # load mesh
-            garment_sim_file = os.path.join(dir_path, name + '_sim.obj')
-            if not os.path.isfile(garment_sim_file):
-                raise RuntimeError('Scan immitation::Missing file {} in the data directory {}'.format(garment_sim_file, dir_path))
-            garment = cmds.file(garment_sim_file, i=True, rnn=True)[0]
-            garment = cmds.rename(garment, name + '_sim#')
+            garment = utils.load_file(os.path.join(dir_path, name + '_sim.obj'), name + '_sim')
             
-            # ---- scan ------ 
+            # do what we are here for
             mymaya.scan_imitation.remove_invisible(garment, [body])
 
             # save to original folder
             utils.save_mesh(garment, os.path.join(dir_path, name + '_scan_imitation.obj'))
-
+            
             cmds.delete(garment)  # cleanup
 
 

@@ -3,6 +3,7 @@
 from __future__ import print_function
 import os
 import time
+from datetime import timedelta
 
 # Maya
 from maya import cmds
@@ -40,7 +41,7 @@ if __name__ == "__main__":
     path = system_config['templates_path']
 
     # ------ Dataset ------
-    dataset = 'data_5_skirt_4_panels_201201-17-31-01'
+    dataset = 'data_1000_tee_200527-14-50-42_regen_200612-16-56-43'
     datapath = os.path.join(system_config['datasets_path'], dataset)
     dataset_file = os.path.join(datapath, 'dataset_properties.json')
     data_props = customconfig.Properties(dataset_file)
@@ -85,11 +86,12 @@ if __name__ == "__main__":
 
     # update props & save
     passed = time.time() - start_time
-
+    data_props.summarize_stats('processing_time', log_sum=True, log_avg=True, as_time=True)
+    data_props.summarize_stats('faces_removed', log_avg=True)
     data_props.set_section_stats(
-        'scan_imitation', 
-        processing_time_sum='{:.3f} s'.format(passed), 
-        processing_time_avg='{:.3f} s'.format(passed / len(data_props['scan_imitation']['stats']['faces_removed'])))
+        'scan_imitation', total_processing_time=str(timedelta(seconds=passed))
+    )
+    
     data_props.serialize(dataset_file)
 
     print('Scan imitation on {} performed successfully!!!'.format(dataset))

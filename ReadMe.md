@@ -10,9 +10,10 @@ Create dataset of garments with 3D draped geometry and corresponding 2D patterns
 
 ## Generation steps
 * Creating \ choosing the parametrized template
-    * garmentviewer.py is to help
-* Generating dataset of randomized garment patterns (with datagenerator.py)
-* Simulating each pattern in the dataset with datasim.py or datasim_runner.sh (wrapper) 
+    * `garmentviewer.py` is for fast visualization of templates to help with the process
+* Generating dataset of randomized garment patterns (with `datagenerator.py`)
+* Simulating each pattern in the dataset with `datasim.py` or `datasim_runner.sh` (wrapper) 
+* Remiving barely visible faces of resulting meshed to imitate 3D scanning artifacts with `datascan.py`
 
 
 ## Components of the generation system
@@ -24,12 +25,14 @@ Note: Run _help_(module) for detailed descriptions of python modules
 * template_spec_with_comments.json contains a detailed description of the format
 
 ### Garment Viewer
-garmentviewer.py is to be run withing Maya. 
+`garmentviewer.py` is to be run withing Maya (Python scripting). 
 
-It provides simple UI for viewing a parametrized garment template, test parameter values, simulation process & rendering setup
+It provides simple UI for viewing a parametrized garment template, test parameter values, simulation process & rendering setup.
+
+NOTE: make sure to add `Garment Pattern Estimation/packages/` directory to `PYTHONPATH` evironment variable to make the custom modules available in Maya
 
 ### Dataset generator
-In datasetgenerator.py module
+In `datasetgenerator.py` module
 
 2D pattern dataset generation from given templates. Allows to configure the generation by supplying Properties object.
 Example usage is given in 
@@ -37,7 +40,7 @@ Example usage is given in
 section of the file
 
 ### Simulation
-datasim.py & mayaql tools package
+`datasim.py` & `mayaqltools` package
 
 * Simulates each pattern in the dataset over a given human body object
 * Uses Qualoth for Maya cloth simulation
@@ -49,12 +52,17 @@ Example usage from command line:
 <Maya Installation path>/bin/mayapy.exe "./datasim.py" --data <dataset_name> --minibatch <size>  --config <simulation_props.json>
 ```
 
-### Running simulation of large-scale datasets over Maya\Qualoth crashes
+#### **Running simulation of large-scale datasets over Maya\Qualoth crashes**
 
-dataset_runner.sh script is given for convence of processing large amounts of garment patters over long period of time. The main feature is detection of dataset sim processing hangs \ crashes and automatic resume of dataset processing in case of such events. 
+`dataset_runner.sh` script is given for convence of processing large amounts of garment patters over long period of time. The main feature is detection of dataset sim processing hangs \ crashes and automatic resume of dataset processing in case of such events. 
 
+### Imitating 3D scanning artifacts
+
+`datascan.py` 
+* is designed to work on datasets that passed the simulation steps. 
+* It modifies every 3D garment mesh to imitate missing geometry due to 3D scanning, and saves it as a separate file in the datapoint folder
 
 ### Additional processing
-* gather_renders.py is a small skript to copy all the simulation renders in the dataset to one location for convenience of data review.
+* `gather_renders.py` is a small skript to copy all the simulation renders in the dataset to one location for convenience of data review.
 
 

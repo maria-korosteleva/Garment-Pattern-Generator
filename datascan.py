@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 import os
+import time
 
 # Maya
 from maya import cmds
@@ -39,9 +40,10 @@ if __name__ == "__main__":
     path = system_config['templates_path']
 
     # ------ Dataset ------
-    dataset = 'data_5_tee_200923-15-24-53'
+    dataset = 'data_5_skirt_4_panels_201201-17-31-01'
     datapath = os.path.join(system_config['datasets_path'], dataset)
-    data_props = customconfig.Properties(os.path.join(datapath, 'dataset_properties.json'))
+    dataset_file = os.path.join(datapath, 'dataset_properties.json')
+    data_props = customconfig.Properties(dataset_file)
     if not data_props['to_subfolders']:
         raise NotImplementedError('Scanning only works on datasets organized in subfolders')  # just for simplicity 
 
@@ -52,11 +54,14 @@ if __name__ == "__main__":
     from mayaqltools import utils
 
     # ------ Main loop --------
+    number_of_rays = 20
+
     # load body to the scene
     body = utils.load_file(os.path.join(system_config['bodies_path'], data_props['body']), 'body')
     utils.scale_to_cm(body)
     
     # go over the examples in the data
+    start_time = time.time()
     to_ignore = ['renders']  # special dirs not to include in the pattern list
     root, dirs, files = next(os.walk(datapath))
     # cannot use os.scandir in python 2.7
@@ -67,13 +72,20 @@ if __name__ == "__main__":
             garment = utils.load_file(os.path.join(dir_path, name + '_sim.obj'), name + '_sim')
             
             # do what we are here for
-            mymaya.scan_imitation.remove_invisible(garment, [body])
+            mymaya.scan_imitation.remove_invisible(garment, [body], number_of_rays)
 
             # save to original folder
             utils.save_mesh(garment, os.path.join(dir_path, name + '_scan_imitation.obj'))
             
             cmds.delete(garment)  # cleanup
 
+    # update props & save
+    passed = time.time() - start_time
+    data_props.set_section_config('scan_imitation', number_of_rays=number_of_rays)
+    data_props.set_section_stats('scan_imitation', processing_time='{:.3f} s'.format(passed))
+    data_props.serialize(dataset_file)
+
+    print('Scan imitation on {} performed successfully!!!'.format(dataset))
 
     # End Maya instance
     stop_mayapy()  # ensures correct exit without errors

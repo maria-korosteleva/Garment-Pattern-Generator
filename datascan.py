@@ -55,6 +55,7 @@ if __name__ == "__main__":
 
     # ------ Main loop --------
     number_of_rays = 20
+    data_props.set_section_config('scan_imitation', number_of_rays=number_of_rays)
 
     # load body to the scene
     body = utils.load_file(os.path.join(system_config['bodies_path'], data_props['body']), 'body')
@@ -63,8 +64,9 @@ if __name__ == "__main__":
     # go over the examples in the data
     start_time = time.time()
     to_ignore = ['renders']  # special dirs not to include in the pattern list
-    root, dirs, files = next(os.walk(datapath))
-    # cannot use os.scandir in python 2.7
+    root, dirs, files = next(os.walk(datapath))  # cannot use os.scandir in python 2.7
+
+    data_props.set_section_stats('scan_imitation', faces_removed={}, processing_time={})
     for name in dirs:
         if name not in to_ignore:
             dir_path = os.path.join(root, name)
@@ -72,7 +74,9 @@ if __name__ == "__main__":
             garment = utils.load_file(os.path.join(dir_path, name + '_sim.obj'), name + '_sim')
             
             # do what we are here for
-            mymaya.scan_imitation.remove_invisible(garment, [body], number_of_rays)
+            removed, time_taken = mymaya.scan_imitation.remove_invisible(garment, [body], number_of_rays)
+            data_props['scan_imitation']['stats']['faces_removed'][name] = removed
+            data_props['scan_imitation']['stats']['processing_time'][name] = time_taken
 
             # save to original folder
             utils.save_mesh(garment, os.path.join(dir_path, name + '_scan_imitation.obj'))
@@ -81,8 +85,11 @@ if __name__ == "__main__":
 
     # update props & save
     passed = time.time() - start_time
-    data_props.set_section_config('scan_imitation', number_of_rays=number_of_rays)
-    data_props.set_section_stats('scan_imitation', processing_time='{:.3f} s'.format(passed))
+
+    data_props.set_section_stats(
+        'scan_imitation', 
+        processing_time_sum='{:.3f} s'.format(passed), 
+        processing_time_avg='{:.3f} s'.format(passed / len(data_props['scan_imitation']['stats']['faces_removed'])))
     data_props.serialize(dataset_file)
 
     print('Scan imitation on {} performed successfully!!!'.format(dataset))

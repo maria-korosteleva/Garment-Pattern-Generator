@@ -1,0 +1,358 @@
+{
+  "pattern": {
+    "panels": {
+      "Lback": {
+        "translation": [
+          30.0, 
+          -5.1, 
+          -13.03078279020406
+        ], 
+        "edges": [
+          {
+            "endpoints": [
+              0, 
+              1
+            ]
+          }, 
+          {
+            "endpoints": [
+              1, 
+              2
+            ]
+          }, 
+          {
+            "endpoints": [
+              2, 
+              3
+            ]
+          }, 
+          {
+            "endpoints": [
+              3, 
+              4
+            ]
+          }, 
+          {
+            "endpoints": [
+              4, 
+              0
+            ], 
+            "curvature": [
+              0.25, 
+              0.15
+            ]
+          }
+        ], 
+        "rotation": [
+          0.0, 
+          180.0, 
+          0.0
+        ], 
+        "vertices": [
+          [
+            20, 
+            0
+          ], 
+          [
+            0, 
+            0
+          ], 
+          [
+            0, 
+            -60
+          ], 
+          [
+            30, 
+            -60
+          ], 
+          [
+            30, 
+            -30
+          ]
+        ]
+      }, 
+      "Rback": {
+        "translation": [
+          -30.0, 
+          -5.1, 
+          -13.0
+        ], 
+        "edges": [
+          {
+            "endpoints": [
+              4, 
+              3
+            ]
+          }, 
+          {
+            "endpoints": [
+              3, 
+              2
+            ]
+          }, 
+          {
+            "endpoints": [
+              2, 
+              1
+            ]
+          }, 
+          {
+            "endpoints": [
+              1, 
+              0
+            ]
+          }, 
+          {
+            "endpoints": [
+              0, 
+              4
+            ], 
+            "curvature": [
+              0.75, 
+              0.15
+            ]
+          }
+        ], 
+        "rotation": [
+          0, 
+          180, 
+          0
+        ], 
+        "vertices": [
+          [
+            -20, 
+            0
+          ], 
+          [
+            0, 
+            0
+          ], 
+          [
+            0, 
+            -60
+          ], 
+          [
+            -30, 
+            -60
+          ], 
+          [
+            -30, 
+            -30
+          ]
+        ]
+      }, 
+      "Rfront": {
+        "translation": [
+          -30.0, 
+          -5.141943055288254, 
+          17.110372122518136
+        ], 
+        "edges": [
+          {
+            "endpoints": [
+              0, 
+              1
+            ]
+          }, 
+          {
+            "endpoints": [
+              1, 
+              2
+            ]
+          }, 
+          {
+            "endpoints": [
+              2, 
+              3
+            ]
+          }, 
+          {
+            "endpoints": [
+              3, 
+              4
+            ]
+          }, 
+          {
+            "endpoints": [
+              4, 
+              0
+            ], 
+            "curvature": [
+              0.25, 
+              0.15
+            ]
+          }
+        ], 
+        "rotation": [
+          0.0, 
+          0.0, 
+          0.0
+        ], 
+        "vertices": [
+          [
+            20, 
+            0
+          ], 
+          [
+            0, 
+            0
+          ], 
+          [
+            0, 
+            -60
+          ], 
+          [
+            30, 
+            -60
+          ], 
+          [
+            30, 
+            -30
+          ]
+        ]
+      }, 
+      "Lfront": {
+        "translation": [
+          30.0, 
+          -5.1, 
+          17.1
+        ], 
+        "edges": [
+          {
+            "endpoints": [
+              4, 
+              3
+            ]
+          }, 
+          {
+            "endpoints": [
+              3, 
+              2
+            ]
+          }, 
+          {
+            "endpoints": [
+              2, 
+              1
+            ]
+          }, 
+          {
+            "endpoints": [
+              1, 
+              0
+            ]
+          }, 
+          {
+            "endpoints": [
+              0, 
+              4
+            ], 
+            "curvature": [
+              0.75, 
+              0.15
+            ]
+          }
+        ], 
+        "rotation": [
+          0, 
+          0, 
+          0
+        ], 
+        "vertices": [
+          [
+            -20, 
+            0
+          ], 
+          [
+            0, 
+            0
+          ], 
+          [
+            0, 
+            -60
+          ], 
+          [
+            -30, 
+            -60
+          ], 
+          [
+            -30, 
+            -30
+          ]
+        ]
+      }
+    }, 
+    "stitches": [
+      [
+        {
+          "edge": 1, 
+          "panel": "Rfront"
+        }, 
+        {
+          "edge": 2, 
+          "panel": "Rback"
+        }
+      ], 
+      [
+        {
+          "edge": 3, 
+          "panel": "Rfront"
+        }, 
+        {
+          "edge": 0, 
+          "panel": "Rback"
+        }
+      ],
+      [
+        {
+          "edge": 2, 
+          "panel": "Lfront"
+        }, 
+        {
+          "edge": 1, 
+          "panel": "Lback"
+        }
+      ],
+      [
+        {
+          "edge": 0, 
+          "panel": "Lfront"
+        }, 
+        {
+          "edge": 3, 
+          "panel": "Lback"
+        }
+      ],
+      [
+        {
+          "edge": 4, 
+          "panel": "Rback"
+        }, 
+        {
+          "edge": 4, 
+          "panel": "Lback"
+        }
+      ],
+      [
+        {
+          "edge": 4, 
+          "panel": "Rfront"
+        }, 
+        {
+          "edge": 4, 
+          "panel": "Lfront"
+        }
+      ]
+    ]
+  }, 
+  "properties": {
+    "curvature_coords": "relative", 
+    "normalize_panel_translation": false, 
+    "units_in_meter": 100
+  }, 
+  "parameters": {}, 
+  "parameter_order": [], 
+
+  "constraints": {},
+  "constraint_order": []
+}

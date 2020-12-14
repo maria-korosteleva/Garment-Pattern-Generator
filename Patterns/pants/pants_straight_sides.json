@@ -555,11 +555,11 @@
         }
       ], 
       "range": [
-        0.4, 
-        1.2
+        -18, 
+        10
       ], 
-      "type": "length", 
-      "value": 1
+      "type": "additive_length", 
+      "value": 0
     }
   }, 
   "parameter_order": [

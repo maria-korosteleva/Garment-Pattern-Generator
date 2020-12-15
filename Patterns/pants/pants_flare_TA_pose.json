@@ -3,8 +3,8 @@
     "panels": {
       "Lback": {
         "translation": [
-          36.0, 
-          -5.1, 
+          23.0, 
+          0.0, 
           -13.03078279020406
         ], 
         "edges": [
@@ -66,7 +66,7 @@
         "rotation": [
           0.0, 
           180.0, 
-          0.0
+          20.0
         ], 
         "vertices": [
           [
@@ -101,8 +101,8 @@
       }, 
       "Rback": {
         "translation": [
-          -36.0, 
-          -5.1, 
+          -23.0, 
+          0.0, 
           -13.0
         ], 
         "edges": [
@@ -162,9 +162,9 @@
           }
         ], 
         "rotation": [
-          0, 
-          180, 
-          0
+          0.0, 
+          180.0, 
+          -20.0
         ], 
         "vertices": [
           [
@@ -199,8 +199,8 @@
       }, 
       "Rfront": {
         "translation": [
-          -26.0, 
-          -5.141943055288254, 
+          -14.0, 
+          -1.0, 
           17.110372122518136
         ], 
         "edges": [
@@ -262,7 +262,7 @@
         "rotation": [
           0.0, 
           0.0, 
-          0.0
+          -20.0
         ], 
         "vertices": [
           [
@@ -297,8 +297,8 @@
       }, 
       "Lfront": {
         "translation": [
-          26.0, 
-          -5.1, 
+          14.0, 
+          -1.0, 
           17.1
         ], 
         "edges": [
@@ -358,9 +358,9 @@
           }
         ], 
         "rotation": [
-          0, 
-          0, 
-          0
+          0.0, 
+          0.0, 
+          20.0
         ], 
         "vertices": [
           [
@@ -705,12 +705,12 @@
       "type": "additive_length", 
       "value": 0
     },
-    "low_wideness": {
+    "flare": {
       "influence": [
         {
           "edge_list": [
             {
-              "direction": "start", 
+              "direction": "both", 
               "id": 3
             }
           ], 
@@ -719,7 +719,7 @@
         {
           "edge_list": [
             {
-              "direction": "end", 
+              "direction": "both", 
               "id": 2
             }
           ], 
@@ -728,7 +728,7 @@
         {
           "edge_list": [
             {
-              "direction": "start", 
+              "direction": "both", 
               "id": 3
             }
           ], 
@@ -737,7 +737,7 @@
         {
           "edge_list": [
             {
-              "direction": "end", 
+              "direction": "both", 
               "id": 2
             }
           ], 
@@ -746,7 +746,7 @@
       ], 
       "range": [
         -3, 
-        15
+        8
       ], 
       "type": "additive_length", 
       "value": 0
@@ -756,7 +756,7 @@
         {
           "edge_list": [
             {
-              "direction": "start", 
+              "direction": "both", 
               "id": [2, 3, 4]
             }
           ], 
@@ -765,7 +765,7 @@
         {
           "edge_list": [
             {
-              "direction": "end", 
+              "direction": "both", 
               "id": [1, 2, 3]
             }
           ], 
@@ -774,7 +774,7 @@
         {
           "edge_list": [
             {
-              "direction": "start", 
+              "direction": "both", 
               "id": [2, 3, 4]
             }
           ], 
@@ -783,7 +783,7 @@
         {
           "edge_list": [
             {
-              "direction": "end", 
+              "direction": "both", 
               "id": [1, 2, 3]
             }
           ], 
@@ -791,8 +791,8 @@
         }
       ], 
       "range": [
-        -13, 
-        7
+        -6, 
+        4
       ], 
       "type": "additive_length", 
       "value": 0
@@ -802,7 +802,7 @@
     "up_length",
     "knee_length",
     "crotch_depth",
-    "low_wideness",
+    "flare",
     "knee_wideness"
   ], 
 

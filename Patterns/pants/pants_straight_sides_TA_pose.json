@@ -3,8 +3,8 @@
     "panels": {
       "Lback": {
         "translation": [
-          36.0, 
-          -5.1, 
+          23.0, 
+          0.0, 
           -13.03078279020406
         ], 
         "edges": [
@@ -34,18 +34,6 @@
             "endpoints": [
               3, 
               4
-            ]
-          }, 
-          {
-            "endpoints": [
-              4, 
-              5
-            ]
-          }, 
-          {
-            "endpoints": [
-              5, 
-              6
             ], 
             "curvature": [
               0.95, 
@@ -54,19 +42,19 @@
           }, 
           {
             "endpoints": [
-              6, 
+              4, 
               0
             ], 
             "curvature": [
               0.25, 
-              0.35
+              0.4
             ]
           }
         ], 
         "rotation": [
           0.0, 
           180.0, 
-          0.0
+          20.0
         ], 
         "vertices": [
           [
@@ -79,19 +67,11 @@
           ], 
           [
             0, 
-            -62
-          ], 
-          [
-            0, 
-            -100
+            -60
           ], 
           [
             35, 
-            -100
-          ],
-          [
-            35, 
-            -62
+            -60
           ], 
           [
             35, 
@@ -101,31 +81,19 @@
       }, 
       "Rback": {
         "translation": [
-          -36.0, 
-          -5.1, 
+          -23.0, 
+          0.0, 
           -13.0
         ], 
-        "edges": [
-          {
-            "endpoints": [
-              6, 
-              5
-            ], 
-            "curvature": [
-              0.05, 
-              0.1
-            ]
-          }, 
-          {
-            "endpoints": [
-              5, 
-              4
-            ]
-          }, 
+        "edges": [ 
           {
             "endpoints": [
               4, 
               3
+            ], 
+            "curvature": [
+              0.05, 
+              0.1
             ]
           }, 
           {
@@ -138,7 +106,7 @@
             "endpoints": [
               2, 
               1
-            ],
+            ], 
             "curvature": [
               0.9, 
               -0.1
@@ -153,18 +121,18 @@
           {
             "endpoints": [
               0, 
-              6
+              4
             ], 
             "curvature": [
               0.75, 
-              0.35
+              0.4
             ]
           }
         ], 
         "rotation": [
           0, 
           180, 
-          0
+          -20.0
         ], 
         "vertices": [
           [
@@ -177,19 +145,11 @@
           ], 
           [
             0, 
-            -62
-          ], 
-          [
-            0, 
-            -100
+            -60
           ], 
           [
             -35, 
-            -100
-          ], 
-          [
-            -35, 
-            -62
+            -60
           ], 
           [
             -35, 
@@ -199,8 +159,8 @@
       }, 
       "Rfront": {
         "translation": [
-          -26.0, 
-          -5.141943055288254, 
+          -14.0, 
+          -1.0, 
           17.110372122518136
         ], 
         "edges": [
@@ -230,18 +190,6 @@
             "endpoints": [
               3, 
               4
-            ]
-          }, 
-          {
-            "endpoints": [
-              4, 
-              5
-            ]
-          }, 
-          {
-            "endpoints": [
-              5, 
-              6
             ], 
             "curvature": [
               0.95, 
@@ -250,7 +198,7 @@
           }, 
           {
             "endpoints": [
-              6, 
+              4, 
               0
             ], 
             "curvature": [
@@ -262,7 +210,7 @@
         "rotation": [
           0.0, 
           0.0, 
-          0.0
+          -20.0
         ], 
         "vertices": [
           [
@@ -275,19 +223,11 @@
           ], 
           [
             0, 
-            -62
-          ], 
-          [
-            0, 
-            -100
+            -60
           ], 
           [
             25, 
-            -100
-          ], 
-          [
-            25, 
-            -62
+            -60
           ], 
           [
             25, 
@@ -297,31 +237,19 @@
       }, 
       "Lfront": {
         "translation": [
-          26.0, 
-          -5.1, 
+          14.0, 
+          -1.0, 
           17.1
         ], 
         "edges": [
           {
             "endpoints": [
-              6, 
-              5
+              4, 
+              3
             ], 
             "curvature": [
               0.05, 
               0.1
-            ]
-          }, 
-          {
-            "endpoints": [
-              5, 
-              4
-            ]
-          }, 
-          {
-            "endpoints": [
-              4, 
-              3
             ]
           }, 
           {
@@ -349,7 +277,7 @@
           {
             "endpoints": [
               0, 
-              6
+              4
             ], 
             "curvature": [
               0.75, 
@@ -360,7 +288,7 @@
         "rotation": [
           0, 
           0, 
-          0
+          20
         ], 
         "vertices": [
           [
@@ -373,19 +301,11 @@
           ], 
           [
             0, 
-            -62
-          ],
-          [
-            0, 
-            -100
+            -60
           ], 
           [
             -25, 
-            -100
-          ], 
-          [
-            -25, 
-            -62
+            -60
           ], 
           [
             -25, 
@@ -401,33 +321,13 @@
           "panel": "Rfront"
         }, 
         {
-          "edge": 4, 
+          "edge": 2, 
           "panel": "Rback"
         }
       ], 
       [
-        {
-          "edge": 2, 
-          "panel": "Rfront"
-        }, 
         {
           "edge": 3, 
-          "panel": "Rback"
-        }
-      ], 
-      [
-        {
-          "edge": 4, 
-          "panel": "Rfront"
-        }, 
-        {
-          "edge": 1, 
-          "panel": "Rback"
-        }
-      ], 
-      [
-        {
-          "edge": 5, 
           "panel": "Rfront"
         }, 
         {
@@ -437,31 +337,11 @@
       ],
       [
         {
-          "edge": 4, 
-          "panel": "Lfront"
-        }, 
-        {
-          "edge": 1, 
-          "panel": "Lback"
-        }
-      ],
-      [
-        {
-          "edge": 3, 
-          "panel": "Lfront"
-        }, 
-        {
           "edge": 2, 
-          "panel": "Lback"
-        }
-      ],
-      [
-        {
-          "edge": 1, 
           "panel": "Lfront"
         }, 
         {
-          "edge": 4, 
+          "edge": 1, 
           "panel": "Lback"
         }
       ],
@@ -471,27 +351,27 @@
           "panel": "Lfront"
         }, 
         {
-          "edge": 5, 
+          "edge": 3, 
           "panel": "Lback"
         }
       ],
       [
         {
-          "edge": 6, 
+          "edge": 4, 
           "panel": "Rback"
         }, 
         {
-          "edge": 6, 
+          "edge": 4, 
           "panel": "Lback"
         }
       ],
       [
         {
-          "edge": 6, 
+          "edge": 4, 
           "panel": "Rfront"
         }, 
         {
-          "edge": 6, 
+          "edge": 4, 
           "panel": "Lfront"
         }
       ]
@@ -503,19 +383,17 @@
     "units_in_meter": 100
   }, 
   "parameters": {
-    "up_length": {
+    "length": {
       "influence": [
         {
           "edge_list": [
             {
               "direction": "end", 
-              "along": [0, 1],
               "id": 1
             }, 
             {
               "direction": "start", 
-              "along": [0, 1],
-              "id": 5
+              "id": 3
             }
           ], 
           "panel": "Rfront"
@@ -524,13 +402,11 @@
           "edge_list": [
             {
               "direction": "end", 
-              "along": [0, 1],
               "id": 0
             }, 
             {
               "direction": "start", 
-              "along": [0, 1],
-              "id": 4
+              "id": 2
             }
           ], 
           "panel": "Lfront"
@@ -539,13 +415,11 @@
           "edge_list": [
             {
               "direction": "end", 
-              "along": [0, 1],
               "id": 1
             }, 
             {
               "direction": "start", 
-              "along": [0, 1],
-              "id": 5
+              "id": 3
             }
           ], 
           "panel": "Lback"
@@ -554,86 +428,22 @@
           "edge_list": [
             {
               "direction": "end", 
-              "along": [0, 1],
               "id": 0
             }, 
             {
               "direction": "start", 
-              "along": [0, 1],
-              "id": 4
+              "id": 2
             }
           ], 
           "panel": "Rback"
         }
       ], 
       "range": [
-        -15, 
-        15
+        -20, 
+        45
       ], 
       "type": "additive_length", 
       "value": 0
-    },
-    "knee_length": {
-      "influence": [
-        {
-          "edge_list": [
-            {
-              "direction": "end", 
-              "id": 2
-            }, 
-            {
-              "direction": "start", 
-              "id": 4
-            }
-          ], 
-          "panel": "Rfront"
-        }, 
-        {
-          "edge_list": [
-            {
-              "direction": "end", 
-              "id": 1
-            }, 
-            {
-              "direction": "start", 
-              "id": 3
-            }
-          ], 
-          "panel": "Lfront"
-        },  
-        {
-          "edge_list": [
-            {
-              "direction": "end", 
-              "id": 2
-            }, 
-            {
-              "direction": "start", 
-              "id": 4
-            }
-          ], 
-          "panel": "Lback"
-        },  
-        {
-          "edge_list": [
-            {
-              "direction": "end", 
-              "id": 1
-            }, 
-            {
-              "direction": "start", 
-              "id": 3
-            }
-          ], 
-          "panel": "Rback"
-        }
-      ], 
-      "range": [
-        0.25, 
-        1.15
-      ], 
-      "type": "length", 
-      "value": 1
     },
     "crotch_depth": {
       "influence": [
@@ -642,7 +452,7 @@
             {
               "direction": "end", 
               "along": [0, 1],
-              "id": 6
+              "id": 4
             }, 
             {
               "direction": "start", 
@@ -657,12 +467,12 @@
             {
               "direction": "end", 
               "along": [0, 1],
-              "id": 4
+              "id": 2
             }, 
             {
               "direction": "start", 
               "along": [0, 1],
-              "id": 6
+              "id": 4
             }
           ], 
           "panel": "Lfront"
@@ -672,7 +482,7 @@
             {
               "direction": "end", 
               "along": [0, 1],
-              "id": 6
+              "id": 4
             }, 
             {
               "direction": "start", 
@@ -687,12 +497,12 @@
             {
               "direction": "end", 
               "along": [0, 1],
-              "id": 4
+              "id": 2
             }, 
             {
               "direction": "start", 
               "along": [0, 1],
-              "id": 6
+              "id": 4
             }
           ], 
           "panel": "Rback"
@@ -710,8 +520,8 @@
         {
           "edge_list": [
             {
-              "direction": "start", 
-              "id": 3
+              "direction": "both", 
+              "id": 2
             }
           ], 
           "panel": "Rfront"
@@ -719,8 +529,8 @@
         {
           "edge_list": [
             {
-              "direction": "end", 
-              "id": 2
+              "direction": "both", 
+              "id": 1
             }
           ], 
           "panel": "Lfront"
@@ -728,82 +538,34 @@
         {
           "edge_list": [
             {
-              "direction": "start", 
-              "id": 3
-            }
-          ], 
-          "panel": "Lback"
-        },  
-        {
-          "edge_list": [
-            {
-              "direction": "end", 
+              "direction": "both", 
               "id": 2
             }
           ], 
-          "panel": "Rback"
-        }
-      ], 
-      "range": [
-        -3, 
-        15
-      ], 
-      "type": "additive_length", 
-      "value": 0
-    },
-    "knee_wideness": {
-      "influence": [
-        {
-          "edge_list": [
-            {
-              "direction": "start", 
-              "id": [2, 3, 4]
-            }
-          ], 
-          "panel": "Rfront"
-        }, 
-        {
-          "edge_list": [
-            {
-              "direction": "end", 
-              "id": [1, 2, 3]
-            }
-          ], 
-          "panel": "Lfront"
-        },  
-        {
-          "edge_list": [
-            {
-              "direction": "start", 
-              "id": [2, 3, 4]
-            }
-          ], 
           "panel": "Lback"
         },  
         {
           "edge_list": [
             {
-              "direction": "end", 
-              "id": [1, 2, 3]
+              "direction": "both", 
+              "id": 1
             }
           ], 
           "panel": "Rback"
         }
       ], 
       "range": [
-        -13, 
-        7
+        -8, 
+        8
       ], 
       "type": "additive_length", 
       "value": 0
     }
   }, 
   "parameter_order": [
-    "up_length",
-    "knee_length",
+    "length",
     "crotch_depth",
-    "low_wideness",
-    "knee_wideness"
+    "low_wideness"
   ], 
 
   "constraints": {},

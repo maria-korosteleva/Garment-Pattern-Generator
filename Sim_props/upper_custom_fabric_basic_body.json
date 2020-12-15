@@ -43,7 +43,8 @@
       "static_threshold": 0.01, 
       "non_static_percent": 1,
       "zero_gravity_steps": 5, 
-      "intersect_area_threshold": 100,
+      "object_intersect_border_threshold": 100,
+      "self_intersect_hit_threshold": 0,
       "resolution_scale": 5
     }, 
     "stats": {

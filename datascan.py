@@ -1,4 +1,9 @@
-"""Emulate the result of scanning a garment on existing dataset of simulated garments"""
+"""
+    Emulate the result of scanning a garment on existing dataset of simulated garments
+    
+    IMPORTANT!! This script need to be run with mayapy to get access to Autodesk Maya Python API. E.g., on Windows the command could look like this: 
+        d:/Autodesk/Maya2020/bin/mayapy.exe "./data_generation/datascan.py"
+    """
 
 from __future__ import print_function
 import os
@@ -41,7 +46,7 @@ if __name__ == "__main__":
     path = system_config['templates_path']
 
     # ------ Dataset ------
-    dataset = 'data_5000_skirt_4_panels_201019-12-23-24'
+    dataset = 'data_500_pants_straight_sides_201223-12-48-10'
     datapath = os.path.join(system_config['datasets_path'], dataset)
     dataset_file = os.path.join(datapath, 'dataset_properties.json')
     data_props = customconfig.Properties(dataset_file)

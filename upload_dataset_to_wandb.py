@@ -1,6 +1,5 @@
 from pathlib import Path
 import customconfig
-from pattern.wrappers import VisPattern
 import wandb
 
 system_props = customconfig.Properties('./system.json')

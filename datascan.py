@@ -46,7 +46,7 @@ if __name__ == "__main__":
     path = system_config['templates_path']
 
     # ------ Dataset ------
-    dataset = 'data_1000_pants_straight_sides_210105-10-49-02'
+    dataset = 'data_25_tee_210122-15-53-54'
     datapath = os.path.join(system_config['datasets_path'], dataset)
     dataset_file = os.path.join(datapath, 'dataset_properties.json')
     data_props = customconfig.Properties(dataset_file)

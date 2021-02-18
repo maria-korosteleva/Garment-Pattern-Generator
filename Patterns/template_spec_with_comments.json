@@ -20,7 +20,18 @@
     
     // indicates how many units used for pattern specification fits in 1 meter
     // the value is used to standardize units to cm on loading 
-    "units_in_meter": 300
+    "units_in_meter": 300,
+
+    // Indicates that the pattern follows the convention of edge loops traversal in every panel 
+    // (needed for datasets uniformity)
+    // If not given (or 'false'), the pattern will be updated to adhere to convention on load
+    //
+    // Convention: 
+    //  * the edges are ordered to traverse the panel in counter-clockwise direction
+    //  * the start vertex of the edge loop either 
+    //      * has the same id as in (normalized) template it was drawn from (if this pattern is a sample)
+    //      * or is the most low-left vertex of a panel
+    "normalized_edge_loops": true
   },
   // Section that fully describes the pattern. This section is enough to render a pattern in whatever form needed.  
   "pattern": {
@@ -49,7 +60,7 @@
         // * Edges are directed, 
         // * the list IS ordered. 
         // * Connected together as specified, edges form a directed closed loop that represents panel border.
-		    // * Counterclockwise tracing of vertices with edges defines the front of a panel (outside of the body)
+		    // * The traversal order of vertices with edges defines the front (normal direction) of a panel
         // Edge id is its position in this list, starting from 0
         "edges": [
           // each edge is represented as a simple structure

@@ -81,18 +81,18 @@ if __name__ == "__main__":
     
     system_props = Properties('./system.json')
     
-    new = True
+    new = False
     if new:
         props = Properties()
         props.set_basic(
-            templates='pants/pants_straight_sides.json',  # 'basic tee/tee.json',
-            name='data_25',
-            size=25,
+            templates='basic tee/tee.json',  # 'basic tee/tee.json',
+            name='data_uni_20',
+            size=20,
             to_subfolders=True)
         props.set_section_config('generator')
     else:
         props = Properties(
-            Path(system_props['output']) / 'data_1000_tee_200527-14-50-42/dataset_properties.json', 
+            Path(system_props['datasets_path']) / 'data_1000_pants_straight_sides_210105-10-49-02/dataset_properties.json', 
             True)
 
     # Generator

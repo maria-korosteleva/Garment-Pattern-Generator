@@ -81,11 +81,11 @@ if __name__ == "__main__":
     
     system_props = Properties('./system.json')
     
-    new = False
+    new = True
     if new:
         props = Properties()
         props.set_basic(
-            templates='basic tee/tee.json',  # 'basic tee/tee.json',
+            templates='basic tee/tee.json',  # 'skirts/skirt_4_panels.json',  # 'pants/pants_straight_sides.json',  # 'basic tee/tee.json',
             name='data_uni_20',
             size=20,
             to_subfolders=True)

@@ -156,6 +156,15 @@
           "edge": 3
         }
       ]
+    ],
+    // Optional section -- it may be omited in template definitions.
+    "panel_order": [
+      // Defines a specific ordering of panels within pattern by listing panel names in the needed order
+      // Typically appears in template samples to esure panel order consistency across dataset in the downstream applications.
+      // BUT this is an artificial construct (as there is no natural order of panels thus is not part of required pattern definition)
+      // If not provided but needed, the downstream application may generate panel order automatically (e.g. based on 3D translation of panels).
+      "back",
+      "front"
     ]
   },
   // This section describes how the pattern above can be changed

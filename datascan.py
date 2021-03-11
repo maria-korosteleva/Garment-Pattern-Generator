@@ -60,9 +60,10 @@ if __name__ == "__main__":
     from mayaqltools import utils
 
     # ------ Main loop --------
-    number_of_rays = 30
-    number_of_visible_rays = 4
-    data_props.set_section_config('scan_imitation', test_rays_num=number_of_rays, visible_rays_num=number_of_visible_rays)
+    if not 'scan_imitation' in data_props:
+        number_of_rays = 30
+        number_of_visible_rays = 4
+        data_props.set_section_config('scan_imitation', test_rays_num=number_of_rays, visible_rays_num=number_of_visible_rays)
 
     # load body to the scene
     body = utils.load_file(os.path.join(system_config['bodies_path'], data_props['body']), 'body')
@@ -81,7 +82,10 @@ if __name__ == "__main__":
             garment = utils.load_file(os.path.join(dir_path, name + '_sim.obj'), name + '_sim')
             
             # do what we are here for
-            removed, time_taken = mymaya.scan_imitation.remove_invisible(garment, [body], number_of_rays, number_of_visible_rays)
+            removed, time_taken = mymaya.scan_imitation.remove_invisible(
+                garment, [body],
+                data_props['scan_imitation']['config']['test_rays_num'], 
+                data_props['scan_imitation']['config']['visible_rays_num'])
             data_props['scan_imitation']['stats']['faces_removed'][name] = removed
             data_props['scan_imitation']['stats']['processing_time'][name] = time_taken
 

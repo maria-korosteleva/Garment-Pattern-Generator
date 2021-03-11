@@ -50,5 +50,12 @@
       "sim_time": {}, 
       "spf": {}
     }
+  },
+  "scan_imitation": {
+    "config": {
+      "test_rays_num": 30, 
+      "visible_rays_num": 4
+    }, 
+    "stats": {}
   }
 }

@@ -1,11 +1,11 @@
 {
   "pattern": {
     "panels": {
-      "right_0": {
+      "back": {
         "translation": [
           0.0, 
-          -25.75996611822399, 
-          -32.54658182208757
+          -22.0, 
+          -38.3
         ], 
         "edges": [
           {
@@ -54,7 +54,7 @@
           }
         ], 
         "rotation": [
-          -36.0, 
+          -45.0, 
           -180.0, 
           0.0
         ], 
@@ -85,11 +85,11 @@
           ]
         ]
       }, 
-      "right_1": {
+      "right_0": {
         "translation": [
-          -32.0, 
+          -26.0, 
           -25.75996611822398, 
-          -18.7
+          -24.0
         ], 
         "edges": [
           {
@@ -169,10 +169,10 @@
           ]
         ]
       }, 
-      "right_2": {
+      "right_1": {
         "translation": [
-          -37.0, 
-          -25.75996611822398, 
+          -40.0, 
+          -22.0, 
           0.0
         ], 
         "edges": [
@@ -222,7 +222,7 @@
           }
         ], 
         "rotation": [
-          -36.29813459128233, 
+          -45.0, 
           -90.0, 
           0.0
         ], 
@@ -253,11 +253,11 @@
           ]
         ]
       }, 
-      "right_3": {
+      "right_2": {
         "translation": [
-          -32.0, 
+          -26.0, 
           -25.75996611822398, 
-          18.7
+          24.0
         ], 
         "edges": [
           {
@@ -339,9 +339,9 @@
       }, 
       "left_0": {
         "translation": [
-          10.0, 
+          26.0, 
           -25.766666666666666, 
-          -32.5
+          -24.0
         ], 
         "edges": [
           {
@@ -423,8 +423,8 @@
       }, 
       "left_1": {
         "translation": [
-          37.0, 
-          -25.766666666666666, 
+          40.0, 
+          -22.0, 
           0.0
         ], 
         "edges": [
@@ -474,7 +474,7 @@
           }
         ], 
         "rotation": [
-          -36.3, 
+          -45.0, 
           90.0, 
           0.0
         ], 
@@ -507,9 +507,9 @@
       }, 
       "left_2": {
         "translation": [
-          27.0, 
+          26.0, 
           -25.766666666666666, 
-          25.0
+          24.0
         ], 
         "edges": [
           {
@@ -589,11 +589,11 @@
           ]
         ]
       }, 
-      "left_3": {
+      "front": {
         "translation": [
           0.0, 
-          -25.8, 
-          32.5
+          -21.974457949428757, 
+          38.32744260001307
         ], 
         "edges": [
           {
@@ -642,7 +642,7 @@
           }
         ], 
         "rotation": [
-          -36.0, 
+          -45.0, 
           0.0, 
           0.0
         ], 
@@ -678,6 +678,26 @@
       [
         {
           "edge": 1, 
+          "panel": "back"
+        }, 
+        {
+          "edge": 5, 
+          "panel": "right_0"
+        }
+      ],
+      [
+        {
+          "edge": 2, 
+          "panel": "back"
+        }, 
+        {
+          "edge": 4, 
+          "panel": "right_0"
+        }
+      ],
+      [
+        {
+          "edge": 1, 
           "panel": "right_0"
         }, 
         {
@@ -722,7 +742,7 @@
         }, 
         {
           "edge": 5, 
-          "panel": "right_3"
+          "panel": "front"
         }
       ],
       [
@@ -732,33 +752,13 @@
         }, 
         {
           "edge": 4, 
-          "panel": "right_3"
+          "panel": "front"
         }
       ],
       [
         {
           "edge": 1, 
-          "panel": "right_3"
-        }, 
-        {
-          "edge": 5, 
-          "panel": "left_3"
-        }
-      ],
-      [
-        {
-          "edge": 2, 
-          "panel": "right_3"
-        }, 
-        {
-          "edge": 4, 
-          "panel": "left_3"
-        }
-      ],
-      [
-        {
-          "edge": 1, 
-          "panel": "left_3"
+          "panel": "front"
         }, 
         {
           "edge": 5, 
@@ -768,7 +768,7 @@
       [
         {
           "edge": 2, 
-          "panel": "left_3"
+          "panel": "front"
         }, 
         {
           "edge": 4, 
@@ -822,7 +822,7 @@
         }, 
         {
           "edge": 5, 
-          "panel": "right_0"
+          "panel": "back"
         }
       ],
       [
@@ -832,7 +832,7 @@
         }, 
         {
           "edge": 4, 
-          "panel": "right_0"
+          "panel": "back"
         }
       ]
     ]
@@ -843,58 +843,84 @@
     "units_in_meter": 100
   }, 
   "parameters": {
-    "fb_wideness": {
+    "wideness": {
       "influence": [
         {
           "edge_list": [
             {
               "direction": "both", 
-              "id": 3
+              "id": 0
             }
           ], 
           "panel": "front"
-        }, 
+        },
         {
           "edge_list": [
             {
               "direction": "both", 
-              "id": 3
+              "id": 0
             }
           ], 
           "panel": "back"
-        }
-      ], 
-      "range": [
-        0.45, 
-        2.3
-      ], 
-      "type": "length", 
-      "value": 1
-    }, 
-    "side_wideness": {
-      "influence": [
+        },
         {
           "edge_list": [
             {
               "direction": "both", 
-              "id": 3
+              "id": 0
             }
           ], 
-          "panel": "left"
+          "panel": "left_0"
         }, 
         {
           "edge_list": [
             {
               "direction": "both", 
-              "id": 3
+              "id": 0
             }
           ], 
-          "panel": "right"
+          "panel": "left_1"
+        },
+        {
+          "edge_list": [
+            {
+              "direction": "both", 
+              "id": 0
+            }
+          ], 
+          "panel": "left_2"
+        },
+        {
+          "edge_list": [
+            {
+              "direction": "both", 
+              "id": 0
+            }
+          ], 
+          "panel": "right_0"
+        },
+        {
+          "edge_list": [
+            {
+              "direction": "both", 
+              "id": 0
+            }
+          ], 
+          "panel": "right_1"
+        },
+        {
+          "edge_list": [
+            {
+              "direction": "both", 
+              "id": 0
+            }
+          ], 
+          "panel": "right_2"
         }
       ], 
       "range": [
-        0.4, 
-        2.5
+        0.7, 
+        2.2
       ], 
       "type": "length", 
       "value": 1
@@ -905,11 +931,11 @@
           "edge_list": [
             {
               "direction": "end", 
-              "id": 2
+              "id": 5
             }, 
             {
               "direction": "start", 
-              "id": 4
+              "id": 1
             }
           ], 
           "panel": "front"
@@ -918,11 +944,11 @@
           "edge_list": [
             {
               "direction": "end", 
-              "id": 2
+              "id": 5
             }, 
             {
               "direction": "start", 
-              "id": 4
+              "id": 1
             }
           ], 
           "panel": "back"
@@ -931,100 +957,137 @@
           "edge_list": [
             {
               "direction": "end", 
-              "id": 2
+              "id": 5
             }, 
             {
               "direction": "start", 
-              "id": 4
+              "id": 1
             }
           ], 
-          "panel": "left"
+          "panel": "left_0"
         }, 
         {
           "edge_list": [
             {
               "direction": "end", 
-              "id": 2
+              "id": 5
             }, 
             {
               "direction": "start", 
-              "id": 4
+              "id": 1
             }
           ], 
-          "panel": "right"
+          "panel": "left_1"
+        }, 
+        {
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 5
+            }, 
+            {
+              "direction": "start", 
+              "id": 1
+            }
+          ], 
+          "panel": "left_2"
+        }, 
+        {
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 5
+            }, 
+            {
+              "direction": "start", 
+              "id": 1
+            }
+          ], 
+          "panel": "right_0"
+        }, 
+        {
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 5
+            }, 
+            {
+              "direction": "start", 
+              "id": 1
+            }
+          ], 
+          "panel": "right_1"
+        },
+        {
+          "edge_list": [
+            {
+              "direction": "end", 
+              "id": 5
+            }, 
+            {
+              "direction": "start", 
+              "id": 1
+            }
+          ], 
+          "panel": "right_2"
         }
       ], 
       "range": [
         0.65, 
-        1.5
+        1.75
       ], 
       "type": "length", 
       "value": 1
     }, 
-    "front_length": {
+    "curve": {
       "influence": [
         {
           "edge_list": [
-            {
-              "direction": "end", 
-              "id": 2
-            }, 
-            {
-              "direction": "start", 
-              "id": 4
-            }
+            0
           ], 
           "panel": "front"
-        }, 
+        },
         {
           "edge_list": [
-            {
-              "direction": "end", 
-              "id": 2
-            }
-          ], 
-          "panel": "left"
-        }, 
-        {
-          "edge_list": [
-            {
-              "direction": "start", 
-              "id": 4
-            }
-          ], 
-          "panel": "right"
-        }
-      ], 
-      "range": [
-        0.7, 
-        1.3
-      ], 
-      "type": "length", 
-      "value": 1
-    }, 
-    "curve_front": {
-      "influence": [
-        {
-          "edge_list": [
-            3
-          ], 
-          "panel": "front"
-        }
-      ], 
-      "range": [
-        -5.5, 
-        5.5
-      ], 
-      "type": "curve", 
-      "value": 1
-    }, 
-    "curve_back": {
-      "influence": [
-        {
-          "edge_list": [
-            3
+            0
           ], 
           "panel": "back"
+        },
+        {
+          "edge_list": [
+            0
+          ], 
+          "panel": "left_0"
+        },
+        {
+          "edge_list": [
+            0
+          ], 
+          "panel": "left_1"
+        },
+        {
+          "edge_list": [
+            0
+          ], 
+          "panel": "left_2"
+        },
+        {
+          "edge_list": [
+            0
+          ], 
+          "panel": "right_0"
+        },
+        {
+          "edge_list": [
+            0
+          ], 
+          "panel": "right_1"
+        },
+        {
+          "edge_list": [
+            0
+          ], 
+          "panel": "right_2"
         }
       ], 
       "range": [
@@ -1036,91 +1099,8 @@
     }
   }, 
   "parameter_order": [
-  ], 
-
-  "constraints": {
-    "front_stitches": {
-      "influence": [
-        {
-          "edge_list": [
-            {
-              "direction": "end", 
-              "id": 2, 
-              "value": 1
-            },
-            {
-              "direction": "start", 
-              "id": 4, 
-              "value": 1
-            }
-          ], 
-          "panel": "front"
-        }, 
-        {
-          "edge_list": [
-            {
-              "direction": "start", 
-              "id": 4, 
-              "value": 1
-            }
-          ], 
-          "panel": "right"
-        }, 
-        {
-          "edge_list": [
-            {
-              "direction": "end", 
-              "id": 2, 
-              "value": 1
-            }
-          ], 
-          "panel": "left"
-        }
-      ],
-      "type": "length_equality"
-    },
-    "back_stitches": {
-      "influence": [
-        {
-          "edge_list": [
-            {
-              "direction": "end", 
-              "id": 2, 
-              "value": 1
-            },
-            {
-              "direction": "start", 
-              "id": 4, 
-              "value": 1
-            }
-          ], 
-          "panel": "back"
-        }, 
-        {
-          "edge_list": [
-            {
-              "direction": "start", 
-              "id": 4, 
-              "value": 1
-            }
-          ], 
-          "panel": "left"
-        }, 
-        {
-          "edge_list": [
-            {
-              "direction": "end", 
-              "id": 2, 
-              "value": 1
-            }
-          ], 
-          "panel": "right"
-        }
-      ],
-      "type": "length_equality"
-    }
-  },
-
-  "constraint_order": [
+    "length", 
+    "wideness",
+    "curve"
   ]
 }

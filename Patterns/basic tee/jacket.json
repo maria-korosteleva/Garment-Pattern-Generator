@@ -773,11 +773,13 @@
           "edge_list": [
             {
               "direction": "start", 
-              "id": 5
+              "id": 5,
+              "along": [0, 1]
             }, 
             {
               "direction": "end", 
-              "id": 3
+              "id": 3,
+              "along": [0, 1]
             }
           ], 
           "panel": "back"
@@ -859,11 +861,13 @@
                 0, 
                 1, 
                 2
-              ]
+              ],
+              "along": [1, 0]
             }, 
             {
               "direction": "start", 
-              "id": 4
+              "id": 4,
+              "along": [1, 0]
             }
           ], 
           "panel": "front_right"
@@ -876,11 +880,13 @@
                 3, 
                 4, 
                 5
-              ]
+              ],
+              "along": [1, 0]
             }, 
             {
               "direction": "end", 
-              "id": 1
+              "id": 1,
+              "along": [1, 0]
             }
           ], 
           "panel": "front_left"

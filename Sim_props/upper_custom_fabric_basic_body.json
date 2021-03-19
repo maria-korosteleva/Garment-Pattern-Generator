@@ -14,7 +14,7 @@
   }, 
   "sim": {
     "config": {
-      "body_friction": 0.5,
+      "body_friction": 0.25,
       "material": {
         "air_drag": 0.01, 
         "bend_angle_dropoff": 0.11, 

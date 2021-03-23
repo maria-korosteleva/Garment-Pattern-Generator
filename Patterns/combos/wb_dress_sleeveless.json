@@ -857,7 +857,7 @@
       ], 
       "value": 1
     },
-    "wd_thickness": {
+    "wb_thickness": {
       "type": "length", 
       "range": [
         0.65, 
@@ -901,7 +901,7 @@
     "top_length",
     "top_wideness",
     "sldepth",
-    "wd_thickness",
+    "wb_thickness",
     "skirt_length", 
     "skirt_wideness"
   ]

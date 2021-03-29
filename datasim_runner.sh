@@ -22,8 +22,8 @@ trap 'sigint'  INT
 # -- Main calls --
 num_samples=30   # number of reloads and re-sim vs. speed to detect Maya\Qualoth hang
 per_sample_delay=$((7*60))  # give about 7 min per sample before detecting Maya to hang
-dataset=data_uni_300_jacket_hood_210323-13-58-16
-config=hood_custom_fabric.json
+dataset=data_uni_300_skirt_2_panels_210326-16-03-22
+config=skirt_custom_fabric_basic_body.json
 ret_code=1
 STARTTIME=$(date +%s)
 while [ $ret_code != 0 ]  # failed for any reason

@@ -309,6 +309,10 @@
             {
               "direction": "both", 
               "id": 0
+            },
+            {
+              "direction": "both", 
+              "id": 2
             }
           ]
         }, 
@@ -318,6 +322,10 @@
             {
               "direction": "both", 
               "id": 0
+            },
+            {
+              "direction": "both", 
+              "id": 2
             }
           ]
         }

@@ -2,7 +2,7 @@
   "body": "f_smpl_template_headphones.obj", 
   "render": {
     "config": {
-      "scene": "studio_milk_orange.mb",
+      "scene": "studio_yellow.mb",
       "resolution": [
         800, 
         800

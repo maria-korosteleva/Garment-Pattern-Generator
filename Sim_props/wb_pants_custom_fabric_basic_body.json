@@ -2,7 +2,7 @@
   "body": "f_smpl_template.obj", 
   "render": {
     "config": {
-      "scene": "studio_khaki.mb",
+      "scene": "studio_wine.mb",
       "resolution": [
         800, 
         800

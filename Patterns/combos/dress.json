@@ -954,6 +954,58 @@
           ]
         },
         {
+          "panel": "lbsleeve", 
+          "edge_list": [
+            {
+              "along": [
+                1, 
+                0
+              ], 
+              "direction": "start", 
+              "id": 1
+            }
+          ]
+        }, 
+        {
+          "panel": "lfsleeve", 
+          "edge_list": [
+            {
+              "direction": "end", 
+              "along": [
+                1, 
+                0
+              ], 
+              "id": 1
+            }
+          ]
+        }, 
+        {
+          "panel": "rfsleeve", 
+          "edge_list": [
+            {
+              "direction": "start", 
+              "along": [
+                1, 
+                0
+              ], 
+              "id": 1
+            }
+          ]
+        }, 
+        {
+          "panel": "rbsleeve", 
+          "edge_list": [
+            {
+              "direction": "end", 
+              "along": [
+                1, 
+                0
+              ], 
+              "id": 1
+            }
+          ]
+        },
+        {
           "panel": "skirt_back", 
           "edge_list": [
             {
@@ -1017,6 +1069,58 @@
                 5, 
                 6
               ]
+            }
+          ]
+        },
+        {
+          "panel": "lbsleeve", 
+          "edge_list": [
+            {
+              "along": [
+                1, 
+                0
+              ], 
+              "direction": "start", 
+              "id": 1
+            }
+          ]
+        }, 
+        {
+          "panel": "lfsleeve", 
+          "edge_list": [
+            {
+              "direction": "end", 
+              "along": [
+                1, 
+                0
+              ], 
+              "id": 1
+            }
+          ]
+        }, 
+        {
+          "panel": "rfsleeve", 
+          "edge_list": [
+            {
+              "direction": "start", 
+              "along": [
+                1, 
+                0
+              ], 
+              "id": 1
+            }
+          ]
+        }, 
+        {
+          "panel": "rbsleeve", 
+          "edge_list": [
+            {
+              "direction": "end", 
+              "along": [
+                1, 
+                0
+              ], 
+              "id": 1
             }
           ]
         }

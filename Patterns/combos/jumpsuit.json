@@ -1217,6 +1217,58 @@
               ]
             }
           ]
+        },
+        {
+          "panel": "lbsleeve", 
+          "edge_list": [
+            {
+              "along": [
+                1, 
+                0
+              ], 
+              "direction": "start", 
+              "id": 1
+            }
+          ]
+        }, 
+        {
+          "panel": "lfsleeve", 
+          "edge_list": [
+            {
+              "direction": "end", 
+              "along": [
+                1, 
+                0
+              ], 
+              "id": 1
+            }
+          ]
+        }, 
+        {
+          "panel": "rfsleeve", 
+          "edge_list": [
+            {
+              "direction": "start", 
+              "along": [
+                1, 
+                0
+              ], 
+              "id": 1
+            }
+          ]
+        }, 
+        {
+          "panel": "rbsleeve", 
+          "edge_list": [
+            {
+              "direction": "end", 
+              "along": [
+                1, 
+                0
+              ], 
+              "id": 1
+            }
+          ]
         }
       ], 
       "value": 1
@@ -1564,8 +1616,5 @@
     "sldepth",
     "leg_length",
     "leg_wideness"
-  ], 
-
-  "constraints": {},
-  "constraint_order": []
+  ]
 }

@@ -909,6 +909,58 @@
             }
           ], 
           "panel": "back"
+        },
+        {
+          "edge_list": [
+            {
+              "along": [
+                1, 
+                0
+              ], 
+              "direction": "start", 
+              "id": 2
+            }
+          ], 
+          "panel": "lbsleeve"
+        }, 
+        {
+          "edge_list": [
+            {
+              "direction": "end", 
+              "along": [
+                1, 
+                0
+              ], 
+              "id": 2
+            }
+          ], 
+          "panel": "lfsleeve"
+        }, 
+        {
+          "edge_list": [
+            {
+              "direction": "start", 
+              "along": [
+                1, 
+                0
+              ], 
+              "id": 2
+            }
+          ], 
+          "panel": "rfsleeve"
+        }, 
+        {
+          "edge_list": [
+            {
+              "direction": "end", 
+              "along": [
+                1, 
+                0
+              ], 
+              "id": 2
+            }
+          ], 
+          "panel": "rbsleeve"
         }
       ], 
       "range": [

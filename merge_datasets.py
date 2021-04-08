@@ -44,6 +44,7 @@ datasets = [
     'data_uni_300_skirt_2_panels_210326-16-03-22',
     'data_400_skirt_2_panels_210406-10-40-01']
 data_root = Path(system_props['datasets_path']) 
+output_root = Path(system_props['datasets_path']) 
 
 props = []
 for folder in datasets:
@@ -58,14 +59,13 @@ for prop in props:
         raise ValueError('Merging is only allowed on datasets derived from the same template')
 
 # 1. Create new folder
-merged_name = 'merge' 
-for prop in props:
-    merged_name += '_' + prop['name']
-new_folder_name = merged_name + '_' + datetime.now().strftime('%y%m%d-%H-%M-%S')
-merged_data_folder = Path(system_props['output']) / new_folder_name
+merged_name = 'merged_' + base_template.split('/')[1].split('.')[0]
+merged_size = sum([prop['size'] for prop in props])
+new_folder_name = merged_name + '_' + str(merged_size) + '_' + datetime.now().strftime('%y%m%d-%H-%M-%S')
+merged_data_folder = output_root / new_folder_name
 merged_data_folder.mkdir(parents=True)
 
-# 2. Merge props TODO Move this to custom config class?
+# 2. Merge props
 merged_props = customconfig.Properties(data_root / datasets[0] / 'dataset_properties.json')
 for i in range(1, len(datasets)):
     merged_props.merge(
@@ -76,7 +76,7 @@ for i in range(1, len(datasets)):
 # Recalucalate some fields
 merged_props['name'] = merged_name
 merged_props['data_folder'] = new_folder_name
-merged_props['size'] = sum([prop['size'] for prop in props])
+merged_props['size'] = merged_size
 # Update stats calculations 
 merged_props.sim_stats_summary()
 # save new props

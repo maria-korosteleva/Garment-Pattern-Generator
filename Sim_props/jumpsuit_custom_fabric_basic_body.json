@@ -2,7 +2,7 @@
   "body": "f_smpl_template.obj", 
   "render": {
     "config": {
-      "scene": "studio_coffee.mb",
+      "scene": "studio_choco.mb",
       "resolution": [
         800, 
         800
@@ -43,7 +43,7 @@
       "static_threshold": 0.01, 
       "non_static_percent": 3.5,
       "zero_gravity_steps": 5, 
-      "object_intersect_border_threshold": 140,
+      "object_intersect_border_threshold": 200,
       "self_intersect_hit_threshold": 25,
       "resolution_scale": 4
     }, 

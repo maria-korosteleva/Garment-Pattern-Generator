@@ -2,7 +2,7 @@
   "body": "f_smpl_template.obj", 
   "render": {
     "config": {
-      "scene": "studio_wine.mb",
+      "scene": "studio_khaki.mb",
       "resolution": [
         800, 
         800
@@ -43,8 +43,8 @@
       "static_threshold": 0.01, 
       "non_static_percent": 3.5,
       "zero_gravity_steps": 5, 
-      "object_intersect_border_threshold": 140,
-      "self_intersect_hit_threshold": 25,
+      "object_intersect_border_threshold": 205,
+      "self_intersect_hit_threshold": 30,
       "resolution_scale": 5
     }, 
     "stats": {

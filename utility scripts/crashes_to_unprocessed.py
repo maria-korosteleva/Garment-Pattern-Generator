@@ -2,7 +2,7 @@ from pathlib import Path
 import customconfig
 from pattern.wrappers import VisPattern
 
-dataset = 'data_650_skirt_8_panels_210407-11-13-56'
+dataset = 'data_1050_jacket_hood_210415-17-01-48'
 
 system_props = customconfig.Properties('./system.json')
 datapath = Path(system_props['datasets_path']) / dataset

@@ -4,7 +4,7 @@ import shutil
 import os
 import customconfig
 
-dataset = 'data_650_skirt_8_panels_210407-11-13-56'
+dataset = 'data_1050_jumpsuit_sleeveless_210426-16-55-00'
 
 system_props = customconfig.Properties('./system.json')
 datapath = os.path.join(system_props['datasets_path'], dataset)

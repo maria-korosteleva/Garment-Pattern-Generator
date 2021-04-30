@@ -41,8 +41,8 @@ def copy_files_subfolders(from_dataset, merged_folder, original_name=''):
 
 system_props = customconfig.Properties('./system.json')
 datasets = [
-    'data_uni_300_skirt_2_panels_210326-16-03-22',
-    'data_400_skirt_2_panels_210406-10-40-01']
+    'merged_dress_sleeveless_1350_210422-11-26-50',
+    'data_1200_dress_sleeveless_210426-11-56-1']
 data_root = Path(system_props['datasets_path']) 
 output_root = Path(system_props['datasets_path']) 
 

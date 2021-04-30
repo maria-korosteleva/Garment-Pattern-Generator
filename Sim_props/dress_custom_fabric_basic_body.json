@@ -2,7 +2,7 @@
   "body": "f_smpl_template.obj", 
   "render": {
     "config": {
-      "scene": "studio_pink.mb",
+      "scene": "studio_scarlet.mb",
       "resolution": [
         800, 
         800
@@ -43,8 +43,8 @@
       "static_threshold": 0.01, 
       "non_static_percent": 1,
       "zero_gravity_steps": 5, 
-      "object_intersect_border_threshold": 100,
-      "self_intersect_hit_threshold": 0,
+      "object_intersect_border_threshold": 130,
+      "self_intersect_hit_threshold": 3,
       "resolution_scale": 4
     }, 
     "stats": {

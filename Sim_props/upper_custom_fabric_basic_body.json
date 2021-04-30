@@ -2,7 +2,7 @@
   "body": "f_smpl_template.obj", 
   "render": {
     "config": {
-      "scene": "studio_dark_orange.mb",
+      "scene": "studio_orange.mb",
       "resolution": [
         800, 
         800

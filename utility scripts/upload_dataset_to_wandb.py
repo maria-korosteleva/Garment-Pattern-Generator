@@ -6,8 +6,8 @@ system_props = customconfig.Properties('./system.json')
 
 wandb.init(project='Garments-Reconstruction', job_type='dataset')
 
-dataset = 'data_1050_wb_dress_sleeveless_210419-16-27-34'
-artifact = wandb.Artifact('wb_dress_sleeveless', type='dataset')
+dataset = 'merged_dress_sleeveless_2550_210429-13-12-52'
+artifact = wandb.Artifact('dress_sleeveless', type='dataset')
 # Add a file to the artifact's contents
 datapath = Path(system_props['datasets_path']) / dataset
 artifact.add_dir(str(datapath))

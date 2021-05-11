@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
     for dataset in dataset_folders:
         datapath = os.path.join(system_config['datasets_path'], dataset)
-        dataset_file = os.path.join(datapath, 'dataset_properties.json')
+        dataset_file = os.path.join(datapath, 'test', 'dataset_properties.json')
         data_props = customconfig.Properties(dataset_file)
         if not data_props['to_subfolders']:
             raise NotImplementedError('Scanning only works on datasets organized in subfolders')  # just for simplicity 

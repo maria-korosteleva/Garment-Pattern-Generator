@@ -90,6 +90,12 @@ if __name__ == "__main__":
         for name in dirs:
             if name not in to_ignore:
                 dir_path = os.path.join(root, name)
+
+                # skip if already has a corresponding file
+                root, dirs, files = next(os.walk(dir_path))
+                if any(['scan_imitation' in filename for filename in files]):
+                    continue
+
                 # load mesh
                 garment = utils.load_file(os.path.join(dir_path, name + '_sim.obj'), name + '_sim')
                 

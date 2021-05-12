@@ -48,10 +48,10 @@ if __name__ == "__main__":
 
     # ------ Datasets ------
     dataset_folders = [
-        'test_150_dress_210401-17-57-12',
-        'test_150_jacket_hood_sleeveless_210331-11-16-33',
-        'test_150_jacket_sleeveless_210331-15-54-26',
-        'test_150_jumpsuit_210401-16-28-21',
+        # 'test_150_dress_210401-17-57-12',
+        # 'test_150_jacket_hood_sleeveless_210331-11-16-33',
+        # 'test_150_jacket_sleeveless_210331-15-54-26',
+        # 'test_150_jumpsuit_210401-16-28-21',
         'test_150_skirt_waistband_210331-16-05-37',
         'test_150_tee_hood_210401-15-25-29',
         'test_150_wb_jumpsuit_sleeveless_210404-11-27-30'
@@ -63,16 +63,17 @@ if __name__ == "__main__":
     reload(mymaya)  # reload in case we are in Maya internal python environment
     from mayaqltools import utils
 
-    # load body to the scene
-    body = utils.load_file(os.path.join(system_config['bodies_path'], data_props['body']), 'body')
-    utils.scale_to_cm(body)
-
     for dataset in dataset_folders:
-        datapath = os.path.join(system_config['datasets_path'], dataset)
-        dataset_file = os.path.join(datapath, 'test', 'dataset_properties.json')
+        datapath = os.path.join(system_config['datasets_path'], 'test', dataset)
+        print(datapath)
+        dataset_file = os.path.join(datapath, 'dataset_properties.json')
         data_props = customconfig.Properties(dataset_file)
         if not data_props['to_subfolders']:
             raise NotImplementedError('Scanning only works on datasets organized in subfolders')  # just for simplicity 
+
+        # load body to the scene
+        body = utils.load_file(os.path.join(system_config['bodies_path'], data_props['body']), 'body')
+        utils.scale_to_cm(body)
 
         # ------ Main loop --------
         if 'scan_imitation' not in data_props:
@@ -92,10 +93,18 @@ if __name__ == "__main__":
                 dir_path = os.path.join(root, name)
 
                 # skip if already has a corresponding file
-                root, dirs, files = next(os.walk(dir_path))
-                if any(['scan_imitation' in filename for filename in files]):
+                _, elem_dirs, elem_files = next(os.walk(dir_path))
+                if any(['scan_imitation' in filename for filename in elem_files]):
                     continue
-
+                
+                if not any([name + '_sim.obj' in filename for filename in elem_files]):
+                    # simulation result does not exist
+                    if data_props.is_fail(name):  # already marked as a fail, so no need to process
+                        print('Datascan::Warning::Skipped {} as .obj file does not exist'.format(name))
+                        continue
+                    else:
+                        raise RuntimeError('Datascan::Error:: File {}_sim.obj does not exist but the datapoint is not markes as FAIL'.format(name))
+                
                 # load mesh
                 garment = utils.load_file(os.path.join(dir_path, name + '_sim.obj'), name + '_sim')
                 
@@ -109,7 +118,9 @@ if __name__ == "__main__":
 
                 # save to original folder
                 utils.save_mesh(garment, os.path.join(dir_path, name + '_scan_imitation.obj'))
-                
+
+
+                data_props.serialize(dataset_file)  # just in case                
                 cmds.delete(garment)  # cleanup
 
         # update props & save
@@ -123,6 +134,9 @@ if __name__ == "__main__":
         data_props.serialize(dataset_file)
 
         print('Scan imitation on {} performed successfully!!!'.format(dataset))
+
+        # clean the scene s.t. next dataset can use another body mesh
+        cmds.delete(body)
 
     # End Maya instance
     stop_mayapy()  # ensures correct exit without errors

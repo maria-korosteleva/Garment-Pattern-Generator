@@ -81,6 +81,8 @@ if __name__ == "__main__":
             number_of_visible_rays = 4
             data_props.set_section_config(
                 'scan_imitation', test_rays_num=number_of_rays, visible_rays_num=number_of_visible_rays)
+        if 'fails' not in data_props['scan_imitation']['stats']:
+            data_props['scan_imitation']['stats']['fails'] = []
         
         # go over the examples in the data
         start_time = time.time()
@@ -99,11 +101,9 @@ if __name__ == "__main__":
                 
                 if not any([name + '_sim.obj' in filename for filename in elem_files]):
                     # simulation result does not exist
-                    if data_props.is_fail(name):  # already marked as a fail, so no need to process
-                        print('Datascan::Warning::Skipped {} as .obj file does not exist'.format(name))
-                        continue
-                    else:
-                        raise RuntimeError('Datascan::Error:: File {}_sim.obj does not exist but the datapoint is not markes as FAIL'.format(name))
+                    print('Datascan::Warning::Skipped {} as .obj file does not exist'.format(name))
+                    data_props['scan_imitation']['stats']['fails'].append(name)
+                    continue
                 
                 # load mesh
                 garment = utils.load_file(os.path.join(dir_path, name + '_sim.obj'), name + '_sim')

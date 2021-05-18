@@ -49,9 +49,12 @@ for idx in range(len(color_hex)):
 
 # color them
 for label, str_label in enumerate(unique_labels):
-    # color selection with expansion if the list is too small
-    factor, color_id = (label // len(color_list)) + 1, label % len(color_list)
-    color = color_list[color_id] / factor  # gets darker the more labels there are
+    if str_label == 'stitch':
+        color = np.zeros(3)
+    else:
+        # color selection with expansion if the list is too small
+        factor, color_id = (label // len(color_list)) + 1, label % len(color_list)
+        color = color_list[color_id] / factor  # gets darker the more labels there are
 
     # color corresponding vertices
     cmds.select(clear=True)

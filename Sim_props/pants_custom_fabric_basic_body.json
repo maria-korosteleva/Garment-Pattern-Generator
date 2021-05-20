@@ -41,11 +41,11 @@
       "collision_thickness": 0.04,
       "max_sim_steps": 1500, 
       "static_threshold": 0.01, 
-      "non_static_percent": 3.5,
+      "non_static_percent": 2.5,
       "zero_gravity_steps": 5, 
       "object_intersect_border_threshold": 140,
       "self_intersect_hit_threshold": 25,
-      "resolution_scale": 5
+      "resolution_scale": 4
     }, 
     "stats": {
       "fin_frame": {}, 

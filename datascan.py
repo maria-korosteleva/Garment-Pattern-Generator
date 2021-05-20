@@ -1,5 +1,7 @@
 """
     Emulate the result of scanning a garment on existing dataset of simulated garments
+
+    Support resuming functionality by default -- if you run on the dataset that already has some of the outputs, the datapoints will be skipped rather then re-evaluated
     
     IMPORTANT!! This script need to be run with mayapy to get access to Autodesk Maya Python API. 
         E.g., on Windows the command could look like this: 
@@ -48,13 +50,8 @@ if __name__ == "__main__":
 
     # ------ Datasets ------
     dataset_folders = [
-        # 'test_150_dress_210401-17-57-12',
-        # 'test_150_jacket_hood_sleeveless_210331-11-16-33',
-        # 'test_150_jacket_sleeveless_210331-15-54-26',
-        # 'test_150_jumpsuit_210401-16-28-21',
-        'test_150_skirt_waistband_210331-16-05-37',
-        'test_150_tee_hood_210401-15-25-29',
-        'test_150_wb_jumpsuit_sleeveless_210404-11-27-30'
+        'data_5000_tee_200924-16-57-59_regen_210327-15-20-23',
+        'data_5000_skirt_4_panels_201019-12-23-24_regen_210331-16-18-32'
     ]
 
     # ------ Start Maya instance ------
@@ -64,7 +61,7 @@ if __name__ == "__main__":
     from mayaqltools import utils
 
     for dataset in dataset_folders:
-        datapath = os.path.join(system_config['datasets_path'], 'test', dataset)
+        datapath = os.path.join(system_config['datasets_path'], dataset)
         print(datapath)
         dataset_file = os.path.join(datapath, 'dataset_properties.json')
         data_props = customconfig.Properties(dataset_file)
@@ -81,6 +78,7 @@ if __name__ == "__main__":
             number_of_visible_rays = 4
             data_props.set_section_config(
                 'scan_imitation', test_rays_num=number_of_rays, visible_rays_num=number_of_visible_rays)
+            data_props.set_section_stats('scan_imitation', faces_removed={}, processing_time={})
         if 'fails' not in data_props['scan_imitation']['stats']:
             data_props['scan_imitation']['stats']['fails'] = []
         
@@ -89,7 +87,6 @@ if __name__ == "__main__":
         to_ignore = ['renders']  # special dirs not to include in the pattern list
         root, dirs, files = next(os.walk(datapath))  # cannot use os.scandir in python 2.7
 
-        data_props.set_section_stats('scan_imitation', faces_removed={}, processing_time={})
         for name in dirs:
             if name not in to_ignore:
                 dir_path = os.path.join(root, name)
@@ -97,6 +94,7 @@ if __name__ == "__main__":
                 # skip if already has a corresponding file
                 _, elem_dirs, elem_files = next(os.walk(dir_path))
                 if any(['scan_imitation' in filename for filename in elem_files]):
+                    print('Datascan::Info::Skipped {} as already processed'.format(name))
                     continue
                 
                 if not any([name + '_sim.obj' in filename for filename in elem_files]):

@@ -15,6 +15,18 @@ import customconfig
 system_config = customconfig.Properties('system.json')  # Make sure it's in \Autodesk\MayaNNNN\
 path = Path(system_config['datasets_path'])
 
+# Setup
+file_keys = [
+    'camera_back',
+    'camera_front',
+    'pattern.svg',
+    'pattern.png',
+    'specification',
+    'sim.obj',
+    # 'scan_imitation.obj' sim_segmentation.txt, imitation_segmentation.txt..
+]
+ignore_fails = True
+
 # ------ Datasets ------
 dataset_folders = []
 
@@ -28,19 +40,11 @@ for child in path.iterdir():
 
 print(dataset_folders)
 
-file_keys = [
-    'camera_back',
-    'camera_front',
-    'pattern.svg',
-    'pattern.png',
-    'specification',
-    'sim.obj',
-    # 'scan_imitation.obj'
-]
-
 missing_files = dict.fromkeys(dataset_folders)
 for key in missing_files:
     missing_files[key] = []
+size_errors = []
+render_errors = []
 
 for dataset in dataset_folders:
     datapath = os.path.join(system_config['datasets_path'], dataset)
@@ -66,27 +70,55 @@ for dataset in dataset_folders:
                 if not any(key in elem for elem in elem_files):
                     if not data_props.is_fail(name):
                         missing_files[dataset].append(name + '_' + key)
-                    else:
+                    elif not ignore_fails:
                         missing_files[dataset].append(name + '_' + key + '_fail')
         
-    # ------- Overall size check -------
+    # ------- Overall size checks -------
     data_size = data_props['size']
     if data_size != elem_count:
-        print('{}::ERRRROOOR::Expected {} but got {} datapoints'.format(dataset, data_size, elem_count))
+        size_errors.append('{}::ERRRROOOR::Expected {} but got {} datapoints'.format(dataset, data_size, elem_count))
+
+        # missing elements check
+        _, fails = data_props.count_fails()
+        rendered = list(data_props['render']['stats']['render_time'].keys())
+        expected_datapoints = rendered + fails
+        for name in dirs:
+            if name not in to_ignore:
+                expected_datapoints.remove(name)
+        
+        for elem in expected_datapoints:
+            missing_files[dataset].append(elem + '_all')
+
     else:  # only print the problems
         pass
-    
+
     # -------- Renders folder check -----------
     if any('renders' in name for name in dirs):
         root, dirs, files = next(os.walk(os.path.join(datapath, 'renders')))  # cannot use os.scandir in python 2.7
         num_renders = len(files)
+        num_fails, _ = data_props.count_fails()
+        expected_min_num = data_size * 2 - num_fails
         if num_renders != data_size * 2:
-            print('{}::Warning:: Expected {} renders but got {}'.format(dataset, data_size * 2, num_renders))
+            if num_renders > expected_min_num: 
+                render_errors.append('{}::Info:: Num renders {} is less then data size {}, but more then min expectation {}'.format(
+                    dataset, num_renders, data_size * 2, expected_min_num))
+            else:
+                render_errors.append('{}::Warning:: Expected at least {} of {} renders but got {}'.format(
+                    dataset, expected_min_num, data_size * 2, num_renders))
     else:
-        print('{}::Warning::No render folder found'.format(dataset))
+        render_errors.append('{}::Warning::No render folder found'.format(dataset))
 
-# No need to pay attention to correct datasets
-print('Files missing:')
+# ------- Print final list  ----------
+
+print('\n Data size check: ')
+for error in size_errors:
+    print(error)
+
+print('\n Renders check: ')
+for error in render_errors:
+    print(error)
+
+print('\nFiles missing:')
 for dataset in dataset_folders:
     if len(missing_files[dataset]) > 0:
         print(dataset, ': ')

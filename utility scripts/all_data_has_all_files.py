@@ -109,12 +109,20 @@ for dataset in dataset_folders:
         render_errors.append('{}::Warning::No render folder found'.format(dataset))
 
 # ------- Print final list  ----------
+no_size_probelms = []
+no_render_problems = []
+no_file_problems = []
+for dataset in dataset_folders:
+    if all([dataset not in elem for elem in size_errors]):
+        no_size_probelms.append(dataset)
+    if all([dataset not in elem for elem in render_errors]):
+        no_render_problems.append(dataset)
 
-print('\n Data size check: ')
+print('\nData size check: ')
 for error in size_errors:
     print(error)
 
-print('\n Renders check: ')
+print('\nRenders check: ')
 for error in render_errors:
     print(error)
 
@@ -126,3 +134,15 @@ for dataset in dataset_folders:
             print(file)
 
         print('->')
+    else:
+        no_file_problems.append(dataset)
+
+
+print('\nData size OK: ')
+print(no_size_probelms)
+
+print('\nRenders OK: ')
+print(no_render_problems)
+
+print('\nFiles OK:')
+print(no_file_problems)

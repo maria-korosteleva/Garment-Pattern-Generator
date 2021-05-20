@@ -16,21 +16,17 @@ system_config = customconfig.Properties('system.json')  # Make sure it's in \Aut
 path = Path(system_config['datasets_path'])
 
 # ------ Datasets ------
-dataset_folders = [
-    'data_1000_jacket_hood_210430-15-12-19',
-    'merged_jacket_hood_1700_210425-21-23-19',
-    'data_650_tee_sleeveless_210429-10-55-00',
-    'data_650_jacket_210504-11-07-51',
-    ''
-]
-
 dataset_folders = []
 
 for child in path.iterdir():
-    if child.is_dir():
+    if child.is_dir() and child.name != 'Archive' and child.name != 'test':
         dataset_folders.append(child.name)
+    if child.is_dir() and child.name == 'test':
+        for nested_child in child.iterdir():
+            if child.is_dir() and child.name != 'Archive':
+                dataset_folders.append('test/' + nested_child.name)
 
-print(child)
+print(dataset_folders)
 
 file_keys = [
     'camera_back',
@@ -52,7 +48,7 @@ for dataset in dataset_folders:
     dataset_file = os.path.join(datapath, 'dataset_properties.json')
     data_props = customconfig.Properties(dataset_file)
 
-    # ------ Main loop --------        
+    # ----- Missing files ---------
     to_ignore = ['renders']  # special dirs not to include in the pattern list
     root, dirs, files = next(os.walk(datapath))  # cannot use os.scandir in python 2.7
 
@@ -72,18 +68,25 @@ for dataset in dataset_folders:
                         missing_files[dataset].append(name + '_' + key)
                     else:
                         missing_files[dataset].append(name + '_' + key + '_fail')
-            
-
-    # Top checks
+        
+    # ------- Overall size check -------
     data_size = data_props['size']
     if data_size != elem_count:
         print('{}::ERRRROOOR::Expected {} but got {} datapoints'.format(dataset, data_size, elem_count))
+    else:  # only print the problems
+        pass
+    
+    # -------- Renders folder check -----------
+    if any('renders' in name for name in dirs):
+        root, dirs, files = next(os.walk(os.path.join(datapath, 'renders')))  # cannot use os.scandir in python 2.7
+        num_renders = len(files)
+        if num_renders != data_size * 2:
+            print('{}::Warning:: Expected {} renders but got {}'.format(dataset, data_size * 2, num_renders))
     else:
-        print('{}::Datapoints count is correct: {}'.format(dataset, elem_count))
+        print('{}::Warning::No render folder found'.format(dataset))
 
 # No need to pay attention to correct datasets
 print('Files missing:')
-
 for dataset in dataset_folders:
     if len(missing_files[dataset]) > 0:
         print(dataset, ': ')

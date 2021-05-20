@@ -137,12 +137,16 @@ for dataset in dataset_folders:
     else:
         no_file_problems.append(dataset)
 
+# ----- Success ------
+no_problems = set(no_size_probelms + no_render_problems + no_file_problems)
+print('\nEverything OK: ')
+print(no_problems)
 
-print('\nData size OK: ')
-print(no_size_probelms)
+# print('\nData size OK: ')
+# print(no_size_probelms)
 
-print('\nRenders OK: ')
-print(no_render_problems)
+# print('\nRenders OK: ')
+# print(no_render_problems)
 
-print('\nFiles OK:')
-print(no_file_problems)
+# print('\nFiles OK:')
+# print(no_file_problems)

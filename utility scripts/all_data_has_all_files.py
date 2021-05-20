@@ -138,7 +138,7 @@ for dataset in dataset_folders:
         no_file_problems.append(dataset)
 
 # ----- Success ------
-no_problems = set(no_size_probelms + no_render_problems + no_file_problems)
+no_problems = [d for d in dataset if d in no_size_probelms and d in no_render_problems and d in no_file_problems]
 print('\nEverything OK: ')
 print(no_problems)
 

@@ -1,5 +1,5 @@
 """
-    Emulate the result of scanning a garment on existing dataset of simulated garments
+    Recover segmentation for alredy simulated garments
     
     IMPORTANT!! This script need to be run with mayapy to get access to Autodesk Maya Python API. 
         E.g., on Windows the command could look like this: 
@@ -51,6 +51,10 @@ if __name__ == "__main__":
     dataset_folders = [
         'updates_tests_skirt_4_panels_random'
     ]
+    print_skipped_files = False
+    skipped_files = dict.fromkeys(dataset_folders)
+    for key in skipped_files:
+        skipped_files[key] = {}
 
     # ------ Start Maya instance ------
     init_mayapy()
@@ -80,17 +84,30 @@ if __name__ == "__main__":
 
                 # print(name)
 
-                # skip if already has a corresponding file
                 _, elem_dirs, elem_files = next(os.walk(dir_path))
                 
                 if not any([name + '_sim.obj' in filename for filename in elem_files]):
                     # simulation result does not exist
                     print('Warning::Skipped {} as .obj file does not exist'.format(name))
                     continue
+
+                if any(['sim_segmentation' in filename for filename in elem_files]):
+                    # already processed -- continue
+                    continue
                 
                 # load pattern in Maya
                 garment = mymaya.MayaGarment(os.path.join(dir_path, 'specification.json'))
                 garment.load(config=data_props['sim']['config'])
+
+                # check that the operation can be applied safely
+                num_vert_loaded = len(garment.current_verts)
+                sim_mesh = mymaya.utils.load_file(os.path.join(dir_path, name + '_sim.obj'))
+                num_verts_original = cmds.polyEvaluate(vertex=True)
+
+                if num_vert_loaded != num_verts_original:
+                    # cannot re-apply the segmentation because counts are wrong
+                    skipped_files[dataset][name] = '{}: {}'.format(num_verts_original, num_vert_loaded)
+                    continue
                 
                 # save segmentation to original folder
                 filepath = os.path.join(dir_path, name + '_sim_segmentation.txt')
@@ -105,6 +122,17 @@ if __name__ == "__main__":
         passed = timedelta(seconds=passed)
 
         print('Mesh segmentation on {} performed successfully for {}!!!'.format(dataset, str(passed)))
+
+
+    # print skipped files if any
+    print('\nFiles skipped:')
+    for dataset in skipped_files:
+        if len(skipped_files[dataset]) > 0:
+            print('{}:{} datapoints skipped'.format(dataset, len(skipped_files[dataset])))
+            if print_skipped_files:
+                for name, counts in skipped_files[dataset].items():
+                    print('{} -- {}'.format(name, counts))
+            print('->')
 
     # End Maya instance
     stop_mayapy()  # ensures correct exit without errors

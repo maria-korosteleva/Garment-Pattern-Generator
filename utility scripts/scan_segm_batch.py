@@ -1,8 +1,5 @@
 """
-    Emulate the result of scanning a garment on existing dataset of simulated garments
-
-    Support resuming functionality by default -- if you run on the dataset that already has some of the outputs,
-     the datapoints will be skipped rather then re-evaluated
+    transfer segmentation labels from sim to scan data
     
     IMPORTANT!! This script need to be run with mayapy to get access to Autodesk Maya Python API. 
         E.g., on Windows the command could look like this: 
@@ -61,7 +58,6 @@ def transfer_segm_labels(verts_before, mesh, dir_path, name):
     with open(filepath, 'w') as f:
         for panel_name in scan_labels:
             f.write("%s\n" % panel_name)
-    return 0
 
 
 if __name__ == "__main__":
@@ -80,6 +76,10 @@ if __name__ == "__main__":
     reload(mymaya)  # reload in case we are in Maya internal python environment
     from mayaqltools import utils
 
+    skipped_datapoints = dict.fromkeys(dataset_folders)
+    for key in skipped_datapoints:  
+        skipped_datapoints[key] = {}
+
     for dataset in dataset_folders:
         datapath = os.path.join(system_config['datasets_path'], dataset)
         # print(datapath)
@@ -88,24 +88,7 @@ if __name__ == "__main__":
         if not data_props['to_subfolders']:
             raise NotImplementedError('Scanning only works on datasets organized in subfolders')  # just for simplicity 
 
-        # load body to the scene
-        body = utils.load_file(os.path.join(system_config['bodies_path'], data_props['body']), 'body')
-        utils.scale_to_cm(body)
-
         # ------ Main loop --------
-        if 'scan_imitation' not in data_props:
-            number_of_rays = 30
-            number_of_visible_rays = 4
-            data_props.set_section_config(
-                'scan_imitation', test_rays_num=number_of_rays, visible_rays_num=number_of_visible_rays)
-            data_props.set_section_stats('scan_imitation', fails=[], faces_removed={}, processing_time={})
-        if 'fails' not in data_props['scan_imitation']['stats']:
-            data_props['scan_imitation']['stats']['fails'] = []
-        if 'faces_removed' not in data_props['scan_imitation']['stats']:
-            data_props['scan_imitation']['stats']['faces_removed'] = {}
-        if 'processing_time' not in data_props['scan_imitation']['stats']:
-            data_props['scan_imitation']['stats']['processing_time'] = {}
-        
         
         # go over the examples in the data
         start_time = time.time()
@@ -118,62 +101,50 @@ if __name__ == "__main__":
 
                 # skip if already has a corresponding file
                 _, elem_dirs, elem_files = next(os.walk(dir_path))
-                if any(['scan_imitation.obj' in filename for filename in elem_files]):
-                    print('Datascan::Info::Skipped {} as already processed'.format(name))
+                if not any(['scan_imitation.obj' in filename for filename in elem_files]):
+                    skipped_datapoints[dataset][name] = 'Datascan::Warninig::Skipped {} as the scan imitation obj is missing'.format(name)
+                    print(skipped_datapoints[dataset][name])
                     continue
                 
                 if not any([name + '_sim.obj' in filename for filename in elem_files]):
                     # simulation result does not exist
-                    print('Datascan::Warning::Skipped {} as .obj file does not exist'.format(name))
-                    data_props['scan_imitation']['stats']['fails'].append(name)
+                    skipped_datapoints[dataset][name] = 'Datascan::Warning::Skipped {} as .obj file does not exist'.format(name)
+                    print(skipped_datapoints[dataset][name])
                     continue
                 
-                # load mesh
-                garment = utils.load_file(os.path.join(dir_path, name + '_sim.obj'), name + '_sim')
-
-                mesh, _ = utils.get_mesh_dag(garment)
-                verts_before = utils.get_vertices_np(mesh)
-                
-                # do what we are here for
-                removed, time_taken = mymaya.scan_imitation.remove_invisible(
-                    garment, [body],
-                    data_props['scan_imitation']['config']['test_rays_num'], 
-                    data_props['scan_imitation']['config']['visible_rays_num'])
-                data_props['scan_imitation']['stats']['faces_removed'][name] = removed
-                data_props['scan_imitation']['stats']['processing_time'][name] = time_taken
-
-                # save to original folder
-                utils.save_mesh(garment, os.path.join(dir_path, name + '_scan_imitation.obj'))
-
-                # transfer the segmentation labels 
                 if not any([name + '_sim_segmentation.txt' in filename for filename in elem_files]):
                     # segmentation labels file for sim does not exist
-                    print('Datascan::Warning::{}:: Skipped segmentation transfer as segmentation file does not exist'.format(name))
-                    data_props['scan_imitation']['stats']['fails'].append(name)
-                else:
-                    try:
-                        transfer_segm_labels(verts_before, mesh, dir_path, name)
-                    except ValueError as e:
-                        print(e)
-                        data_props['scan_imitation']['stats']['fails'].append(name)
+                    skipped_datapoints[dataset][name] = 'Datascan::Warning::{}:: Skipped segmentation transfer as segmentation file does not exist'.format(name)
+                    print(skipped_datapoints[dataset][name])
+                    continue
 
-                data_props.serialize(dataset_file)  # just in case                
-                cmds.delete(garment)  # cleanup
+                # load mesh
+                garment_sim = utils.load_file(os.path.join(dir_path, name + '_sim.obj'), name + '_sim')
+                mesh_sim, _ = utils.get_mesh_dag(garment_sim)
+                verts_before = utils.get_vertices_np(mesh_sim)
+
+                garment_scan = utils.load_file(os.path.join(dir_path, name + '_scan_imitation.obj'), name + '_scan')
+                mesh_scan, _ = utils.get_mesh_dag(garment_scan)
+
+                # transfer the segmentation labels 
+                try:
+                    transfer_segm_labels(verts_before, mesh_scan, dir_path, name)
+                except ValueError as e:
+                    print(e)
+                    skipped_datapoints[dataset][name] = str(e)
+            
+                cmds.delete(garment_sim)  # cleanup
+                cmds.delete(garment_scan)  # cleanup
 
         # update props & save
         passed = time.time() - start_time
-        data_props.summarize_stats('processing_time', log_sum=True, log_avg=True, as_time=True)
-        data_props.summarize_stats('faces_removed', log_avg=True)
-        data_props.set_section_stats(
-            'scan_imitation', total_processing_time=str(timedelta(seconds=passed))
-        )
-        
-        data_props.serialize(dataset_file)
+        print('Processes dataset {} for {}'.format(dataset, str(timedelta(seconds=passed))))
 
-        # print('Scan imitation on {} performed successfully!!!'.format(dataset))
-
-        # clean the scene s.t. next dataset can use another body mesh
-        cmds.delete(body)
+    print('\nDatapoints skipped:')
+    for dataset in skipped_datapoints:
+        if len(skipped_datapoints[dataset]) > 0:
+            print('{}:{} datapoints skipped'.format(dataset, len(skipped_datapoints[dataset])))
+            print('->')
 
     # End Maya instance
     stop_mayapy()  # ensures correct exit without errors

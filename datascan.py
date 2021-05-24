@@ -57,7 +57,7 @@ def transfer_segm_labels(verts_before, mesh, dir_path, name):
         vert_labels = [line.rstrip() for line in f]  # remove \n
     scan_labels = [vert_labels[i] for i in verts_mapping]
 
-    filepath = os.path.join(dir_path, name + '_scan_segmentation.txt')
+    filepath = os.path.join(dir_path, name + '_scan_imitation_segmentation.txt')
     with open(filepath, 'w') as f:
         for panel_name in scan_labels:
             f.write("%s\n" % panel_name)

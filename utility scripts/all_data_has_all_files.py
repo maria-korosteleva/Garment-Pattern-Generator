@@ -24,7 +24,7 @@ file_keys = [
     'specification',
     'sim.obj',
     'sim_segmentation'
-    # 'scan_imitation.obj' imitation_segmentation.txt..
+    # 'scan_imitation.obj' scan_imitation_segmentation.txt..
 ]
 ignore_fails = True
 check_extra = False

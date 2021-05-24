@@ -28,7 +28,7 @@ for dataset in dataset_list:
                         print(filename) 
                         os.remove(os.path.join(root, filename))
                 except Exception as e:
-                        print(e)
+                    print(e)
 
 for key, num in removed.items():
     print('{}: {}'.format(key, num))

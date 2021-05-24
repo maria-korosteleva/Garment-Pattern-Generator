@@ -20,11 +20,13 @@ from mayaqltools import utils
 # obj_path = 'C:/Users/Asus/Desktop/Garments-data/updates_tests_1000_skirt_4_panels/skirt_4_panels_00HUVRGNCG/skirt_4_panels_00HUVRGNCG_sim.obj'
 # obj_path = 'C:/Users/Asus/Desktop/Garments-data/updates_tests_skirt_2_panels/skirt_2_panels_ZTV1YIFR0W/skirt_2_panels_ZTV1YIFR0W_sim.obj'
 # obj_path = 'C:/Users/Asus/Desktop/Garments-data/updates_tests_650_jacket/jacket_01LF58XJQI/jacket_01LF58XJQI_sim.obj'
-obj_path = 'C:/Users/Asus/Desktop/Garments-data/updates_tests_skirt_4_panels_random/skirt_4_panels_ZQ30PS06MJ/skirt_4_panels_ZQ30PS06MJ_sim.obj'
+# obj_path = 'C:/Users/Asus/Desktop/Garments-data/updates_tests_skirt_4_panels_random/skirt_4_panels_ZQ30PS06MJ/skirt_4_panels_ZQ30PS06MJ_sim.obj'
+obj_path = 'C:/Users/Asus/Desktop/Garments-data/updates_hood/jacket_hood_ZZNEL1PGO2/jacket_hood_ZZNEL1PGO2_scan_imitation.obj'
 # segmentation_path = 'C:/Users/Asus/Desktop/Garments-data/updates_tests_1000_skirt_4_panels/skirt_4_panels_00HUVRGNCG/skirt_4_panels_00HUVRGNCG_sim_segmentation.txt'
 # segmentation_path = 'C:/Users/Asus/Desktop/Garments-data/updates_tests_650_jacket/jacket_01LF58XJQI/jacket_01LF58XJQI_sim_segmentation.txt'
 # segmentation_path = 'C:/Users/Asus/Desktop/Garments-data/updates_tests_skirt_2_panels/skirt_2_panels_ZTV1YIFR0W/skirt_2_panels_ZTV1YIFR0W_sim_segmentation.txt'
-segmentation_path = 'C:/Users/Asus/Desktop/Garments-data/updates_tests_skirt_4_panels_random/skirt_4_panels_ZQ30PS06MJ/skirt_4_panels_ZQ30PS06MJ_sim_segmentation.txt'
+# segmentation_path = 'C:/Users/Asus/Desktop/Garments-data/updates_tests_skirt_4_panels_random/skirt_4_panels_ZQ30PS06MJ/skirt_4_panels_ZQ30PS06MJ_sim_segmentation.txt'
+segmentation_path = 'C:/Users/Asus/Desktop/Garments-data/updates_hood/jacket_hood_ZZNEL1PGO2/jacket_hood_ZZNEL1PGO2_scan_segmentation.txt'
 
 
 # load geometry

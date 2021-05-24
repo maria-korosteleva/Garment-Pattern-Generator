@@ -23,7 +23,8 @@ file_keys = [
     'pattern.png',
     'specification',
     'sim.obj',
-    # 'scan_imitation.obj' sim_segmentation.txt, imitation_segmentation.txt..
+    'sim_segmentation'
+    # 'scan_imitation.obj' imitation_segmentation.txt..
 ]
 ignore_fails = True
 check_extra = False
@@ -50,6 +51,7 @@ for key in extra_files:
     extra_files[key] = []
 size_errors = []
 render_errors = []
+render_folders_exist = []
 
 for dataset in dataset_folders:
     datapath = os.path.join(system_config['datasets_path'], dataset)
@@ -104,8 +106,9 @@ for dataset in dataset_folders:
     else:  # only print the problems
         pass
 
-    # -------- Renders folder check -----------
+    # -------- Renders folder check (if present at all) -----------
     if any('renders' in name for name in dirs):
+        render_folders_exist.append('{}::Info::Render folder exists'.format(dataset))
         root, dirs, files = next(os.walk(os.path.join(datapath, 'renders')))  # cannot use os.scandir in python 2.7
         num_renders = len(files)
         num_fails, _ = data_props.count_fails()
@@ -117,8 +120,6 @@ for dataset in dataset_folders:
             else:
                 render_errors.append('{}::Warning:: Expected at least {} of {} renders but got {}'.format(
                     dataset, expected_min_num, data_size * 2, num_renders))
-    else:
-        render_errors.append('{}::Warning::No render folder found'.format(dataset))
 
 # ------- Print final list  ----------
 no_size_probelms = []
@@ -134,7 +135,7 @@ print('\nData size check: ')
 for error in size_errors:
     print(error)
 
-print('\nRenders check: ')
+print('\nRenders check (where present): ')
 for error in render_errors:
     print(error)
 
@@ -151,6 +152,9 @@ for dataset in dataset_folders:
         no_file_problems.append(dataset)
 
 if check_extra:
+    print('\nRender folders:')
+    for info in render_folders_exist:
+        print(info)
     print('\nExtra files:')
     for dataset in dataset_folders:
         if len(extra_files[dataset]) > 0:

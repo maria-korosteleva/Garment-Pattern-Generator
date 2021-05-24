@@ -67,7 +67,13 @@ if __name__ == "__main__":
 
     # ------ Datasets ------
     dataset_folders = [
-        'updates_hood'
+        # 'test_150_dress_210401-17-57-12',
+        # 'test_150_jacket_hood_sleeveless_210331-11-16-33',
+        # 'test_150_jacket_sleeveless_210331-15-54-26',
+        # 'test_150_jumpsuit_210401-16-28-21',
+        'test_150_skirt_waistband_210331-16-05-37',
+        # 'test_150_tee_hood_210401-15-25-29',
+        # 'test_150_wb_jumpsuit_sleeveless_210404-11-27-30'
     ]
 
     # ------ Start Maya instance ------
@@ -81,7 +87,7 @@ if __name__ == "__main__":
         skipped_datapoints[key] = {}
 
     for dataset in dataset_folders:
-        datapath = os.path.join(system_config['datasets_path'], dataset)
+        datapath = os.path.join(system_config['datasets_path'], 'test', dataset)
         # print(datapath)
         dataset_file = os.path.join(datapath, 'dataset_properties.json')
         data_props = customconfig.Properties(dataset_file)
@@ -101,6 +107,11 @@ if __name__ == "__main__":
 
                 # skip if already has a corresponding file
                 _, elem_dirs, elem_files = next(os.walk(dir_path))
+
+                if any(['scan_imitation_segmentation.txt' in filename for filename in elem_files]):
+                    print('Datascan::Warninig::Skipped {} as already processed'.format(name))
+                    continue
+
                 if not any(['scan_imitation.obj' in filename for filename in elem_files]):
                     skipped_datapoints[dataset][name] = 'Datascan::Warninig::Skipped {} as the scan imitation obj is missing'.format(name)
                     print(skipped_datapoints[dataset][name])
@@ -129,7 +140,7 @@ if __name__ == "__main__":
                 # transfer the segmentation labels 
                 try:
                     transfer_segm_labels(verts_before, mesh_scan, dir_path, name)
-                except ValueError as e:
+                except (IndexError, ValueError) as e:
                     print(e)
                     skipped_datapoints[dataset][name] = str(e)
             

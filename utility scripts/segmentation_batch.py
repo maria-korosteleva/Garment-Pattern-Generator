@@ -49,11 +49,27 @@ if __name__ == "__main__":
 
     # ------ Datasets ------
     dataset_folders = [
-        'updates_tests_skirt_4_panels_random'
+        # 'test_150_dress_210401-17-57-12'
+        # 'test_150_jacket_hood_sleeveless_210331-11-16-33',
+        # 'test_150_jacket_sleeveless_210331-15-54-26',
+        # 'test_150_jumpsuit_210401-16-28-21',
+        # 'test_150_skirt_waistband_210331-16-05-37',
+        # 'test_150_tee_hood_210401-15-25-29',
+        # 'test_150_wb_jumpsuit_sleeveless_210404-11-27-30'
+
+        # 'merged_dress_sleeveless_2550_210429-13-12-52',
+        # 'merged_jumpsuit_sleeveless_2000_210429-11-46-14',
+        # 'merged_skirt_8_panels_1000_210521-16-20-14', -- TODO revisit
+        # 'merged_wb_pants_straight_1500_210521-16-30-57',
+        # 'merged_skirt_2_panels_1200_210521-16-46-27',
+        'merged_jacket_2200_210521-16-55-26',
+        'merged_tee_sleeveless_1800_210521-17-10-22',
+        'merged_wb_dress_sleeveless_2600_210521-17-26-08',
+        # 'merged_jacket_hood_2700_210521-17-47-44'
     ]
-    print_skipped_files = False
+    print_skipped_files = True
     skipped_files = dict.fromkeys(dataset_folders)
-    for key in skipped_files:
+    for key in skipped_files:  # TODO rename to skipped_datapoints
         skipped_files[key] = {}
 
     # ------ Start Maya instance ------
@@ -102,20 +118,22 @@ if __name__ == "__main__":
                 # check that the operation can be applied safely
                 num_vert_loaded = len(garment.current_verts)
                 sim_mesh = mymaya.utils.load_file(os.path.join(dir_path, name + '_sim.obj'))
-                num_verts_original = cmds.polyEvaluate(vertex=True)
+                num_verts_original = cmds.polyEvaluate(sim_mesh, vertex=True)
 
                 if num_vert_loaded != num_verts_original:
                     # cannot re-apply the segmentation because counts are wrong
                     skipped_files[dataset][name] = '{}: {}'.format(num_verts_original, num_vert_loaded)
-                    continue
-                
-                # save segmentation to original folder
-                filepath = os.path.join(dir_path, name + '_sim_segmentation.txt')
-                with open(filepath, 'w') as f:
-                    for panel_name in garment.vertex_labels:
-                        f.write("%s\n" % panel_name)
+                    if print_skipped_files:
+                        print(name, skipped_files[dataset][name])
+                else:
+                    # save segmentation to original folder
+                    filepath = os.path.join(dir_path, name + '_sim_segmentation.txt')
+                    with open(filepath, 'w') as f:
+                        for panel_name in garment.vertex_labels:
+                            f.write("%s\n" % panel_name)
 
                 garment.clean(True)  # cleanup
+                cmds.delete(sim_mesh)
 
         # update props & save
         passed = time.time() - start_time
@@ -123,15 +141,14 @@ if __name__ == "__main__":
 
         print('Mesh segmentation on {} performed successfully for {}!!!'.format(dataset, str(passed)))
 
-
     # print skipped files if any
     print('\nFiles skipped:')
     for dataset in skipped_files:
         if len(skipped_files[dataset]) > 0:
             print('{}:{} datapoints skipped'.format(dataset, len(skipped_files[dataset])))
-            if print_skipped_files:
-                for name, counts in skipped_files[dataset].items():
-                    print('{} -- {}'.format(name, counts))
+            # if print_skipped_files:
+            #     for name, counts in skipped_files[dataset].items():
+            #         print('{} -- {}'.format(name, counts))
             print('->')
 
     # End Maya instance

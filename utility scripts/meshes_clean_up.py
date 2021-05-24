@@ -49,7 +49,22 @@ if __name__ == "__main__":
 
     # ------ Datasets ------
     dataset_folders = [
-        'updates_tests_1000_skirt_4_panels'
+        # 'test_150_dress_210401-17-57-12',
+        # 'test_150_jacket_hood_sleeveless_210331-11-16-33',
+        # 'test_150_jacket_sleeveless_210331-15-54-26',
+        # 'test_150_jumpsuit_210401-16-28-21',
+        # 'test_150_skirt_waistband_210331-16-05-37',
+        # 'test_150_tee_hood_210401-15-25-29',
+        # 'test_150_wb_jumpsuit_sleeveless_210404-11-27-30'
+        'merged_dress_sleeveless_2550_210429-13-12-52',
+        'merged_jumpsuit_sleeveless_2000_210429-11-46-14',
+        'merged_skirt_8_panels_1000_210521-16-20-14',
+        'merged_wb_pants_straight_1500_210521-16-30-57',
+        'merged_skirt_2_panels_1200_210521-16-46-27',
+        'merged_jacket_2200_210521-16-55-26',
+        'merged_tee_sleeveless_1800_210521-17-10-22',
+        'merged_wb_dress_sleeveless_2600_210521-17-26-08',
+        'merged_jacket_hood_2700_210521-17-47-44'
     ]
 
     # ------ Start Maya instance ------
@@ -112,8 +127,8 @@ if __name__ == "__main__":
 
         print('Mesh cleanup on {} performed successfully for {}!!!'.format(dataset, str(passed)))
         print('From sims: {}. From scans: {}.'.format(
-            sum(verts_removed['sim']) / len(verts_removed['sim']),
-            sum(verts_removed['scan_imitation']) / len(verts_removed['scan_imitation'])
+            sum(verts_removed['sim']) / len(verts_removed['sim']) if len(verts_removed['sim']) else 0,
+            sum(verts_removed['scan_imitation']) / len(verts_removed['scan_imitation']) if len(verts_removed['scan_imitation']) else 0
         ))
 
     # End Maya instance

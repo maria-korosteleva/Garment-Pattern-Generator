@@ -59,12 +59,12 @@ if __name__ == "__main__":
 
         # 'merged_dress_sleeveless_2550_210429-13-12-52',
         # 'merged_jumpsuit_sleeveless_2000_210429-11-46-14',
-        # 'merged_skirt_8_panels_1000_210521-16-20-14', -- TODO revisit
+        'merged_skirt_8_panels_1000_210521-16-20-14', # has fails
         # 'merged_wb_pants_straight_1500_210521-16-30-57',
         # 'merged_skirt_2_panels_1200_210521-16-46-27',
-        'merged_jacket_2200_210521-16-55-26',
-        'merged_tee_sleeveless_1800_210521-17-10-22',
-        'merged_wb_dress_sleeveless_2600_210521-17-26-08',
+        # 'merged_jacket_2200_210521-16-55-26',
+        # 'merged_tee_sleeveless_1800_210521-17-10-22',
+        'merged_wb_dress_sleeveless_2600_210521-17-26-08',  # had fails
         # 'merged_jacket_hood_2700_210521-17-47-44'
     ]
     print_skipped_files = True
@@ -146,9 +146,9 @@ if __name__ == "__main__":
     for dataset in skipped_files:
         if len(skipped_files[dataset]) > 0:
             print('{}:{} datapoints skipped'.format(dataset, len(skipped_files[dataset])))
-            # if print_skipped_files:
-            #     for name, counts in skipped_files[dataset].items():
-            #         print('{} -- {}'.format(name, counts))
+            if print_skipped_files:
+                for name, counts in skipped_files[dataset].items():
+                    print('{} -- {}'.format(name, counts))
             print('->')
 
     # End Maya instance

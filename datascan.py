@@ -71,7 +71,16 @@ if __name__ == "__main__":
 
     # ------ Datasets ------
     dataset_folders = [
-        'updates_hood'
+        # 'merged_dress_sleeveless_2550_210429-13-12-52',
+        # 'merged_jumpsuit_sleeveless_2000_210429-11-46-14',
+        # 'merged_skirt_8_panels_1000_210521-16-20-14',
+        # 'merged_wb_pants_straight_1500_210521-16-30-57',
+        # 'merged_skirt_2_panels_1200_210521-16-46-27',
+        # 'merged_jacket_2200_210521-16-55-26',
+        # 'merged_tee_sleeveless_1800_210521-17-10-22',
+        'merged_wb_dress_sleeveless_2600_210521-17-26-08',  # had fails
+        # 'merged_jacket_hood_2700_210521-17-47-44',
+        # 'data_1000_pants_straight_sides_210520-22-34-57'
     ]
 
     # ------ Start Maya instance ------
@@ -105,6 +114,8 @@ if __name__ == "__main__":
             data_props['scan_imitation']['stats']['faces_removed'] = {}
         if 'processing_time' not in data_props['scan_imitation']['stats']:
             data_props['scan_imitation']['stats']['processing_time'] = {}
+        if 'frozen' not in data_props:
+            data_props['frozen'] = True   # when True, the files that are already processed will be skipped!
         
         
         # go over the examples in the data
@@ -118,9 +129,10 @@ if __name__ == "__main__":
 
                 # skip if already has a corresponding file
                 _, elem_dirs, elem_files = next(os.walk(dir_path))
-                if any(['scan_imitation.obj' in filename for filename in elem_files]):
+                if data_props['frozen'] and any(['scan_imitation.obj' in filename for filename in elem_files]):
                     print('Datascan::Info::Skipped {} as already processed'.format(name))
                     continue
+                    # unfreeze dataset to re-do scan imitation on already processed elements
                 
                 if not any([name + '_sim.obj' in filename for filename in elem_files]):
                     # simulation result does not exist
@@ -167,6 +179,7 @@ if __name__ == "__main__":
         data_props.set_section_stats(
             'scan_imitation', total_processing_time=str(timedelta(seconds=passed))
         )
+        data_props['frozen'] = True  # force freezing after processing is finished
         
         data_props.serialize(dataset_file)
 

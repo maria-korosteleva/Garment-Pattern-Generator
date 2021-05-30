@@ -24,7 +24,8 @@ file_keys = [
     'specification',
     'sim.obj',
     'sim_segmentation',
-    # 'scan_imitation.obj' scan_imitation_segmentation.txt..
+    'scan_imitation.obj',
+    'scan_imitation_segmentation.txt'
 ]
 ignore_fails = True
 check_extra = True
@@ -148,7 +149,7 @@ for dataset in dataset_folders:
             print(file)
 
         print('->')
-    elif not check_extra or check_extra and len(extra_files[dataset] == 0):
+    elif not check_extra or check_extra and len(extra_files[dataset]) == 0:
         no_file_problems.append(dataset)
 
 if check_extra:

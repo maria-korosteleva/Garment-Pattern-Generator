@@ -14,6 +14,8 @@ to_upload = {
     # 'merged_tee_sleeveless_1800_210521-17-10-22': 'tee_sleeveless',
     # 'merged_wb_dress_sleeveless_2600_210521-17-26-08': 'wb_dress_sleeveless',
     'merged_jacket_hood_2700_210521-17-47-44': 'jacket_hood',
+    'data_1000_pants_straight_sides_210520-22-34-57': 'pants_straight_sides'
+    
     # 'test_150_jacket_hood_sleeveless_210331-11-16-33': 'jacket_hood_sleeveless-test', 
     # 'test_150_skirt_waistband_210331-16-05-37': 'skirt_waistband-test',
     # 'test_150_jacket_sleeveless_210331-15-54-26': 'jacket_sleeveless-test',
@@ -26,7 +28,7 @@ to_upload = {
 for dataset, art_name in to_upload.items():
     wandb.init(project='Garments-Reconstruction', job_type='dataset')
 
-    artifact = wandb.Artifact(art_name, type='dataset', description='Mesh clean')
+    artifact = wandb.Artifact(art_name, type='dataset', description= dataset + ' + Scan imitation')
     # Add a file to the artifact's contents
     datapath = Path(system_props['datasets_path']) / dataset
     artifact.add_dir(str(datapath))

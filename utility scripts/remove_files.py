@@ -4,7 +4,23 @@ import customconfig
 from PIL import Image
 
 dataset_list = [
-    'data_1000_skirt_4_panels_200616-14-14-40'
+    # 'test_150_dress_210401-17-57-12',
+    # 'test_150_jacket_hood_sleeveless_210331-11-16-33',
+    # 'test_150_jacket_sleeveless_210331-15-54-26',
+    # 'test_150_jumpsuit_210401-16-28-21',
+    # 'test_150_skirt_waistband_210331-16-05-37',
+    # 'test_150_tee_hood_210401-15-25-29',
+    # 'test_150_wb_jumpsuit_sleeveless_210404-11-27-30'
+    
+    'merged_dress_sleeveless_2550_210429-13-12-52',
+    'merged_jumpsuit_sleeveless_2000_210429-11-46-14',
+    'merged_skirt_8_panels_1000_210521-16-20-14', # has fails
+    'merged_wb_pants_straight_1500_210521-16-30-57',
+    'merged_skirt_2_panels_1200_210521-16-46-27',
+    'merged_jacket_2200_210521-16-55-26',
+    'merged_tee_sleeveless_1800_210521-17-10-22',
+    'merged_wb_dress_sleeveless_2600_210521-17-26-08',  # had fails
+    'merged_jacket_hood_2700_210521-17-47-44'
 ]
 
 file_keys_remove = [

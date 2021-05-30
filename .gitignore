@@ -1,0 +1,23 @@
+# Jupyter tmp files 
+.ipynb_checkpoints
+
+# VSCode settings
+*.code-workspace
+.vscode
+__pycache__
+
+# PyCharm
+.idea
+
+# Compiled files
+*.pyc
+
+# Maya
+.mayaSwatches
+
+# custom settings -- to have customized local copy
+system.json
+
+# file for small script tries
+tmp*
+*tmp*.mb

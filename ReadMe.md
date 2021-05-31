@@ -16,9 +16,9 @@
     . -->
     <a href="">Dataset</a>
     ·
-    <a href="#requirements">Requirements</a>
+    <a href="#docs">Docs</a>
     ·
-    <a href="#docs">How to use</a>
+    <a href="#requirements">Requirements</a>
     ·
     <a href="#how-to-cite">How to cite</a>
     ·
@@ -30,7 +30,19 @@
 
 > Add figure here
 
+## Dataset
+---
+> To Add
+
+## Docs
+---
+* [Sewing pattern template specification](docs/template_spec_with_comments.json) - spec example with comments to all the elements.
+* [Configuring dataset generation](docs/Setting_up_generator.md) - from sewing pattern template to physics simulation components
+* [Running data generation](docs/Running_generation.md) - getting all the steps right.
+
+
 ## Requirements
+---
 
 * Autodesk Maya 2018/2020 with Arnold
     * Qualoth version for Maya 2022 is not available at the moment of the main development
@@ -52,16 +64,21 @@
 * wmi
     * [Troubleshooting 'DLL load failed while importing win32api'](https://stackoverflow.com/questions/58612306/how-to-fix-importerror-dll-load-failed-while-importing-win32api) error on Win
 
-## Docs
+### Local paths setup
 
-> To Add: on system.json file!
+Create system.json file in the root of this directory with your machine's file paths using `system.template.json` as a template. 
+`system.json` should include the following: 
+* Path for creating logs at (including generated data from dataset generation routined & NN predictions) (`'output'`)
+* Path to the folder with (generated) garment datasets (`'datasets_path'`)
 
-* [Sewing pattern template specification](docs/template_spec_with_comments.json) - spec example with comments to all the elements.
-* [Configuring dataset generation](docs/Setting_up_generator.md) - from sewing pattern template to physics simulation components
-* [Running data generation](docs/Running_generation.md) - getting all the steps right.
-
+* Data generation & Simulation resources  (default to subdirectories of `./data_generation`)
+    * path to pattern templates folder (`'templates_path'`) 
+    * path to folder containing body files (`'bodies_path'`)
+    * path to folder containing rendering setup (scenes) (`'scenes_path'`)
+    * path to folder with simulation\rendering configurations (`'sim_configs_path'`)
 
 ## How to cite
+---
 
 If you are using this system for your research, please, cite our paper
 
@@ -69,6 +86,7 @@ If you are using this system for your research, please, cite our paper
 
 
 ## Contributions
+---
 
 >📋 To add: Pick a licence and describe how to contribute to your code repository. 
 
@@ -82,6 +100,7 @@ If you are using this system for your research, please, cite our paper
 * Swithcing to Open Source cloth simulator
 
 ## Contact
+---
 
 For bug reports, feature suggestion, and code-related questions, please [open an issue](https://github.com/github_username/repo_name/issues). 
 
@@ -90,6 +109,7 @@ For other inquires, contact the authors:
 > To add
 
 ## Acknowledgements
+---
 
 * [Best-README-Template](https://github.com/othneildrew/Best-README-Template) for great ReadMe tips!
 > To add

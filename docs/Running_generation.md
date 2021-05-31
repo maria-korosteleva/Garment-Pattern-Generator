@@ -41,5 +41,5 @@ Example usage from command line:
 * is designed to work on datasets that passed the simulation steps. 
 * It modifies every 3D garment mesh to imitate missing geometry due to 3D scanning, and saves it as a separate file in the datapoint folder
 
-### Helpful itilities processing 
+### Optional (but helpful) utilities 
 * `gather_renders.py` is a small skript to copy all the simulation renders in the dataset to one location for convenience of data review.

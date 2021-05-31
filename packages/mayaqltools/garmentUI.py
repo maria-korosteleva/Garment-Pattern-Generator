@@ -30,7 +30,7 @@ def start_GUI():
     state = State()  
 
     # init window
-    window_width = 420
+    window_width = 440
     main_offset = 10
     win = cmds.window(
         title="Template editing", width=window_width,
@@ -66,16 +66,15 @@ def start_GUI():
     sim_button = cmds.button(label='Start Sim', backgroundColor=[227 / 256, 255 / 256, 119 / 256])
     cmds.button(sim_button, edit=True, 
                 command=partial(start_sim_callback, sim_button, state))
-    collisions_button = cmds.button(label='Test Collisions', backgroundColor=[250 / 256, 200 / 256, 119 / 256])
+    collisions_button = cmds.button(label='Collisions', backgroundColor=[250 / 256, 200 / 256, 119 / 256])
     cmds.button(collisions_button, edit=True, 
                 command=partial(check_collisions_callback, collisions_button, state))
-    scan_button = cmds.button(label='3D Scan', backgroundColor=[200 / 256, 225 / 256, 80 / 256])
-    cmds.button(scan_button, edit=True, 
-                command=partial(imitate_3D_scan_callback, scan_button, state))
     segm_button = cmds.button(label='Segmentation', backgroundColor=[150 / 256, 225 / 256, 80 / 256])
     cmds.button(segm_button, edit=True, 
                 command=partial(display_segmentation_callback, segm_button, state))
-    
+    scan_button = cmds.button(label='3D Scan', backgroundColor=[200 / 256, 225 / 256, 80 / 256])
+    cmds.button(scan_button, edit=True, 
+                command=partial(imitate_3D_scan_callback, scan_button, state))
 
     cmds.setParent('..')
     # separate
@@ -383,7 +382,7 @@ def check_collisions_callback(button, state, *args):
         button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok')
 
     cmds.button(button, edit=True, 
-                label='Test Collisions', backgroundColor=[250 / 256, 200 / 256, 119 / 256],
+                label='Collisions', backgroundColor=[250 / 256, 200 / 256, 119 / 256],
                 command=partial(check_collisions_callback, button, state))
 
 
@@ -410,7 +409,7 @@ def imitate_3D_scan_callback(button, state, *args):
         )
 
     cmds.button(button, edit=True, 
-                label='Imitate 3D Scan', backgroundColor=[150 / 256, 225 / 256, 80 / 256],
+                label='3D Scan', backgroundColor=[200 / 256, 225 / 256, 80 / 256],
                 command=partial(imitate_3D_scan_callback, button, state))
 
 
@@ -418,7 +417,7 @@ def display_segmentation_callback(button, state, *args):
     """
         Visualize the segmentation labels
     """
-    print('Segmenting!!')
+    print('Segmentation displayed!')
     # indicate waiting for imitation finish
     cmds.button(button, edit=True, 
                 label='Segmenting...', backgroundColor=[245 / 256, 96 / 256, 66 / 256])

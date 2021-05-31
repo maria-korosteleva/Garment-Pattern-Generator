@@ -34,8 +34,9 @@
 
 * Autodesk Maya 2018/2020 with Arnold
     * Qualoth version for Maya 2022 is not available at the moment of the main development
+
     > ☝ Arnold requires license to render simulated data without watermarks.
-* [Qualoth 2020](https://www.qualoth.com/) cloth simulator.
+* [Qualoth 2020](https://www.qualoth.com/) cloth simulator 
 
 ### Maya Python API Environment
 * Numpy (for Python 2.7)

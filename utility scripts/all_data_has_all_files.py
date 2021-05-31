@@ -29,6 +29,7 @@ file_keys = [
 ]
 ignore_fails = True
 check_extra = True
+print_counts = True
 
 # ------ Datasets ------
 dataset_folders = []
@@ -43,13 +44,14 @@ for child in path.iterdir():
 
 print(dataset_folders)
 
-# gather errors here
+# gather errors & other failures
 missing_files = dict.fromkeys(dataset_folders)
 for key in missing_files:
     missing_files[key] = []
 extra_files = dict.fromkeys(dataset_folders)
 for key in extra_files:
     extra_files[key] = []
+size_counts = dict.fromkeys(dataset_folders, '')
 size_errors = []
 render_errors = []
 render_folders_exist = []
@@ -90,11 +92,12 @@ for dataset in dataset_folders:
         
     # ------- Overall size checks -------
     data_size = data_props['size']
+    _, fails = data_props.count_fails()
+    size_counts[dataset] = '{}->{}'.format(data_size, data_size - fails)
     if data_size != elem_count:
         size_errors.append('{}::ERRRROOOR::Expected {} but got {} datapoints'.format(dataset, data_size, elem_count))
 
         # missing elements check
-        _, fails = data_props.count_fails()
         rendered = list(data_props['render']['stats']['render_time'].keys())
         expected_datapoints = set(rendered + fails)
         for name in dirs:
@@ -166,6 +169,11 @@ if check_extra:
 
             print('->')
 
+# -- Total \ clean counts --
+if print_counts:
+    print('\nFull size \ Clean items counts:')
+    for dataset in dataset_folders:
+        print(dataset, ': ', size_counts[dataset])
 
 # ----- Success ------
 no_problems = [d for d in dataset_folders if d in no_size_probelms and d in no_render_problems and d in no_file_problems]
@@ -180,3 +188,6 @@ print(*no_problems, sep='\n')
 
 # print('\nFiles OK:')
 # print(no_file_problems)
+
+# ------ Info ------
+

@@ -31,18 +31,15 @@
 > Add figure here
 
 ## Dataset
----
 > To Add
 
 ## Docs
----
 * [Sewing pattern template specification](docs/template_spec_with_comments.json) - spec example with comments to all the elements.
 * [Configuring dataset generation](docs/Setting_up_generator.md) - from sewing pattern template to physics simulation components
 * [Running data generation](docs/Running_generation.md) - getting all the steps right.
 
 
 ## Requirements
----
 
 * Autodesk Maya 2018/2020 with Arnold
     * Qualoth version for Maya 2022 is not available at the moment of the main development
@@ -78,7 +75,6 @@ Create system.json file in the root of this directory with your machine's file p
     * path to folder with simulation\rendering configurations (`'sim_configs_path'`)
 
 ## How to cite
----
 
 If you are using this system for your research, please, cite our paper
 
@@ -86,7 +82,6 @@ If you are using this system for your research, please, cite our paper
 
 
 ## Contributions
----
 
 >📋 To add: Pick a licence and describe how to contribute to your code repository. 
 
@@ -100,7 +95,6 @@ If you are using this system for your research, please, cite our paper
 * Swithcing to Open Source cloth simulator
 
 ## Contact
----
 
 For bug reports, feature suggestion, and code-related questions, please [open an issue](https://github.com/github_username/repo_name/issues). 
 
@@ -109,7 +103,6 @@ For other inquires, contact the authors:
 > To add
 
 ## Acknowledgements
----
 
 * [Best-README-Template](https://github.com/othneildrew/Best-README-Template) for great ReadMe tips!
 > To add

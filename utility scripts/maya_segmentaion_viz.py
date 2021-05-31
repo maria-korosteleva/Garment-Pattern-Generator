@@ -1,7 +1,7 @@
 """
     Visualize mesh with segmentation lables.
-    Tiny script to be executed within Maya Python environemnt. 
-    Primaily designed for debug purposes
+    
+    Tiny script to be executed within Maya Python environment, primaily designed for debug purposes
 """
 
 import os
@@ -20,7 +20,7 @@ from mayaqltools import utils
 base_path = 'D:/Data/my garments/'  # for all datasets
 dataset = 'merged_wb_pants_straight_1500_210521-16-30-57'
 datapoint = 'wb_pants_straight_0W210RNZEZ'
-tag = 'sim'
+tag = 'sim'  # 'scan_imitation'
 
 obj_path = os.path.join(base_path, dataset, datapoint, datapoint + '_' + tag + '.obj')
 segmentation_path = os.path.join(base_path, dataset, datapoint, datapoint + '_' + tag + '_segmentation.txt')

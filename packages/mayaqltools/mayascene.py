@@ -236,7 +236,6 @@ class MayaGarment(core.ParametrizedPattern):
 
         cmds.setAttr(self.get_qlcloth_geomentry() + '.displayColors', 1)
         cmds.refresh()
-        print('Colorization: ', time.time() - start_time)
 
     # ------ Simulation ------
     def add_colliders(self, obstacles=[]):
@@ -556,14 +555,11 @@ class MayaGarment(core.ParametrizedPattern):
 
         self.update_verts_info()
         self.vertex_labels = [None] * len(self.current_verts)
-        label_counts = [0] * (len(self.panel_order()) + 1)  # debug
-        start_time = time.time()
 
         # -- Stitches (provided in qualoth objects directly) ---
         on_stitches = self._verts_on_stitches()  # TODO I can even distinguish stitches from each other!
         for idx in on_stitches:
             self.vertex_labels[idx] = 'stitch'
-            label_counts[0] += 1
         
         # --- vertices ---
         vertices = self.current_verts
@@ -582,13 +578,10 @@ class MayaGarment(core.ParametrizedPattern):
             
             if len(in_bboxes) == 1:
                 self.vertex_labels[i] = in_bboxes[0]
-                label = self._panel_to_id(in_bboxes[0])
-                label_counts[label] += 1
             else:  # multiple or zero matches -- handle later
                 vertices_multi_match.append((i, in_bboxes))
 
         # eval for confusing cases
-        total_confisions = len(vertices_multi_match)
         neighbour_checks = 0
         while len(vertices_multi_match) > 0:
             unlabeled_vert_id, matched_panels = vertices_multi_match.pop(0)
@@ -602,8 +595,6 @@ class MayaGarment(core.ParametrizedPattern):
             # plane might not be the only option 
             if len(on_panel_planes) == 1:  # found!
                 self.vertex_labels[unlabeled_vert_id] = on_panel_planes[0]
-
-                label_counts[self._panel_to_id(on_panel_planes[0])] += 1
             else:
                 # by this time, many vertices already have labels, so let's just borrow from neigbours
                 neighbors = self._get_vert_neighbours(unlabeled_vert_id)
@@ -643,10 +634,7 @@ class MayaGarment(core.ParametrizedPattern):
         self.update_verts_info()
         match_verts = utils.match_vert_lists(self.current_verts, self.last_verts)
 
-        print('Reduced labeling from {} to {} after mesh clean-up'.format(len(self.vertex_labels), len(match_verts)))
         self.vertex_labels = [self.vertex_labels[i] for i in match_verts]
-
-        print(len(self.vertex_labels))
 
     def _edge_as_3d_tuple_list(self, edge, vertices):
         """

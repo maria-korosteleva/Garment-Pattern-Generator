@@ -1,11 +1,11 @@
 """
-    Check is all the needed files are present (recommended check after dataset download)
+    Check if all the subsets in your datasets folder are consistent:
+     * all the needed files are present
+     * No extra files are present 
+     
+    These checks are recommended check after dataset download
 """
-
-from __future__ import print_function
 import os
-import time
-from datetime import timedelta
 from pathlib import Path
 
 # My modules

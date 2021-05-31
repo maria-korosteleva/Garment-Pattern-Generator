@@ -1,4 +1,9 @@
-"""In simulated dataset, gather all the scene images in one folder"""
+"""
+    Merge two datafolders that were produced from the same template into one folder, 
+    with single dataset_properties.json for the merged folder.
+
+    For keeping the data organized by base garment type.
+"""
 
 from datetime import datetime
 import shutil

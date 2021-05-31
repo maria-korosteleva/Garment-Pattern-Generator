@@ -1,3 +1,15 @@
+"""
+    When the dataset simulation process was severely disrupted and a lot of datapoints marked as crashes, 
+    it's useful to try to re-simulate failed examples only.
+
+    This script marks the crashed datapoints as unprocessed for a given dataset folder. After that, 
+    batch simulation can be started over.
+
+    NOTE: this simple script only works correctly on the datasets for which the batch simulation has finalized 
+    (no 'processed' key is present in dataset.properties.json)
+"""
+
+
 from pathlib import Path
 import customconfig
 from pattern.wrappers import VisPattern
@@ -10,6 +22,9 @@ datapath = Path(system_props['datasets_path']) / dataset
 print(datapath)
 
 dataprops = customconfig.Properties(datapath / 'dataset_properties.json')
+
+if 'processed' in dataprops['sim']['stats'] and len(dataprops['sim']['stats']['processed']) > 0:
+    raise RuntimeError('This script is only applicable to datasets for which sim processing finished.')
 
 dataprops.serialize(datapath / 'dataset_properties_with_crashes.json')
 

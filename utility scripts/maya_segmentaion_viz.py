@@ -17,10 +17,10 @@ import maya.cmds as cmds
 from mayaqltools import utils
 
 # setup
-base_path = 'D:/Data/my garments/'  # for all datasets
-dataset = 'merged_wb_pants_straight_1500_210521-16-30-57'
-datapoint = 'wb_pants_straight_0W210RNZEZ'
-tag = 'sim'  # 'scan_imitation'
+base_path = 'D:/Data/my garments/'  # for all datasets  # Assuming no access to system.json file inside Maya
+dataset = 'data_1600_skirt_4_panels_210525-12-46-54'
+datapoint = 'skirt_4_panels_9VXDO0QR74'
+tag = 'scan_imitation'  # 'scan_imitation'  'sim'
 
 obj_path = os.path.join(base_path, dataset, datapoint, datapoint + '_' + tag + '.obj')
 segmentation_path = os.path.join(base_path, dataset, datapoint, datapoint + '_' + tag + '_segmentation.txt')

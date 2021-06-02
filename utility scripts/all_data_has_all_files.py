@@ -92,8 +92,8 @@ for dataset in dataset_folders:
         
     # ------- Overall size checks -------
     data_size = data_props['size']
-    _, fails = data_props.count_fails()
-    size_counts[dataset] = '{}->{}'.format(data_size, data_size - fails)
+    num_fails, fails = data_props.count_fails()
+    size_counts[dataset] = '{}->{}'.format(data_size, data_size - num_fails)
     if data_size != elem_count:
         size_errors.append('{}::ERRRROOOR::Expected {} but got {} datapoints'.format(dataset, data_size, elem_count))
 
@@ -115,7 +115,6 @@ for dataset in dataset_folders:
         render_folders_exist.append('{}::Info::Render folder exists'.format(dataset))
         root, dirs, files = next(os.walk(os.path.join(datapath, 'renders')))  # cannot use os.scandir in python 2.7
         num_renders = len(files)
-        num_fails, _ = data_props.count_fails()
         expected_min_num = data_size * 2 - num_fails
         if num_renders != data_size * 2:
             if num_renders >= expected_min_num: 

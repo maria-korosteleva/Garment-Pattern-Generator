@@ -1,32 +1,8 @@
-<!--
-*** With tips from https://github.com/othneildrew/Best-README-Template
--->
 
+# Generating Datasets of 3D Garments with Sewing Patterns
 
-<!-- Header with Navigation -->
-<br />
-<p align="center">
-  <h1 align="center">Generating Datasets of 3D Garments with Sewing Patterns</h1>
+Official implementation of [Generating Datasets of 3D Garments with Sewing Patterns]() [Link to be added].
 
-  <p align="center">
-    Official implementation of <a href="">Generating Datasets of 3D Garments with Sewing Patterns</a>
-    <br />
-    <br />
-    <!-- <a href="">Project Page</a>
-    . -->
-    <a href="">Dataset</a>
-    ·
-    <a href="#docs">Docs</a>
-    ·
-    <a href="#requirements">Requirements</a>
-    ·
-    <a href="#how-to-cite">How to cite</a>
-    ·
-    <a href="#contributions">Contributions</a>
-    ·
-    <a href="#contact">Contact us</a>
-  </p>
-</p>
 
 > Add figure here
 
@@ -64,7 +40,6 @@ We welcome contributions of bug fixes, features, and new assets (templates, scen
 >☝ All the new code and assets will be shared here under the [MIT license](LICENSE). Please, ensure that you hold the rights to distribute your artifacts like that. The authors do not take the responsibility of licensing violations for artifacts contributed by users. Thank you for your understanding 😊
 
 ## ToDo
-* Clarify documentation
 * Reformat template spec description for easy reading
 * Allow to turn off or chose simpler renderer for getting the datasets faster
 * Adding support for other curve types
@@ -75,5 +50,4 @@ We welcome contributions of bug fixes, features, and new assets (templates, scen
 
 ## Acknowledgements
 
-* [Best-README-Template](https://github.com/othneildrew/Best-README-Template) for great ReadMe tips!
 > To add

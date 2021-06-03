@@ -1,22 +1,25 @@
+# Running dataset generation
+
+Before running generation, make sure that you are familiar with [setup](./Setting_up_generator.md) and tested your setup with [GarmentViever GUI](./Setting_up_generator.md#Preview-your-setup-in-GarmentViewer-GUI).
+
+The process consists of three steps that need to be run sequentially:
+
+* Sampling sewing pattern designs from template 
+* Draping each over the base body (physics simulation)
+* (if needed) perform 3D scan imitation on each of the meshes
+
+More on each step below.
+
 ## Components of the generation system
-Note: Run _help_(module) for detailed descriptions of python modules
-
-### Garment Viewer
-> Move to Setting up?
-
-`garmentviewer.py` is to be run withing Maya (Python scripting). 
-
-It provides simple UI for viewing a parametrized garment template, test parameter values, simulation process & rendering setup.
-
-*NOTE:* make sure to add `Garment Pattern Estimation/packages/` directory to `PYTHONPATH` evironment variable to make the custom modules available in Maya
+> Run _help_(module) for even more detailed descriptions of corresponding python modules
 
 ### Dataset generator
 In `datasetgenerator.py` module
 
 2D pattern dataset generation from given templates. Allows to configure the generation by supplying Properties object.
-Example usage is given in 
+Example usage of the generator is given in 
 ``` if __name__ == "__main__": ```
-section of the file
+section of the file.
 
 ### Simulation
 `datasim.py` & `mayaqltools` package
@@ -40,6 +43,14 @@ Example usage from command line:
 `datascan.py` 
 * is designed to work on datasets that passed the simulation steps. 
 * It modifies every 3D garment mesh to imitate missing geometry due to 3D scanning, and saves it as a separate file in the datapoint folder
+* The process does NOT override the initial meshes, but rather created new .obj files for corrupted versions.
 
-### Optional (but helpful) utilities 
-* `gather_renders.py` is a small skript to copy all the simulation renders in the dataset to one location for convenience of data review.
+## Optional (but helpful) utilities 
+Found in [`utility scripts/`](../utility%20scripts/)
+* [`gather_renders.py`](../utility%20scripts/gather_renders.py) is a small skript to copy all the simulation renders of each datapoint to one location for convenience of data review.
+* [`all_data_has_all_files.py`](../utility%20scripts/all_data_has_all_files.py) tests if all datapoints in all datasets of your dataset folder are present and correctly structured (recommended to use after downloading the data or merging the datasets).
+* [`maya_segmentaion_viz.py`](../utility%20scripts/maya_segmentaion_viz.py) a script to be executed within Maya environment to visualize segmentation of a mesh from a particular datapoint.
+* [`merge_datasets.py`](../utility%20scripts/merge_datasets.py) merges two dataset folders that were produced from the same template into one data folder with single `dataset_properties.json` file. It's helpful to keep the data organized by garment type.
+* [`crashes_to_unprocessed.py`](../utility%20scripts/crashes_to_unprocessed.py) small utility for cases when the simulation process of dataset produced a lot of crashed examples and those need to be re-simulating without revising the correct ones.
+
+

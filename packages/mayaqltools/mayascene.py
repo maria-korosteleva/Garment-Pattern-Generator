@@ -1220,7 +1220,9 @@ class Scene(object):
     def fetch_props_from_Maya(self):
         """Get properties records from Maya
             Note: it updates global config!"""
-        pass
+        # Update color settings
+        self.config['garment_color'] = self._fetch_color(self.scene['cloth_shader'])
+        
 
     # ------- Private -----------
 
@@ -1240,7 +1242,7 @@ class Scene(object):
         """setup very simple scene & materials"""
         colors = {
             "body_color": [0.5, 0.5, 0.7], 
-            "cloth_color": [0.8, 0.2, 0.2], 
+            "cloth_color": [0.8, 0.2, 0.2] if 'garment_color' not in self.config else self.config['garment_color'],
             "floor_color": [0.8, 0.8, 0.8]
         }
 
@@ -1281,8 +1283,12 @@ class Scene(object):
         self.scene['body_SG'] = self._create_shader_group(self.scene['body_shader'], 'bodySG')
         self.scene['cloth_SG'] = self._create_shader_group(self.scene['cloth_shader'], 'garmentSG')
 
-        # save garment color to config
-        self.config['garment_color'] = self._fetch_color(self.scene['cloth_shader'])
+        if 'garment_color' in self.config:  # if given, use it
+            color = self.config['garment_color']
+            cmds.setAttr((self.scene['cloth_shader'] + '.color'), color[0], color[1], color[2], type='double3')
+        else:
+            # save garment color to config
+            self.config['garment_color'] = self._fetch_color(self.scene['cloth_shader'])
 
         # apply coloring to body object
         if self.body:

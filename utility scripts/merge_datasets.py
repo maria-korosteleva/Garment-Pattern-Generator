@@ -83,7 +83,7 @@ merged_props['name'] = merged_name
 merged_props['data_folder'] = new_folder_name
 merged_props['size'] = merged_size
 # Update stats calculations 
-merged_props.sim_stats_summary()
+merged_props.stats_summary()
 # save new props
 merged_props.serialize(merged_data_folder / 'dataset_properties.json')
 

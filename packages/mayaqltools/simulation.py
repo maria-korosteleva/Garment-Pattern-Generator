@@ -231,7 +231,7 @@ def template_simulation(spec, scene, sim_props, delete_on_clean=False, caching=F
 
 def _serialize_props_with_sim_stats(dataset_props, filename):
     """Compute data processing statistics and serialize props to file"""
-    dataset_props.sim_stats_summary()
+    dataset_props.stats_summary()
     dataset_props.serialize(filename)
 
 

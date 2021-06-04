@@ -198,7 +198,7 @@ class Properties():
             computer = wmi.WMI() 
             self.properties['system_info']['GPU'] = [computer.Win32_VideoController()[i].name for i in range(len(computer.Win32_VideoController()))]
 
-    def sim_stats_summary(self):
+    def stats_summary(self):
         """
             Compute data simulation processing statistics
         """
@@ -206,6 +206,8 @@ class Properties():
         updated_frames = self.summarize_stats('fin_frame', log_avg=True)
         updated_sim_time = self.summarize_stats('sim_time', log_sum=True, log_avg=True, as_time=True)
         updated_spf = self.summarize_stats('spf', log_avg=True, as_time=True)
+        updated_scan = self.summarize_stats('processing_time', log_sum=True, log_avg=True, as_time=True)
+        updated_scan_faces = self.summarize_stats('faces_removed', log_avg=True)
 
         if not (updated_frames and updated_render and updated_sim_time and updated_spf):
             print('CustomConfig::Warning::Sim stats summary requested, but not all sections were updated')
@@ -242,7 +244,11 @@ class Properties():
                     in_dict[new_key] = in_dict[new_key] + new_dict[new_key]
                 else:
                     # Keep both versions (e.g. in configs)
-                    in_dict[new_key + '_' + adding_tag] = new_dict[new_key]  
+                    adding_name = new_key + '_' + adding_tag
+                    while adding_name in in_dict:   # in case even the added version is already there
+                        adding_name = adding_name + '_added'
+
+                    in_dict[adding_name] = new_dict[new_key]  
                     in_dict[new_key + '_' + self['name']] = in_dict[new_key]
             else:  # at sertain depth there will be no more dicts -- recusrion stops
                 in_dict[new_key] = new_dict[new_key]

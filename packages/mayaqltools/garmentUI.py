@@ -30,10 +30,10 @@ def start_GUI():
     state = State()  
 
     # init window
-    window_width = 440
+    window_width = 450
     main_offset = 10
     win = cmds.window(
-        title="Template editing", width=window_width,
+        title="Garment Viewer", width=window_width,
         closeCommand=win_closed_callback, 
         topEdge=15
     )
@@ -211,12 +211,16 @@ def sample_callback(text, *args):
 
 def template_field_callback(view_field, state, *args):
     """Get the file with pattern"""
+
+    current_dir = os.path.dirname(cmds.textField(view_field, query=True, text=True))
+
     multipleFilters = "JSON (*.json);;All Files (*.*)"
     template_file = cmds.fileDialog2(
         fileFilter=multipleFilters, 
         dialogStyle=2, 
         fileMode=1, 
-        caption='Choose pattern specification file'
+        caption='Choose pattern specification file',
+        startingDirectory=current_dir
     )
     if not template_file:  # do nothing
         return
@@ -235,12 +239,14 @@ def template_field_callback(view_field, state, *args):
 
 def load_body_callback(view_field, state, *args):
     """Get body file & (re)init scene"""
+    current_dir = os.path.dirname(cmds.textField(view_field, query=True, text=True))
     multipleFilters = "OBJ (*.obj);;All Files (*.*)"
     file = cmds.fileDialog2(
         fileFilter=multipleFilters, 
         dialogStyle=2, 
         fileMode=1, 
-        caption='Choose body obj file'
+        caption='Choose body obj file',
+        startingDirectory=current_dir
     )
     if not file:  # do nothing
         return 
@@ -256,12 +262,14 @@ def load_body_callback(view_field, state, *args):
 
 def load_props_callback(view_field, state, *args):
     """Load sim & renderign properties from file rather then use defaults"""
+    current_dir = os.path.dirname(cmds.textField(view_field, query=True, text=True))
     multipleFilters = "JSON (*.json);;All Files (*.*)"
     file = cmds.fileDialog2(
         fileFilter=multipleFilters, 
         dialogStyle=2, 
         fileMode=1, 
-        caption='Choose sim & rendering properties file'
+        caption='Choose sim & rendering properties file',
+        startingDirectory=current_dir
     )
     if not file:  # do nothing
         return
@@ -269,37 +277,42 @@ def load_props_callback(view_field, state, *args):
     file = file[0]
     cmds.textField(view_field, edit=True, text=file)
     
-    # update props, fill in the gaps
-    state.config = customconfig.Properties(file)
-    mymaya.simulation.init_sim_props(state.config)  # fill the empty parts
+    # Edit the incoming config to reflect explicit choiced made in other UI elements
+    in_config = customconfig.Properties(file)
 
     # Use current body info instead of one from config
     if state.body_file is not None:
-        state.config['body'] = os.path.basename(state.body_file)
+        in_config['body'] = os.path.basename(state.body_file)
 
-    # Use current scene info instead of one from config if we don't have path to scene files
-    if not state.scenes_path:
-        state.config['render']['config'].pop('scene', None)
+    # Use current scene info instead of one from config 
+    if 'scene' not in state.config['render']['config']:  # remove entirely
+        in_config['render']['config'].pop('scene', None)
+    else:
+        in_config['render']['config']['scene'] = state.config['render']['config']['scene']
 
-    # Update scene with new config
+    # After the adjustments made, apply the new config to all elements
+    state.config = in_config
+    mymaya.simulation.init_sim_props(state.config)  # fill the empty parts
+
     if state.scene is not None:
         state.scene = mymaya.Scene(
             state.body_file, state.config['render'], 
             scenes_path=state.scenes_path, clean_on_die=True)  
         
-    # Load material props
     if state.garment is not None:
         state.reload_garment()
 
 
 def load_scene_callback(view_field, state, *args):
     """Load sim & renderign properties from file rather then use defaults"""
+    current_dir = os.path.dirname(cmds.textField(view_field, query=True, text=True))
     multipleFilters = "MayaBinary (*.mb);;All Files (*.*)"
     file = cmds.fileDialog2(
         fileFilter=multipleFilters, 
         dialogStyle=2, 
         fileMode=1, 
-        caption='Choose scene setup Maya file'
+        caption='Choose scene setup Maya file',
+        startingDirectory=current_dir
     )
     if not file:  # do nothing
         return
@@ -440,10 +453,14 @@ def win_closed_callback(*args):
 
 def saving_folder_callback(view_field, state, *args):
     """Choose folder to save files to"""
+
+    current_dir = cmds.textField(view_field, query=True, text=True)
+
     directory = cmds.fileDialog2(
         dialogStyle=2, 
         fileMode=3,  # directories 
-        caption='Choose folder to save snapshots and renderings to'
+        caption='Choose folder to save snapshots and renderings to',
+        startingDirectory=current_dir
     )
     if not directory:  # do nothing
         return 

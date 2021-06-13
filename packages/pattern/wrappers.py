@@ -60,15 +60,19 @@ class VisPattern(core.ParametrizedPattern):
         Estimates multiplicative factor to convert vertex units to pixel coordinates
         Heuritic approach, s.t. all the patterns from the same template are displayed similarly
         """
-        if not self.pattern['panels']:  # empty pattern
+        if len(self.pattern['panels']) == 0:  # empty pattern
             return None
-        any_panel = next(iter(self.pattern['panels'].values()))
-        vertices = np.asarray(any_panel['vertices'])
+        
+        avg_box_x = []
+        for panel in self.pattern['panels'].values():
+            vertices = np.asarray(panel['vertices'])
+            box_size = np.max(vertices, axis=0) - np.min(vertices, axis=0) 
+            avg_box_x.append(box_size[0])
+        avg_box_x = sum(avg_box_x) / len(avg_box_x)
 
-        box_size = np.max(vertices, axis=0) - np.min(vertices, axis=0) 
-        if box_size[0] < 2:      # meters
+        if avg_box_x < 2:      # meters
             scaling_to_px = 300
-        elif box_size[0] < 200:  # sentimeters
+        elif avg_box_x < 200:  # sentimeters
             scaling_to_px = 3
         else:                    # pixels
             scaling_to_px = 1  

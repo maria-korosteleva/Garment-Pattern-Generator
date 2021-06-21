@@ -589,26 +589,6 @@ class ParametrizedPattern(BasicPattern):
         super(ParametrizedPattern, self)._restore(backup_copy)
         self.parameters = self.spec['parameters']
     
-    # ------- Direct pattern update -------
-    def pattern_from_tensors(
-            self, pattern_representation, 
-            panel_rotations=None, panel_translations=None, stitches=None,
-            padded=False):
-        """When direct update is applied to parametrized pattern, 
-            all the parameter settings become invalid"""
-        super().pattern_from_tensors(pattern_representation, panel_rotations, panel_translations, stitches, padded)
-
-        # Invalidate parameter & constraints values
-        self._invalidate_all_values()
-
-    def panel_from_numeric(self, panel_name, edge_sequence, rotation=None, translation=None, padded=False):
-        """When direct update is applied to parametrized pattern panels, 
-            all the parameter settings become invalid"""
-        super().panel_from_numeric(panel_name, edge_sequence, rotation, translation, padded)
-
-        # Invalidate parameter & constraints values
-        self._invalidate_all_values()
-
     # ---------- Parameters operations --------
 
     def _normalize_param_scaling(self):

@@ -29,6 +29,9 @@ reload(core)
 reload(qw)
 reload(utils)
 
+class PatternLoadingError(BaseException):
+    """To be rised when a pattern cannot be loaded correctly to 3D"""
+    pass
 
 class MayaGarment(core.ParametrizedPattern):
     """
@@ -54,7 +57,7 @@ class MayaGarment(core.ParametrizedPattern):
             'body_friction': 0.5, 
             'resolution_scale': 5
         }
-    
+
     def __del__(self):
         """Remove Maya objects when dying"""
         if self.self_clean:
@@ -67,6 +70,11 @@ class MayaGarment(core.ParametrizedPattern):
             If already loaded, cleans previous geometry & reloads
             config should contain info on fabric matereials & body_friction (collider friction) if provided
         """
+        if self.is_self_intersecting():
+            # supplied pattern with self-intersecting panels -- it's likely to crash Maya
+            raise PatternLoadingError('{}::Provided pattern has self-intersecting panels. Nothing is loaded'.format(self.__class__.__name__))
+    
+
         if self.loaded_to_maya:
             # save the latest sim info
             self.fetchSimProps()

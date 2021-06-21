@@ -191,7 +191,8 @@ def init_sim_props(props, batch_run=False, force_restart=False):
         'intersect_colliders': [],
         'intersect_self': [],
         'static_equilibrium': [],
-        'fast_finish': []
+        'fast_finish': [],
+        'pattern_loading': []
     }
 
     props.set_section_stats('render', render_time={})
@@ -208,25 +209,30 @@ def template_simulation(spec, scene, sim_props, delete_on_clean=False, caching=F
     """
     print('\nGarment load')
     garment = mymaya.MayaGarment(spec)
-    garment.load(
-        shader_group=scene.cloth_SG(), 
-        obstacles=[scene.body],  # I don't add floor s.t. garment falls infinitely if falls
-        config=sim_props['config']
-    )
-    # garment.save_mesh(tag='stitched')  # Saving the geometry before eny forces were applied
-    garment.sim_caching(caching)
+    try:
+        garment.load(
+            shader_group=scene.cloth_SG(), 
+            obstacles=[scene.body],  # I don't add floor s.t. garment falls infinitely if falls
+            config=sim_props['config']
+        )
+    except mymaya.PatternLoadingError as e:
+        # record error and skip subequent processing
+        sim_props['stats']['fails']['pattern_loading'].append(garment.name)
+    else:
+        # garment.save_mesh(tag='stitched')  # Saving the geometry before eny forces were applied
+        garment.sim_caching(caching)
 
-    qw.run_sim(garment, sim_props)
+        qw.run_sim(garment, sim_props)
 
-    # save even if sim failed -- to see what happened!
-    garment.save_mesh(tag='sim')
-    scene.render(garment.path, garment.name)
-    if save_maya_scene:
-        # save current Maya scene
-        cmds.file(rename=os.path.join(garment.path, garment.name + '_scene'))
-        cmds.file(save=True, type='mayaBinary', force=True, defaultExtensions=True)
+        # save even if sim failed -- to see what happened!
+        garment.save_mesh(tag='sim')
+        scene.render(garment.path, garment.name)
+        if save_maya_scene:
+            # save current Maya scene
+            cmds.file(rename=os.path.join(garment.path, garment.name + '_scene'))
+            cmds.file(save=True, type='mayaBinary', force=True, defaultExtensions=True)
 
-    garment.clean(delete_on_clean)
+        garment.clean(delete_on_clean)
 
 
 def _serialize_props_with_sim_stats(dataset_props, filename):

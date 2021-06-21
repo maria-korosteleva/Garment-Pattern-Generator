@@ -12,7 +12,7 @@
 import mayascene
 reload(mayascene)
 
-from .mayascene import MayaGarment, Scene, MayaGarmentWithUI
+from .mayascene import PatternLoadingError, MayaGarment, Scene, MayaGarmentWithUI
 
 import simulation
 import qualothwrapper

@@ -368,6 +368,7 @@ class BasicPattern(object):
             for edge_id in range(len(rotated_edges)):
                 if 'curvature' in panel['edges'][edge_id]:
                     curvature = panel['edges'][edge_id]['curvature']
+                    # YES!! Only one of the curvature coordinates need update at this point
                     panel['edges'][edge_id]['curvature'][1] = -curvature[1]
 
             # Panel translation and rotation -- local coord frame changed!
@@ -378,8 +379,6 @@ class BasicPattern(object):
             flip_R[0, 0] = flip_R[2, 2] = -1  # by 180 around Y
 
             panel['rotation'] = rotation_tools.R_to_euler(panel_R * flip_R)
-        
-        
 
         # Stitches -- update the edge references according to the new ids
         for stitch_id in range(len(self.pattern['stitches'])):

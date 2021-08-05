@@ -1321,7 +1321,7 @@ class Scene(object):
         """Puts camera in the scene
         NOTE Assumes body is facing +z direction"""
 
-        camera = cmds.camera()[0]
+        camera = cmds.camera(aspectRatio=self.config['resolution'][0] / self.config['resolution'][1])[0]
         cmds.setAttr(camera + '.rotate', rotation[0], rotation[1], rotation[2], type='double3')
 
         # to view the target body

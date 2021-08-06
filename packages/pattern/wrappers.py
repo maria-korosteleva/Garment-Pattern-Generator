@@ -183,7 +183,7 @@ class VisPattern(core.ParametrizedPattern):
 
         # to png
         svg_pattern = svglib.svg2rlg(svg_filename)
-        renderPM.drawToFile(svg_pattern, png_filename, fmt='png')
+        renderPM.drawToFile(svg_pattern, png_filename, fmt='PNG')
 
 
 class RandomPattern(VisPattern):

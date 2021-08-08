@@ -131,9 +131,12 @@ class VisPattern(core.ParametrizedPattern):
 
         # name the panel
         panel_center = np.mean(vertices, axis=0)
-        drawing.add(drawing.text(panel_name, insert=panel_center + np.array([-25, 3]), 
+        text_insert = panel_center + np.array([-25, 3])
+        drawing.add(drawing.text(panel_name, insert=text_insert, 
                     fill='rgb(9,33,173)', font_size='25'))
+        text_max_x = text_insert[0] + 10 * len(panel_name)
 
+        panel_center = np.mean(vertices, axis=0)
         if self.view_ids:
             # name vertices 
             for idx in range(vertices.shape[0]):
@@ -154,7 +157,7 @@ class VisPattern(core.ParametrizedPattern):
                     drawing.text(idx, insert=middle + shift, 
                                  fill='rgb(50,179,101)', font_size='20'))
 
-        return np.max(vertices[:, 0]), np.max(vertices[:, 1])
+        return max(np.max(vertices[:, 0]), text_max_x), np.max(vertices[:, 1])
 
     def _save_as_image(self, svg_filename, png_filename):
         """
@@ -163,7 +166,7 @@ class VisPattern(core.ParametrizedPattern):
         if self.scaling_for_drawing is None:  # re-evaluate if not ready
             self.scaling_for_drawing = self._verts_to_px_scaling_factor()
 
-        dwg = svgwrite.Drawing(svg_filename, profile='tiny')
+        dwg = svgwrite.Drawing(svg_filename, profile='full')
         base_offset = [60, 60]
         panel_offset_x = 0
         heights = [0]  # s.t. it has some value if pattern is empty -- no panels

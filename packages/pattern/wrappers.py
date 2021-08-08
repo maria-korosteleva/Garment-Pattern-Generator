@@ -170,11 +170,12 @@ class VisPattern(core.ParametrizedPattern):
 
         panel_order = self.panel_order()
         for panel in panel_order:
-            panel_offset_x, height = self._draw_a_panel(
-                dwg, panel,
-                offset=[panel_offset_x + base_offset[0], base_offset[1]]
-            )
-            heights.append(height)
+            if panel is not None:
+                panel_offset_x, height = self._draw_a_panel(
+                    dwg, panel,
+                    offset=[panel_offset_x + base_offset[0], base_offset[1]]
+                )
+                heights.append(height)
 
         # final sizing & save
         dwg['width'] = str(panel_offset_x + base_offset[0]) + 'px'  # using latest offset -- the most right

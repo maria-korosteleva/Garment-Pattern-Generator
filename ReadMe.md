@@ -1,7 +1,7 @@
 
 # Generating Datasets of 3D Garments with Sewing Patterns
 
-![Examples of Garments generated with our pipeline](img/data_samples_high_res.png)
+![Examples of Garments generated with our pipeline](img/data_samples.png)
 
 Official implementation of [Generating Datasets of 3D Garments with Sewing Patterns]() [Link to be added upon sharing on arxive \ publication] (accepted to NeurIPS 2021 Dataset and Benchmarks Track).
 

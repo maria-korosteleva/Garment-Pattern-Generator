@@ -36,5 +36,5 @@ Create system.json file in the root of this directory with your machine's file p
 * Data generation & Simulation resources  (default to subdirectories of `./data_generation`)
     * path to pattern templates folder (`'templates_path'`) 
     * path to folder containing body files (`'bodies_path'`)
-    * path to folder containing rendering setup (scenes) (`'scenes_path'`)
+    * path to folder containing render scenes (`'scenes_path'`)
     * path to folder with simulation\rendering configurations (`'sim_configs_path'`)

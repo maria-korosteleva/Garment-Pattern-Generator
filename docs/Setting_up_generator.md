@@ -5,7 +5,7 @@ In order to generate a new dataset of garments, you would need:
 * [Base body model](#body-model)
 * [Simulation properties config](#simulation-config-file)
 * (Optional) [Scan imitation properties config](#scan-imitation-configuration) (usually combined with Simulation props config)
-* (Optional) [Maya Scene for rendering setup](#rendering-setup)
+* (Optional) [Maya Scene for rendering setup](#render-scene)
 
 Examples of each component are provided in `./data_generation` subfolders. Any examples can be freely reused with proper attribution given. Note, that the provided human body model is part of [SMPL Body Model](https://smpl.is.tue.mpg.de/) that is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
@@ -46,13 +46,19 @@ To ease this process, we recommend to
     * However, our example patterns are designed to be draped on the average female body we borrow from [SMPL statistical body model](https://smpl.is.tue.mpg.de/) in T-pose: `f_smpl_template.obj` 
 
 ### Simulation config file
+
+> Any `dataset_properties.json` file of existing datasets could be used in place of Simulaiton Config file. This is an easy way to reproduce simulaiton and rendering context of existing data.
+
 [`data_generation/Sim_props`](../data_generation/Sim_props) contains configuration for dataset simulation process.
 
 On the high level, every config contains the following
 * Name of the base 3D model (body) file to use for draping
-* Render setup with the name of the scene file to use (if any) and a desired resulution of output images
+* Render setup with the following elements: 
+    * a desired resulution of output images
+    * (optional) color to apply to garments -- RGB in range (0, 1)
+    * (optional) the name of the scene file to use, if any (More info: [Maya Scene for rendering setup](#render-scenes))
 * Material properties of garment fabric & body to be used for physics simulation
-* Geometry resolution multiplier (the larger -- the higher the final res of a garment 3D model)
+* Geometry resolution multiplier (the larger -- the higher the final mesh resolution of generated garment 3D models)
 * Different thresholds to control the sensitivity of simulation quality checks
     * Simulation quality checks are designed to filter out garments with failed simulations to avoid biasing the training a dataset will be used for
     * Examples of bad simulation results: skirt sliding down to the legs; heavy self-intersections, etc.
@@ -67,20 +73,53 @@ The properties define the visibility test performed on every face of the garment
 * the number of rays to be shout from every face (in random directions) (`test_rays_num`). 
 
     It controls the amount "noise" in the corrupted version: with smaller values, more and more visible faces will be randomly removed
-* the number of those rays to be visible for a face marked as visible. 
+* the number of those rays to be visible for a face marked as visible (`visible_rays_num`). 
 
     Roughly corresponds to the resolution of capture device. Faces that are only partially observed, will be more likely to be marked visible with smaller values.
 
-### Rendering setup
-[`data_generation/Scenes`](../data_generation/Scenes) contain example scenes that can be used to create good-looking renders of the draping result of each datapoint. Usage of scenes is optional, and a default simple setup will be created if no scene file is provided for data simulation pipeline.
+### Render scenes
 
-A scene is a Maya file should contains the following elements:
-* Light sources
+Our system supports import of rednering scenes (collection of lights, cameras, and backdrops as Maya Binary `.mb` files) that can be used to create good-looking renders of the draping result of each garment. Usage of scenes is optional, and if none are provided, a simple setup with single camera will be created automatically.
+
+**How to use** 
+
+* Path to the render scene files should be setup in the `system.json` (see [Dependencies and Installation instructions](Installation.md#local-paths-setup))
+* The name of the render scene file to use should be added to the render section of the [Simulation properties config](#simulation-config-file) as follows:
+
+    ```
+    "render": {
+        "config": {
+            "scene": "scene.mb", 
+
+            <-- other rendering properties --->
+        }
+    }
+    ```
+
+**Elements of a render scene**
+* Arnold Light sources (any number)
+    * The setting of the light sources will be preserved at render time.
 * Cameras (any number) 
     * At render time, images from all the available cameras in the scene will be created
-* Stage geometry -- could be as complicated as needed
-* Configured materials for stage, body, and garment
+* Stage backdrops geometry -- could be as complicated as needed
+    * At least one of the elements should represent the floor area of the scene -- it should have a 'floor' in its name.
+    The body model will be automatically placed on the 'floor' level.
+* Configured shaders for all backdrops geometry, body, and garment
+    * Shader for garment should contain substring 'garment' in its name. 
+    * Shader for body model should contain substring 'body' in its name
+    * Shaders for other scene elements can be defined and named freely.
 
-*NOTE:* When developing a new rendering setup, follow the scaling, groupings, and naming conventions from the example scenes.
+**Additional conditions**
+* All elemetes should be grouped together with the group name containing substring 'scene' (e.g. 'render_scene')
+* The body model, as specified in the config file, will be automatically aligned with the 'floor' level in its Y coordinates and with the center of the whole scene geometry in its XZ coordinates.
+* The scene geometry should use centimeters as base units.
+* If garment color is set in the [Simulation properties config](#simulation-config-file), it will be applied to the garment shader regardless of the original color value of this shader. 
+
+**Example render scene**
+
+![rexample_scene](../img/render_scene_example.png)
+
+
+*NOTE:* We cannot share examples of rendering scenes as `.md` due to licensing conditions.
 
 *NOTE:* As other dataset components, scenes can be tested with GUI `garmentviewer.py` in Maya.

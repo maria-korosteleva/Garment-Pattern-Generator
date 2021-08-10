@@ -1282,11 +1282,9 @@ class Scene(object):
 
         self.scene = {
             'scene_group': cmds.ls(scene_namespace + '*scene*', transforms=True)[0],
-            'floor': cmds.ls(scene_namespace + '*backdrop*', geometry=True)[0],
-            'floor_shader': cmds.ls(scene_namespace + '*backdrop*', materials=True)[0],
+            'floor': cmds.ls(scene_namespace + '*floor*', geometry=True)[0],
             'body_shader': cmds.ls(scene_namespace + '*body*', materials=True)[0],
-            'cloth_shader': cmds.ls(scene_namespace + '*garment*', materials=True, )[0],
-            'side_shader': cmds.ls(scene_namespace + '*wall*', materials=True)[0]
+            'cloth_shader': cmds.ls(scene_namespace + '*garment*', materials=True, )[0]
         }
         # shader groups (to be used in cmds.sets())
         self.scene['body_SG'] = self._create_shader_group(self.scene['body_shader'], 'bodySG')

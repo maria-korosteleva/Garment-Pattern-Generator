@@ -21,16 +21,16 @@ trap 'sigint'  INT
 
 # -- Main calls --
 num_samples=30   # number of reloads and re-sim vs. speed to detect Maya\Qualoth hang
-per_sample_delay=$((3*60))  # give about 7 min per sample before detecting Maya to hang
-dataset=data_1000_pants_straight_sides_210520-22-34-57
-config=pants_custom_fabric_basic_body.json
+per_sample_delay=$((7*60))  # give about 7 min per sample before detecting Maya to hang
+dataset=data_5_pants_straight_sides_210810-21-39-14
+config=T_body_green_intersect_tolerance.json
 ret_code=1
 STARTTIME=$(date +%s)
 while [ $ret_code != 0 ]  # failed for any reason
 do
     # https://unix.stackexchange.com/questions/405337/bash-if-command-doesnt-finish-in-x-time
-    # set timeout to catch hangs.
-    # forse kill if not soft terminating
+    # set timeout to catch hangs && forse kill if not soft terminating
+    # NOTE: update the location of mayapy.exe HERE!
     timeout -k 30 $((num_samples * per_sample_delay)) /d/Autodesk/Maya2020/bin/mayapy.exe "./datasim.py" --data $dataset --minibatch $num_samples  --config $config
     ret_code=$?
     echo $ret_code   # if it's 124, the execution was finished by timeout

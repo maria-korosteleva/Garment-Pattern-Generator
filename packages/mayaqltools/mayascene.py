@@ -1343,7 +1343,7 @@ class Scene(object):
         """
         target_bb = cmds.exactWorldBoundingBox(target)
 
-        size = 10 * (target_bb[4] - target_bb[1])
+        size = 50 * (target_bb[4] - target_bb[1])
         floor = cmds.polyPlane(n='floor', w=size, h=size)
 
         # place under the body
@@ -1352,6 +1352,10 @@ class Scene(object):
                   floor_level, 
                   (target_bb[5] + target_bb[2]) / 2,  # bbox center
                   floor, a=1)
+
+        # Make the floor non-renderable
+        shape = cmds.listRelatives(floor[0], shapes=True)
+        cmds.setAttr(shape[0] + '.primaryVisibility', 0)
 
         return floor[0]
 

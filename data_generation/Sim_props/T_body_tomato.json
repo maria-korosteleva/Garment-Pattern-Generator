@@ -1,8 +1,12 @@
 {
-  "body": "f_smpl_template_TA_pose.obj", 
+  "body": "f_smpl_template.obj", 
   "render": {
     "config": {
-      "scene": "studio_green.mb",
+      "garment_color": [
+        0.6359999775886536, 
+        0.1120000034570694, 
+        0.04800000041723251
+      ], 
       "resolution": [
         800, 
         800
@@ -14,7 +18,7 @@
   }, 
   "sim": {
     "config": {
-      "body_friction": 0.5,
+      "body_friction": 0.25,
       "material": {
         "air_drag": 0.01, 
         "bend_angle_dropoff": 0.11, 
@@ -41,11 +45,11 @@
       "collision_thickness": 0.04,
       "max_sim_steps": 1500, 
       "static_threshold": 0.01, 
-      "non_static_percent": 3.5,
+      "non_static_percent": 1.5,
       "zero_gravity_steps": 5, 
-      "object_intersect_border_threshold": 140,
-      "self_intersect_hit_threshold": 25,
-      "resolution_scale": 4
+      "object_intersect_border_threshold": 100,
+      "self_intersect_hit_threshold": 0,
+      "resolution_scale": 5
     }, 
     "stats": {
       "fin_frame": {}, 

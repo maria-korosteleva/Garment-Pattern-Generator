@@ -2,7 +2,11 @@
   "body": "f_smpl_template.obj", 
   "render": {
     "config": {
-      "scene": "studio_scarlet.mb",
+      "garment_color": [
+        0.04780800640583038, 
+        0.2898332476615906, 
+        0.746999979019165
+      ], 
       "resolution": [
         800, 
         800
@@ -41,10 +45,10 @@
       "collision_thickness": 0.04,
       "max_sim_steps": 1500, 
       "static_threshold": 0.01, 
-      "non_static_percent": 1,
+      "non_static_percent": 1.5,
       "zero_gravity_steps": 5, 
-      "object_intersect_border_threshold": 130,
-      "self_intersect_hit_threshold": 3,
+      "object_intersect_border_threshold": 100,
+      "self_intersect_hit_threshold": 0,
       "resolution_scale": 4
     }, 
     "stats": {

@@ -37,10 +37,7 @@ do
 
     # clear tmp files created by Qualoth -- they can be left after crashes && fill out all the free disk space
     find /tmp -regextype sed -regex "/tmp/tmp[0-9]*\.[0-9]*" -delete
-
-    # help parallel sweep run in cache cleaning
-    find /c/Users/Maria/.cache/wandb/artifacts/ -delete
-    echo "Cleaned Qualoth and wandb cache!"
+    echo "Cleaned Qualoth cache!"
 
     ENDTIME=$(date +%s)
     T=$(($ENDTIME - $STARTTIME))

@@ -3,9 +3,9 @@
 In order to generate a new dataset of garments, you would need:
 * [Sewing Pattern Template](#pattern-template)
 * [Base body model](#body-model)
-* [Simulation properties config](#simulation-config-file)
-* (Optional) [Scan imitation properties config](#scan-imitation-configuration) (usually combined with Simulation props config)
-* (Optional) [Maya Scene for rendering setup](#render-scene)
+* [Simulation and base rendering configuration](#simulation-config-file)
+* (Optional) [Scan imitation configuration](#scan-imitation-configuration) (usually combined with Simulation props config)
+* (Optional) [Maya Scene for nice rendering](#render-scene)
 
 Examples of each component are provided in `./data_generation` subfolders. Any examples can be freely reused with proper attribution given. Note, that the provided human body model is part of [SMPL Body Model](https://smpl.is.tue.mpg.de/) that is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
@@ -77,7 +77,7 @@ The properties define the visibility test performed on every face of the garment
 
     Roughly corresponds to the resolution of capture device. Faces that are only partially observed, will be more likely to be marked visible with smaller values.
 
-### Render scenes
+### Render scene
 
 Our system supports import of rednering scenes (collection of lights, cameras, and backdrops as Maya Binary `.mb` files) that can be used to create good-looking renders of the draping result of each garment. Usage of scenes is optional, and if none are provided, a simple setup with single camera will be created automatically.
 

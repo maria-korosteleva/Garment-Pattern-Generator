@@ -22,6 +22,20 @@
 * wmi
     * [Troubleshooting 'DLL load failed while importing win32api'](https://stackoverflow.com/questions/58612306/how-to-fix-importerror-dll-load-failed-while-importing-win32api) error on Win
 
+
+
+<details>
+    <summary> NOTE: Lib verstions used in development</summary>
+
+    python==3.8.5
+    numpy==1.19.2
+    scipy==1.6.2
+    svglib==1.0.1
+    svgwrite==1.4
+    psutil==5.7.2
+    wmi=1.5.1
+</details>
+
 ## Setting up 
 ### Environmental variables
 

@@ -3,9 +3,7 @@
 
 ![Examples of Garments generated with our pipeline](img/data_samples.png)
 
-Official implementation of [Generating Datasets of 3D Garments with Sewing Patterns]() [Link to be added upon sharing on arxive \ publication] (accepted to NeurIPS 2021 Dataset and Benchmarks Track).
-
-
+Official implementation of [Generating Datasets of 3D Garments with Sewing Patterns](https://openreview.net/forum?id=Pq8FBz0gZHY) (accepted to NeurIPS 2021 Dataset and Benchmarks Track).
 
 ## Dataset
 > Reference to our public dataset of Garment 3D models with Sewing patterns (will be added upon availiblity)
@@ -26,7 +24,7 @@ If you are using our system in your research, consider citing our paper
 
 ## Contributions
 
-We welcome contributions of bug fixes, features, and new assets (templates, scenes, body models, simulation properties). Please, create a [Pool Request]() if you wish to contribute.
+We welcome contributions of bug fixes, features, and new assets (templates, scenes, body models, simulation properties). Please, create a [Pool Request](https://github.com/maria-korosteleva/Garment-Pattern-Generator/pulls) if you wish to contribute.
 
 >☝ All the new code and assets will be shared here under the [MIT license](LICENSE). Please, ensure that you hold the rights to distribute your artifacts like that. The authors do not take the responsibility of licensing violations for artifacts contributed by users. Thank you for your understanding 😊
 
@@ -41,7 +39,7 @@ We welcome contributions of bug fixes, features, and new assets (templates, scen
 
 ## Contact
 
-For bug reports, feature suggestion, and code-related questions, please [open an issue](https://github.com/github_username/repo_name/issues). 
+For bug reports, feature suggestion, and code-related questions, please [open an issue](https://github.com/maria-korosteleva/Garment-Pattern-Generator/issues). 
 
 For other inquires, contact the authors: 
 
@@ -49,5 +47,5 @@ For other inquires, contact the authors:
 
 * Sung-Hee Lee ([sunghee.lee@kaist.ac.kr](mailto:sunghee.lee@kaist.ac.kr)).
 
-## Acknowledgements
-* Big thanks to the developers of [SMPL](https://smpl.is.tue.mpg.de/) for generously sharing their Body Model with the community (licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)). We are using their average female model as a human body example.
+## Attribution
+We are using [SMPL](https://smpl.is.tue.mpg.de/) female average body model as base for [Body Model examples](data_generation/Bodies). [SMPL Body Model](https://smpl.is.tue.mpg.de/) is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).

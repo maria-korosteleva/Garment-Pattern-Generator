@@ -25,7 +25,7 @@
 
 
 <details>
-    <summary> NOTE: Lib verstions used in development</summary>
+    <summary> <b>NOTE: Lib verstions used in development</b></summary>
 
     python==3.8.5
     numpy==1.19.2

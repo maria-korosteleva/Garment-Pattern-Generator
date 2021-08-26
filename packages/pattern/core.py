@@ -35,6 +35,7 @@ pattern_spec_template = {
     'properties': {  # these are to be ensured when pattern content is updated directly
         'curvature_coords': 'relative', 
         'normalize_panel_translation': False, 
+        'normalized_edge_loops': True,  # will trigger edge loop normalization on reload
         'units_in_meter': 100  # cm
     }
 }
@@ -458,7 +459,9 @@ class BasicPattern(object):
             Map old edge_ids to new ones accordingly
             * edges expects list of edges structures
         """
+
         first_edge_orig_id = [idx for idx, edge in enumerate(edges) if edge['endpoints'][0] == new_origin_id]
+
         first_edge_orig_id = first_edge_orig_id[0]
         rotated_edges = edges[first_edge_orig_id:] + edges[:first_edge_orig_id]
 

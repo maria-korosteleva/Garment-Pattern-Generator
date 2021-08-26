@@ -6,7 +6,13 @@
 Official implementation of [Generating Datasets of 3D Garments with Sewing Patterns](https://openreview.net/forum?id=Pq8FBz0gZHY) (accepted to NeurIPS 2021 Dataset and Benchmarks Track).
 
 ## Dataset
-> Reference to our public dataset of Garment 3D models with Sewing patterns (will be added upon availiblity)
+
+Using this data generator, we created a [Dataset of 3D Garments with Sewing patterns](https://doi.org/10.5281/zenodo.5267549) consisting of 19 garment types and more then 20 000 garment samples. 
+
+> The dataset is available on Zenodo: https://doi.org/10.5281/zenodo.5267549.
+
+If you have problems, questions, or suggestions regarding the dataset, please [open an issue](https://github.com/maria-korosteleva/Garment-Pattern-Generator/issues) with `dataset` label.
+
 
 ## Docs
 Provided in `./docs` folder

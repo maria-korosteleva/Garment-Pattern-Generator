@@ -3,7 +3,7 @@
 
 ![Examples of Garments generated with our pipeline](img/data_samples.png)
 
-Official implementation of [Generating Datasets of 3D Garments with Sewing Patterns](https://openreview.net/forum?id=Pq8FBz0gZHY) (accepted to NeurIPS 2021 Dataset and Benchmarks Track).
+Official implementation of [Generating Datasets of 3D Garments with Sewing Patterns](https://arxiv.org/abs/2109.05633) (accepted to NeurIPS 2021 Dataset and Benchmarks Track).
 
 ## Dataset
 

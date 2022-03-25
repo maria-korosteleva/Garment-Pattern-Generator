@@ -189,6 +189,12 @@ class MayaGarment(core.ParametrizedPattern):
 
             if delete:
                 print('MayaGarment::Deleting {}'.format(self.MayaObjects['pattern']))
+
+                 # Clean solver cache properly
+                solver = qw.findSolver()
+                if solver:
+                    qw.qlReinitSolver(self.get_qlcloth_props_obj(), solver)
+
                 cmds.delete(self.MayaObjects['pattern'])
                 qw.deleteSolver()
 

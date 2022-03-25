@@ -78,6 +78,14 @@ def qlCleanCache(cloth):
     mel.eval('qlClearCache()')
 
 
+def qlReinitSolver(cloth, solver):
+    """Reinitialize solver 
+        set both cloth and solver to the initial state before simulation was applied
+        NOTE: useful for correct reload of garments on delete
+    """
+    cmds.select([cloth, solver])
+    mel.eval('qlReinitializeSolver()')
+
 # ------- Higher-level functions --------
 
 def start_maya_sim(garment, props):
@@ -162,7 +170,7 @@ def findSolver():
         (usully solver is created once per scene)
     """
     solver = cmds.ls('*qlSolver*Shape*')
-    return solver[0]
+    return solver[0] if solver else None
 
 
 def deleteSolver():

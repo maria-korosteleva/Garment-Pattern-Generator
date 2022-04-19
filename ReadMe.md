@@ -24,9 +24,20 @@ Provided in `./docs` folder
 
 ## Citation
 
-If you are using our system in your research, consider citing our paper
+If you are using our system in your research, consider citing our paper:
 
-> Bibtex will be added here upon paper publication
+```
+@inproceedings{KorostelevaGarmentData,
+ author = {Korosteleva, Maria and Lee, Sung-Hee},
+ booktitle = {Proceedings of the Neural Information Processing Systems Track on Datasets and Benchmarks},
+ editor = {J. Vanschoren and S. Yeung},
+ pages = {},
+ title = {Generating Datasets of 3D Garments with Sewing Patterns},
+ url = {https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/file/013d407166ec4fa56eb1e1f8cbe183b9-Paper-round1.pdf},
+ volume = {1},
+ year = {2021}
+}
+```
 
 ## Contributions
 

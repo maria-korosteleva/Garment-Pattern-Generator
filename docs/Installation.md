@@ -6,14 +6,12 @@
     * Qualoth version for Maya 2022 is not available at the moment of the main development
 
     >☝ Arnold requires license to render simulated data without watermarks.
-* [Qualoth 2020](https://www.qualoth.com/) cloth simulator 
+* [Qualoth 2020](https://www.qualoth.com/) cloth simulator   
 
-### Maya Python API Environment
-* Numpy
-* Scipy
-    [Installation instructions for python packages for Maya](https://knowledge.autodesk.com/support/maya/learn-explore/caas/CloudHelp/cloudhelp/2022/ENU/Maya-Scripting/files/GUID-72A245EC-CDB4-46AB-BEE0-4BBBF9791627-htm.html)
+### Python Environment (both in Maya Python Environment, and for usual development)
 
-### Generic Python Environment
+[Installation instructions for python packages for Maya](https://knowledge.autodesk.com/support/maya/learn-explore/caas/CloudHelp/cloudhelp/2022/ENU/Maya-Scripting/files/GUID-72A245EC-CDB4-46AB-BEE0-4BBBF9791627-htm.html)
+
 * Python 3.6+
 * numpy
 * scipy
@@ -21,6 +19,7 @@
 * [svgwrite](https://pypi.org/project/svgwrite/)
 * psutil
 * wmi
+    * May require pypiwin32
     * [Troubleshooting 'DLL load failed while importing win32api'](https://stackoverflow.com/questions/58612306/how-to-fix-importerror-dll-load-failed-while-importing-win32api) error on Win
 
 

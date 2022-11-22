@@ -20,10 +20,10 @@ from mtoa.cmds.arnoldRender import arnoldRender
 import mtoa.core
 
 # My modules
-import pattern.core as core
+import pattern.wrappers as wrappers
 from mayaqltools import qualothwrapper as qw
 from mayaqltools import utils
-reload(core)
+reload(wrappers)
 reload(qw)
 reload(utils)
 
@@ -31,7 +31,7 @@ class PatternLoadingError(BaseException):
     """To be rised when a pattern cannot be loaded correctly to 3D"""
     pass
 
-class MayaGarment(core.ParametrizedPattern):
+class MayaGarment(wrappers.VisPattern):
     """
     Extends a pattern specification in custom JSON format to work with Maya
         Input:

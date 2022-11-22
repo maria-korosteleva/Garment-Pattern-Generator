@@ -94,8 +94,9 @@ class VisPattern(core.ParametrizedPattern):
         """
             To get to image coordinates one might need to flip Y axis
         """
-        point[1] *= -1
-        return point
+        flipped_point = list(point)  # top-level copy
+        flipped_point[1] *= -1
+        return flipped_point
 
     def _draw_a_panel(self, drawing, panel_name, offset=[0, 0]):
         """

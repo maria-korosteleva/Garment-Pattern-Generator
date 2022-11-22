@@ -1,16 +1,14 @@
 """
     Module contains classes needed to simulate garments from patterns in Maya.
-    Note that Maya uses Python 2.7 (incl Maya 2020) hence this module is adapted to Python 2.7
 """
 # Basic
-from __future__ import print_function
-from __future__ import division
 from functools import partial
 import copy
 import errno
 import numpy as np
 import os
 import time
+from importlib import reload
 
 # Maya
 from maya import cmds

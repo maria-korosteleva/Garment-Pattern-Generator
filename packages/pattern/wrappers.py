@@ -1,5 +1,5 @@
 """
-    To be used in Python 3.6+ due to dependencies (failed to install reportlab for Python 2.7 used by Maya)
+    To be used in Python 3.6+ due to dependencies
 """
 import copy
 import random

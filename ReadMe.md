@@ -5,6 +5,10 @@
 
 Official implementation of [Generating Datasets of 3D Garments with Sewing Patterns](https://arxiv.org/abs/2109.05633) (accepted to NeurIPS 2021 Dataset and Benchmarks Track).
 
+## News!
+
+* Nov. 21, 2022: switched to using Maya 2022+. Support for earlier versions is removed
+
 ## Dataset
 
 Using this data generator, we created a [Dataset of 3D Garments with Sewing patterns](https://doi.org/10.5281/zenodo.5267549) consisting of 19 garment types and more then 20 000 garment samples. 

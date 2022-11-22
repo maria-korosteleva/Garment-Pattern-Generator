@@ -1,13 +1,10 @@
 """
     Maya interface for editing & testing patterns files
-    Python 2.7 compatible
-    * Maya 2018+
+    * Maya 2022+
     * Qualoth
 """
 
 # Basic
-from __future__ import print_function
-from __future__ import division
 from functools import partial
 from datetime import datetime
 import os

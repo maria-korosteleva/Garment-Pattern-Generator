@@ -15,6 +15,7 @@
 * [svglib](https://pypi.org/project/svglib/)
 * [svgwrite](https://pypi.org/project/svgwrite/)
 * psutil
+* pyyaml
 * wmi
     * May require pypiwin32
     * [Troubleshooting 'DLL load failed while importing win32api'](https://stackoverflow.com/questions/58612306/how-to-fix-importerror-dll-load-failed-while-importing-win32api) error on Win
